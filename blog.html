@@ -1,40 +1,96 @@
 <!DOCTYPE html>
-<html>
 
 <head>
     <title>Test</title>
 </head>
 
 <style>
+    @font-face {
+        font-family: cascadia-code;
+        font-weight: 400;
+        src: url('CascadiaCode-Regular.otf');
+    }
+
+    @font-face {
+        font-family: cascadia-code;
+        font-weight: 800;
+        src: url('CascadiaCode-Bold.otf');
+    }
+
+    :root {
+        --accent: rgb(238, 114, 241);
+        --accent-alpha-20: rgba(238, 114, 241, .2);
+        --accent-alpha-70: rgba(238, 114, 241, .7);
+        --background: #21202C;
+        --color: whitesmoke;
+        --border-color: rgba(255, 255, 255, .1);
+        --footnote-color: rgba(255, 255, 255, .5);
+    }
+
     body {
-        background-color: #282a36
+        background-color: var(--background);
+        font-family: cascadia-code;
     }
 
-    h2 {
-        color: #ff79c6
+    .title {
+        color: var(--accent);
+        font-weight: 800;
+        text-decoration: none;
     }
 
-    h3 {
-        color: #ff79c6
+    .colon {
+        color: var(--accent);
+        font-weight: 800;
+    }
+
+    .tags {
+        color: var(--accent);
+    }
+
+    .summary {
+        color: var(--color);
+    }
+
+    .logo {
+        background: var(--background);
+        color: var(--accent);
+        padding: 4px 10px;
+        text-decoration: none;
+        display: flex;
+    }
+
+    .logo:after {
+        content: '';
+        background: repeating-linear-gradient(90deg, var(--accent), var(--accent), 3px, transparent 0, transparent 12px);
+        background-color: var(--background);
+        width: 100%;
+    }
+
+    .content {
+        padding-left: 4px;
     }
 </style>
 
 
 <body>
-    <div>
+    <div class="header">
+        <h1>
+            <a href="/" class="logo">
+                zerm&nbsp;
+            </a>
+        </h1>
+    </div>
+
+    <div class="content">
         <div class="post1">
-            <h2>
-                Using KaTeX for mathematical typesetting
-                <br>
-                :::::::::::::::::::::::::::::::::::::::::::::::::::::
+            <h2 class>
+                <a href="" class="title">Using KaTeX for mathematical typesetting</a>
             </h2>
-            <h3>2021.06.16 :: {test} :: #math #zola</h3>
-
-        </div>
-        <div class="post2">
-
+            <h2 class="colon">::::::::::::::::::::::::::::::::::::::::</h2>
+            <h3 class="tags">2021.06.16 :: {test} :: #math #zola</h3>
+            <a class="summary">
+                a summary of the article here. this is a test. this is a test. this is a test.
+            </a>
         </div>
     </div>
 </body>
-
-</html>
