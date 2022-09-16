@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <head>
-    <title>Test</title>
+    <title>Posts - bayd.xyz</title>
 </head>
 
 <style>
@@ -17,13 +17,13 @@
     @font-face {
         font-family: cascadia-code;
         font-weight: 400;
-        src: url('CascadiaCode-Regular.otf');
+        src: url('font/CascadiaCode-Regular.otf');
     }
 
     @font-face {
         font-family: cascadia-code;
         font-weight: 800;
-        src: url('CascadiaCode-Bold.otf');
+        src: url('font/CascadiaCode-Bold.otf');
     }
 
     body {
@@ -39,38 +39,49 @@
     }
 
     header {
-        font-size: 1.5rem;
-        margin-bottom: 10px;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
-        padding: 1em 0;
+        padding-top: 1em;
+        padding-bottom: 1em;
+        font-size: 40px;
     }
 
-    nav {
-        line-height: 1.6em;
-        font-size: 16.5px;
+    header a:hover {
+        background-color: var(--primary-color);
+    }
+
+    header nav {
+        display: flex;
+        padding: 1.0em;
+        font-size: 20px;
+    }
+
+    header nav a {
+        margin-left: 0.7em;
+    }
+
+    @media only screen and (max-width: 800px) {
+        header nav a {
+            display: none;
+        }
     }
 
     .header-bar {
         border-top: 4px solid;
-        border-image-source: linear-gradient(90deg, #5d2f86, #8ed6fb 50%, #d32e9d);
+        border-image-source: linear-gradient(90deg, var(--bg-0), var(--primary-color), var(--bg-0));
         border-image-slice: 1;
         position: fixed;
         top: 0;
         right: 0;
         left: 0;
-        z-index: 1030;
     }
 
     .article-header {
-        font-size: 2.5em;
-        line-height: 100%;
-        font-family: var(--header-font);
-        /* margin: 4rem 0px 1rem 0px; */
-        font-family: cascadia-code;
-        font-weight: 800;
-
+        font-size: 2.25em;
+        padding-bottom: 10px;
+        font-weight: 801;
+        text-align: center;
     }
 
     a {
@@ -79,29 +90,6 @@
         text-decoration: none;
     }
 
-    a:hover {
-        background-color: var(--primary-color);
-    }
-
-    ul {
-        display: block;
-        list-style-type: disc;
-        margin-block-start: 1em;
-        margin-block-end: 1em;
-        margin-inline-start: 0px;
-        margin-inline-end: 0px;
-        padding-inline-start: 40px;
-        margin: 17px 0px;
-    }
-
-
-    h1:hover {
-        transform: scale(1.01, 1.01);
-        transform-origin: center;
-        transition: transform 500ms;
-    }
-
-
     h1::before {
         color: var(--primary-color);
         content: "# ";
@@ -109,12 +97,21 @@
 
     .list-item {
         font-size: 15px;
-        /* margin-top: 1em; */
-        margin: 1em;
+        margin: 0.75em;
         padding: 1em;
         border: 2px solid var(--bg-1);
         border-radius: 5px;
         text-indent: 5px;
+        transform-origin: center;
+        transition: transform 250ms;
+    }
+
+    .list-item:hover a {
+        background-color: var(--primary-color);
+    }
+
+    .list-item:hover {
+        transform: scale(1.02, 1.02);
     }
 
     .time {
@@ -124,19 +121,25 @@
     }
 </style>
 
-
 <body>
+
+    <head>
+        <link rel="import" href="about.html">
+    </head>
+    <!-- 
+        Header hides when page is too small: https://deepthought-theme.netlify.app/posts/
+        Table of contents: https://deepthought-theme.netlify.app/docs/extended-shortcodes/
+    -->
     <header>
         <div class="header-bar"></div>
         <div class="main"><a href="https://not-matthias.github.io">not-matthias</a></div>
         <nav>
-            <a style="margin-left: 0.7em" href="/posts">/posts</a>
-            <a style="margin-left: 0.7em" href="/projects">/projects</a>
-            <a style="margin-left: 0.7em" href="/about">/about</a>
+            <a href="home.html">/home</a>
+            <a href="posts.html">/posts</a>
+            <a href="projects.html">/projects</a>
+            <a href="about.html">/about</a>
         </nav>
     </header>
-
-    <div class="article-header">Blog</span></div>
 
     <main class="list">
         <ul>
@@ -149,9 +152,11 @@
             </section>
 
             <section class="list-item">
-                <h1 class="title"><a href="https://not-matthias.github.io/posts/kernel-driver-with-rust-2022/">Kernel
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/kernel-driver-with-rust-2022/">Kernel
                         Driver with
-                        Rust in 2022</a></h1>
+                        Rust in 2022</a>
+                </h1>
                 <div class="time">2022-08-16</div>
             </section>
 
@@ -162,6 +167,7 @@
                 </h1>
                 <div class="time">2022-08-16</div>
             </section>
+
             <section class="list-item">
                 <h1 class="title">
                     <a href="https://not-matthias.github.io/posts/discord-party-mode/">Reverse
@@ -169,6 +175,7 @@
                 </h1>
                 <div class="time">2022-08-16</div>
             </section>
+
             <section class="list-item">
                 <h1 class="title">
                     <a href="https://not-matthias.github.io/posts/rust-kernel-adventures/">Custom
@@ -176,6 +183,7 @@
                 </h1>
                 <div class="time">2022-08-16</div>
             </section>
+
             <section class="list-item">
                 <h1 class="title">
                     <a href="https://not-matthias.github.io/posts/why-java-doesnt-optimize/">Why Java
@@ -183,14 +191,20 @@
                 </h1>
                 <div class="time">2022-08-16</div>
             </section>
+
             <section class="list-item">
-                <h1 class="title"><a href="https://not-matthias.github.io/posts/kernel-printing-with-rust/">Kernel
-                        printing with Rust</a></h1>
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/kernel-printing-with-rust/">Kernel printing with
+                        Rust</a>
+                </h1>
                 <div class="time">2022-08-16</div>
             </section>
+
             <section class="list-item">
-                <h1 class="title"><a href="https://not-matthias.github.io/posts/kernel-driver-with-rust/">Writing a
-                        kernel driver with Rust</a></h1>
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/kernel-driver-with-rust/">Writing a kernel driver with
+                        Rust</a>
+                </h1>
                 <div class="time">2022-08-16</div>
             </section>
         </ul>
