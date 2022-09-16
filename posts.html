@@ -10,8 +10,8 @@
         --text-1: rgba(255, 255, 255, 60%);
         --bg-0: #121212;
         --bg-1: rgba(255, 255, 255, 5%);
-        --primary-color: #ef5350;
-        --hover-color: white;
+        /* --primary-color: #ef5350; */
+        --primary: #aa61c5;
     }
 
     @font-face {
@@ -48,7 +48,7 @@
     }
 
     header a:hover {
-        background-color: var(--primary-color);
+        background-color: var(--primary);
     }
 
     header nav {
@@ -69,7 +69,7 @@
 
     .header-bar {
         border-top: 4px solid;
-        border-image-source: linear-gradient(90deg, var(--bg-0), var(--primary-color), var(--bg-0));
+        border-image-source: linear-gradient(90deg, var(--bg-0), var(--primary), var(--bg-0));
         border-image-slice: 1;
         position: fixed;
         top: 0;
@@ -85,13 +85,13 @@
     }
 
     a {
-        border-bottom: 3px solid var(--primary-color);
+        border-bottom: 3px solid var(--primary);
         color: inherit;
         text-decoration: none;
     }
 
     h1::before {
-        color: var(--primary-color);
+        color: var(--primary);
         content: "# ";
     }
 
@@ -107,7 +107,7 @@
     }
 
     .list-item:hover a {
-        background-color: var(--primary-color);
+        background-color: var(--primary);
     }
 
     .list-item:hover {
@@ -115,6 +115,7 @@
     }
 
     .time {
+        font-size: 16px;
         color: #999;
         letter-spacing: -0.5px;
         padding-left: 25px;
@@ -129,6 +130,7 @@
     <!-- 
         Header hides when page is too small: https://deepthought-theme.netlify.app/posts/
         Table of contents: https://deepthought-theme.netlify.app/docs/extended-shortcodes/
+        LaTex: https://katex.org/
     -->
     <header>
         <div class="header-bar"></div>
