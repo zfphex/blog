@@ -5,6 +5,15 @@
 </head>
 
 <style>
+    :root {
+        --text-0: rgba(255, 255, 255, 87%);
+        --text-1: rgba(255, 255, 255, 60%);
+        --bg-0: #121212;
+        --bg-1: rgba(255, 255, 255, 5%);
+        --primary-color: #ef5350;
+        --hover-color: white;
+    }
+
     @font-face {
         font-family: cascadia-code;
         font-weight: 400;
@@ -17,142 +26,174 @@
         src: url('CascadiaCode-Bold.otf');
     }
 
-    :root {
-        --accent: rgb(238, 114, 241);
-        --accent-alpha-20: rgba(238, 114, 241, .2);
-        --accent-alpha-70: rgba(238, 114, 241, .7);
-        --background: #21202C;
-        --color: whitesmoke;
-        --border-color: rgba(255, 255, 255, .1);
-        --footnote-color: rgba(255, 255, 255, .5);
-    }
-
     body {
-        background-color: var(--background);
+        background: var(--bg-0);
+        color: var(--text-0);
+        max-width: 944px;
+        margin: 0 auto;
+        padding: 0 24px;
+        word-wrap: break-word;
         font-family: cascadia-code;
-    }
-
-
-
-
-
-    .logo {
-        background: var(--background);
-        color: var(--accent);
-        padding: 4px 18px;
-        text-decoration: none;
-        display: flex;
-    }
-
-    .logo:after {
-        content: '';
-        background: repeating-linear-gradient(90deg, var(--accent), var(--accent), 3px, transparent 0, transparent 12px);
-        background-color: var(--background);
-        width: 100%;
-    }
-
-
-
-    .dropdown button {
-        background-color: var(--background);
-        color: var(--accent);
-        border: 4px solid var(--accent);
-        font-family: cascadia-code;
-    }
-
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: var(--background);
-        border: 2px solid var(--accent);
-        min-width: 160px;
-    }
-
-    .dropdown-content a {
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        color: var(--accent);
-    }
-
-    .dropdown-content a:hover {
-        background-color: var(--accent-alpha-20);
-    }
-
-    .dropdown:hover .dropdown-content {
-        display: block;
-    }
-
-    .dropdown:hover button {
-        background-color: var(--accent);
-        color: var(--background);
+        font-weight: 400;
+        word-wrap: break-word;
     }
 
     header {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
         display: flex;
-        align-items: center;
-        /* justify-content: center; */
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 1em 0;
     }
 
-    /* Content */
-    .content {
-        padding-left: 4px;
+    nav {
+        line-height: 1.6em;
+        font-size: 16.5px;
     }
 
-    .title {
+    .header-bar {
+        border-top: 4px solid;
+        border-image-source: linear-gradient(90deg, #5d2f86, #8ed6fb 50%, #d32e9d);
+        border-image-slice: 1;
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 1030;
+    }
+
+    .article-header {
+        font-size: 2.5em;
+        line-height: 100%;
+        font-family: var(--header-font);
+        /* margin: 4rem 0px 1rem 0px; */
+        font-family: cascadia-code;
+        font-weight: 800;
+
+    }
+
+    a {
+        border-bottom: 3px solid var(--primary-color);
+        color: inherit;
         text-decoration: none;
-        color: var(--accent);
-        font-weight: 800;
     }
 
-    .colon {
-        color: var(--accent);
-        font-weight: 800;
+    a:hover {
+        background-color: var(--primary-color);
+    }
+
+    ul {
+        display: block;
+        list-style-type: disc;
+        margin-block-start: 1em;
+        margin-block-end: 1em;
+        margin-inline-start: 0px;
+        margin-inline-end: 0px;
+        padding-inline-start: 40px;
+        margin: 17px 0px;
     }
 
 
-
-    .tags {
-        color: var(--accent);
+    h1:hover {
+        transform: scale(1.01, 1.01);
+        transform-origin: center;
+        transition: transform 500ms;
     }
 
 
-    .summary {
-        color: var(--color);
+    h1::before {
+        color: var(--primary-color);
+        content: "# ";
+    }
+
+    .list-item {
+        font-size: 15px;
+        /* margin-top: 1em; */
+        margin: 1em;
+        padding: 1em;
+        border: 2px solid var(--bg-1);
+        border-radius: 5px;
+        text-indent: 5px;
+    }
+
+    .time {
+        color: #999;
+        letter-spacing: -0.5px;
+        padding-left: 25px;
     }
 </style>
 
 
 <body>
     <header>
-        <h1 class="header">
-            <a href="/blog.html" class="logo">
-                zerm&nbsp;
-            </a>
-        </h1>
-
-        <div class="dropdown">
-            <button>
-                <h2>Dropdown</h2>
-            </button>
-            <div class="dropdown-content">
-                <a href="">Link 1</a>
-                <a href="">Link 2</a>
-                <a href="">Link 3</a>
-            </div>
-        </div>
+        <div class="header-bar"></div>
+        <div class="main"><a href="https://not-matthias.github.io">not-matthias</a></div>
+        <nav>
+            <a style="margin-left: 0.7em" href="/posts">/posts</a>
+            <a style="margin-left: 0.7em" href="/projects">/projects</a>
+            <a style="margin-left: 0.7em" href="/about">/about</a>
+        </nav>
     </header>
 
-    <div class="content">
-        <div class="post1">
-            <h2>
-                <a href="/blog.html" class="title">Using KaTeX for mathematical typesetting</a>
-            </h2>
-            <h2 class="colon">::::::::::::::::::::::::::::::::::::::::</h2>
-            <h3 class="tags">2021.06.16 :: {test} :: #math #zola</h3>
-            <a class="summary">
-                a summary of the article here. this is a test. this is a test. this is a test.
-            </a>
-        </div>
-    </div>
+    <div class="article-header">Blog</span></div>
+
+    <main class="list">
+        <ul>
+            <section class="list-item">
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/first-year-of-uni/">Reflecting on the first year of
+                        Uni</a>
+                </h1>
+                <div class="time">2022-09-04</div>
+            </section>
+
+            <section class="list-item">
+                <h1 class="title"><a href="https://not-matthias.github.io/posts/kernel-driver-with-rust-2022/">Kernel
+                        Driver with
+                        Rust in 2022</a></h1>
+                <div class="time">2022-08-16</div>
+            </section>
+
+            <section class="list-item">
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/mechanical-keyboard/">Building my
+                        first mechanical keyboard</a>
+                </h1>
+                <div class="time">2022-08-16</div>
+            </section>
+            <section class="list-item">
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/discord-party-mode/">Reverse
+                        Engineering Discord's Party Mode</a>
+                </h1>
+                <div class="time">2022-08-16</div>
+            </section>
+            <section class="list-item">
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/rust-kernel-adventures/">Custom
+                        Allocators in Rust</a>
+                </h1>
+                <div class="time">2022-08-16</div>
+            </section>
+            <section class="list-item">
+                <h1 class="title">
+                    <a href="https://not-matthias.github.io/posts/why-java-doesnt-optimize/">Why Java
+                        doesn't optimize</a>
+                </h1>
+                <div class="time">2022-08-16</div>
+            </section>
+            <section class="list-item">
+                <h1 class="title"><a href="https://not-matthias.github.io/posts/kernel-printing-with-rust/">Kernel
+                        printing with Rust</a></h1>
+                <div class="time">2022-08-16</div>
+            </section>
+            <section class="list-item">
+                <h1 class="title"><a href="https://not-matthias.github.io/posts/kernel-driver-with-rust/">Writing a
+                        kernel driver with Rust</a></h1>
+                <div class="time">2022-08-16</div>
+            </section>
+        </ul>
+    </main>
+
 </body>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Test</title>
+</head>
+
+<style>
+    @font-face {
+        font-family: cascadia-code;
+        font-weight: 400;
+        src: url('CascadiaCode-Regular.otf');
+    }
+
+    @font-face {
+        font-family: cascadia-code;
+        font-weight: 800;
+        src: url('CascadiaCode-Bold.otf');
+    }
+
+    :root {
+        --accent: rgb(238, 114, 241);
+        --accent-alpha-20: rgba(238, 114, 241, .2);
+        --accent-alpha-70: rgba(238, 114, 241, .7);
+        --background: #21202C;
+        --color: whitesmoke;
+        --border-color: rgba(255, 255, 255, .1);
+        --footnote-color: rgba(255, 255, 255, .5);
+    }
+
+    body {
+        background-color: var(--background);
+        font-family: cascadia-code;
+    }
+
+
+
+
+
+    .logo {
+        background: var(--background);
+        color: var(--accent);
+        padding: 4px 18px;
+        text-decoration: none;
+        display: flex;
+    }
+
+    .logo:after {
+        content: '';
+        background: repeating-linear-gradient(90deg, var(--accent), var(--accent), 3px, transparent 0, transparent 12px);
+        background-color: var(--background);
+        width: 100%;
+    }
+
+
+
+    .dropdown button {
+        background-color: var(--background);
+        color: var(--accent);
+        border: 4px solid var(--accent);
+        font-family: cascadia-code;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: var(--background);
+        border: 2px solid var(--accent);
+        min-width: 160px;
+    }
+
+    .dropdown-content a {
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        color: var(--accent);
+    }
+
+    .dropdown-content a:hover {
+        background-color: var(--accent-alpha-20);
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover button {
+        background-color: var(--accent);
+        color: var(--background);
+    }
+
+    header {
+        display: flex;
+        align-items: center;
+        /* justify-content: center; */
+    }
+
+    /* Content */
+    .content {
+        padding-left: 4px;
+    }
+
+    .title {
+        text-decoration: none;
+        color: var(--accent);
+        font-weight: 800;
+    }
+
+    .colon {
+        color: var(--accent);
+        font-weight: 800;
+    }
+
+
+
+    .tags {
+        color: var(--accent);
+    }
+
+
+    .summary {
+        color: var(--color);
+    }
+</style>
+
+
+<body>
+    <header>
+        <h1 class="header">
+            <a href="/blog.html" class="logo">
+                zerm&nbsp;
+            </a>
+        </h1>
+
+        <div class="dropdown">
+            <button>
+                <h2>Dropdown</h2>
+            </button>
+            <div class="dropdown-content">
+                <a href="">Link 1</a>
+                <a href="">Link 2</a>
+                <a href="">Link 3</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="post1">
+            <h2>
+                <a href="/blog.html" class="title">Using KaTeX for mathematical typesetting</a>
+            </h2>
+            <h2 class="colon">::::::::::::::::::::::::::::::::::::::::</h2>
+            <h3 class="tags">2021.06.16 :: {test} :: #math #zola</h3>
+            <a class="summary">
+                a summary of the article here. this is a test. this is a test. this is a test.
+            </a>
+        </div>
+    </div>
+</body>
