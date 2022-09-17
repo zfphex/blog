@@ -2,124 +2,13 @@
 
 <head>
     <title>Posts - bayd.xyz</title>
+    <link rel="preload" href="style.css" as="style" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <style>
-    :root {
-        --text-0: rgba(255, 255, 255, 87%);
-        --text-1: rgba(255, 255, 255, 60%);
-        --bg-0: #121212;
-        --bg-1: rgba(255, 255, 255, 5%);
-        /* --primary-color: #ef5350; */
-        --primary: #aa61c5;
-    }
 
-    @font-face {
-        font-family: cascadia-code;
-        font-weight: 400;
-        src: url('font/CascadiaCode-Regular.otf');
-    }
-
-    @font-face {
-        font-family: cascadia-code;
-        font-weight: 800;
-        src: url('font/CascadiaCode-Bold.otf');
-    }
-
-    body {
-        background: var(--bg-0);
-        color: var(--text-0);
-        max-width: 944px;
-        margin: 0 auto;
-        padding: 0 24px;
-        word-wrap: break-word;
-        font-family: cascadia-code;
-        font-weight: 400;
-        word-wrap: break-word;
-    }
-
-    header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        padding-top: 1em;
-        padding-bottom: 1em;
-        font-size: 40px;
-    }
-
-    header a:hover {
-        background-color: var(--primary);
-    }
-
-    header nav {
-        display: flex;
-        padding: 1.0em;
-        font-size: 20px;
-    }
-
-    header nav a {
-        margin-left: 0.7em;
-    }
-
-    @media only screen and (max-width: 800px) {
-        header nav a {
-            display: none;
-        }
-    }
-
-    .header-bar {
-        border-top: 4px solid;
-        border-image-source: linear-gradient(90deg, var(--bg-0), var(--primary), var(--bg-0));
-        border-image-slice: 1;
-        position: fixed;
-        top: 0;
-        right: 0;
-        left: 0;
-    }
-
-    .article-header {
-        font-size: 2.25em;
-        padding-bottom: 10px;
-        font-weight: 801;
-        text-align: center;
-    }
-
-    a {
-        border-bottom: 3px solid var(--primary);
-        color: inherit;
-        text-decoration: none;
-    }
-
-    h1::before {
-        color: var(--primary);
-        content: "# ";
-    }
-
-    .list-item {
-        font-size: 15px;
-        margin: 0.75em;
-        padding: 1em;
-        border: 2px solid var(--bg-1);
-        border-radius: 5px;
-        text-indent: 5px;
-        transform-origin: center;
-        transition: transform 250ms;
-    }
-
-    .list-item:hover a {
-        background-color: var(--primary);
-    }
-
-    .list-item:hover {
-        transform: scale(1.02, 1.02);
-    }
-
-    .time {
-        font-size: 16px;
-        color: #999;
-        letter-spacing: -0.5px;
-        padding-left: 25px;
-    }
 </style>
 
 <body>
@@ -136,32 +25,48 @@
         <div class="header-bar"></div>
         <div class="main"><a href="https://not-matthias.github.io">not-matthias</a></div>
         <nav>
-            <a href="home.html">/home</a>
+            <a href="index.html">/home</a>
             <a href="posts.html">/posts</a>
             <a href="projects.html">/projects</a>
             <a href="about.html">/about</a>
         </nav>
     </header>
 
+    <h1 style="text-align: center;">Posts</h1>
+
     <main class="list">
         <ul>
-            <section class="list-item">
-                <h1 class="title">
-                    <a href="https://not-matthias.github.io/posts/first-year-of-uni/">Reflecting on the first year of
-                        Uni</a>
-                </h1>
-                <div class="time">2022-09-04</div>
-            </section>
+            <!-- TODO: Make this whole block clickable -->
+            <a class="test" href="https://not-matthias.github.io/posts/first-year-of-uni/">
+                <h2>Kernel
+                    Driver with
+                    Rust in 2022</h2>
 
-            <section class="list-item">
-                <h1 class="title">
-                    <a href="https://not-matthias.github.io/posts/kernel-driver-with-rust-2022/">Kernel
-                        Driver with
-                        Rust in 2022</a>
-                </h1>
-                <div class="time">2022-08-16</div>
-            </section>
+                <div class="sub-heading">
+                    <p>
+                        <i class="fa fa-user"></i>
+                        DeepThought
+                        <i class="fa fa-calendar"></i>
+                        September 16, 2022
+                    </p>
 
+                    <p>
+                        <i class="fa fa-clock-o"></i>
+                        19 min
+                        <i class="fa fa-pencil"></i>
+                        3697 words
+                    </p>
+                </div>
+
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla ac iaculis libero. Suspendisse et
+                    sodales tellus, ut sodales mi. Proin scelerisque est nec laoreet aliquet. Aenean et nunc at mi
+                    efficitur sollicitudin at quis diam. Aenean mi massa, sollicitudin eu condimentum sed, sodales
+                    ut
+                    nisi. Aenean iaculis ante id gravida hendrerit. Nulla nisi neque, facilisis vitae viverra ac,
+                    interdum malesuada quam. Quisque laoreet leo nec lectus lacinia, in lacinia enim tempor.
+                </p>
+            </a>
             <section class="list-item">
                 <h1 class="title">
                     <a href="https://not-matthias.github.io/posts/mechanical-keyboard/">Building my
@@ -196,7 +101,8 @@
 
             <section class="list-item">
                 <h1 class="title">
-                    <a href="https://not-matthias.github.io/posts/kernel-printing-with-rust/">Kernel printing with
+                    <a href="https://not-matthias.github.io/posts/kernel-printing-with-rust/">Kernel printing
+                        with
                         Rust</a>
                 </h1>
                 <div class="time">2022-08-16</div>
@@ -204,7 +110,8 @@
 
             <section class="list-item">
                 <h1 class="title">
-                    <a href="https://not-matthias.github.io/posts/kernel-driver-with-rust/">Writing a kernel driver with
+                    <a href="https://not-matthias.github.io/posts/kernel-driver-with-rust/">Writing a kernel
+                        driver with
                         Rust</a>
                 </h1>
                 <div class="time">2022-08-16</div>
