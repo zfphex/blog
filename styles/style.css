@@ -8,27 +8,8 @@
   }
 
   @font-face {
-      font-family: cascadia-code;
-      font-weight: 200;
-      src: url('fonts/CascadiaCode-Light.otf');
-  }
-
-  @font-face {
-      font-family: cascadia-code;
-      font-weight: 300;
-      src: url('fonts/CascadiaCode-SemiLight.otf');
-  }
-
-  @font-face {
-      font-family: cascadia-code;
-      font-weight: 400;
-      src: url('fonts/CascadiaCode-Regular.otf');
-  }
-
-  @font-face {
-      font-family: cascadia-code;
-      font-weight: 800;
-      src: url('fonts/CascadiaCode-Bold.otf');
+      font-family: "jetbrains";
+      src: url('../fonts/JetBrainsMono.ttf');
   }
 
   body {
@@ -38,7 +19,7 @@
       margin: 0 auto;
       padding: 0 24px;
       word-wrap: break-word;
-      font-family: cascadia-code;
+      font-family: "jetbrains";
       font-weight: 400;
       word-wrap: break-word;
       /* Show vertical scrollbar */
@@ -49,7 +30,7 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      padding-top: 1em;
+      padding-top: 0.25em;
       padding-bottom: 1em;
       font-size: 40px;
   }
@@ -68,6 +49,7 @@
       margin-left: 0.7em;
   }
 
+  /* I believe this would require some javascript :/*/
   /* @media only screen and (max-width: 900px) {
       header nav a {
           display: none;
@@ -97,31 +79,9 @@
       text-decoration: none;
   }
 
-  h1::before {
-      color: var(--primary);
-      content: "# ";
-  }
+
 
   .list-item {
-      font-size: 15px;
-      margin: 0.75em;
-      padding: 1em;
-      border: 2px solid var(--bg-1);
-      border-radius: 5px;
-      text-indent: 5px;
-      transform-origin: center;
-      transition: transform 250ms;
-  }
-
-  .list-item:hover a {
-      background-color: var(--primary);
-  }
-
-  .list-item:hover {
-      transform: scale(1.02, 1.02);
-  }
-
-  .test {
       display: block;
 
       margin: 0.75em;
@@ -134,24 +94,24 @@
       transition: transform 250ms;
   }
 
-  .test:hover {
+  .list-item:hover {
       transform: scale(1.02, 1.02);
   }
 
-  .test:hover span {
+  .list-item:hover span {
       background-color: var(--primary);
   }
 
-  .test span {
+  .list-item span {
       border-bottom: 3px solid var(--primary);
   }
 
-  .test h2 {
+  .list-item h2 {
       display: inline-block;
       font-weight: bold;
   }
 
-  .test h2::before {
+  .list-item h2::before {
       color: var(--primary);
       content: "# ";
   }
@@ -169,12 +129,14 @@
   }
 
   img {
-      max-width: 192px;
-      border-radius: 50%;
       display: block;
       margin-left: auto;
       margin-right: auto;
-      width: 50%;
+      border-radius: 20%;
+      max-width: 300px;
+      width: auto;
+      height: auto;
+      /* overflow: hidden; */
   }
 
   p {
@@ -184,4 +146,14 @@
 
   h2 {
       font-weight: 400;
+  }
+
+  h2::before {
+      color: var(--primary);
+      content: "# ";
+  }
+
+  h1::before {
+      color: var(--primary);
+      content: "# ";
   }
