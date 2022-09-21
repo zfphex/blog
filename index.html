@@ -2,14 +2,19 @@
 
 <head>
     <title>bayd.xyz</title>
-    <link rel="preload" as="image" href="profile.jpeg" />
+    <!-- Removes the 300ms tap delay -->
+    <meta name="viewport" content="width=device-width">
     <link rel="preload" href="styles/style.css" as="style" />
     <link rel="stylesheet" href="styles/style.css" />
-    <script src="https://kit.fontawesome.com/b8e06d1640.js" crossorigin="anonymous"></script>
 </head>
 
 <style>
     .links {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+
         padding: 1em;
         text-align: center;
     }
@@ -19,8 +24,8 @@
     }
 
     .links img {
-        width: 50px;
-        height: 50px;
+        filter: invert(85%);
+
     }
 </style>
 
@@ -40,23 +45,24 @@
     <h1 style="text-align: center">zX3no</h1>
     <h2 style="text-align: center">Aenean urna metus.</h1>
 
-        <img src="profile.jpeg">
+        <img src="profile.avif" width="260px" height="auto" loading="lazy">
 
         <div class="links">
+
             <a href="https://github.com/zx3no/" title="GitHub" target="https://github.com/zx3no/">
-                <i class="fab fa-lg fa-github"></i>
+                <img src="svgs/brands/github.svg" width="22px" />
             </a>
             <a href="about:blank" title="Youtube" target="_blank">
-                <i class="fa-brands fa-lg fa-youtube"></i>
+                <img src="svgs/brands/youtube.svg" width="25px" />
             </a>
             <a href="about:blank" title="Twitter" target="_blank">
-                <i class="fab fa-lg fa-twitter"></i>
+                <img src="svgs/brands/twitter.svg" width="23px" />
             </a>
             <a href="mailto:bay.davis@outlook.com" title="Email" target="_blank">
-                <i class="fa fa-lg fa-envelope"></i>
+                <img src="svgs/solid/envelope.svg" width="23px" />
             </a>
             <a href="about:blank" title="Reddit" target="_blank">
-                <i class="fa fa-lg fa-reddit"></i>
+                <img src="svgs/brands/reddit.svg" width="23px" />
             </a>
         </div>
 
