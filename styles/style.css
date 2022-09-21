@@ -14,6 +14,13 @@
       font-display: swap;
   }
 
+  @font-face {
+      font-family: "fallback";
+      /* TODO: Adjust font size so it fits better into JetBrainsMono */
+      size-adjust: 97.38%;
+      src: local("monospace");
+  }
+
   body {
       background: var(--bg-0);
       color: var(--text);
@@ -21,7 +28,7 @@
       margin: 0 auto;
       padding: 0 24px;
       word-wrap: break-word;
-      font-family: "jetbrains";
+      font-family: "jetbrains", "fallback";
       font-weight: 400;
       word-wrap: break-word;
       /* Show vertical scrollbar */
