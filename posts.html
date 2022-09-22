@@ -13,6 +13,43 @@
         width: 18px;
         height: 18px;
     }
+
+    .list-item h2::before {
+        color: var(--primary);
+        content: "#";
+    }
+
+    .list-item {
+        display: block;
+
+        margin: 0.75em;
+        padding: 1em;
+
+        border: 2px solid var(--bg-1);
+        border-radius: 5px;
+
+        transform-origin: center;
+        transition: transform 250ms;
+    }
+
+    .list-item:hover {
+        transform: scale(1.02, 1.02);
+    }
+
+    .list-item:hover span {
+        background-color: var(--primary);
+    }
+
+    .list-item span {
+        border-bottom: 3px solid var(--primary);
+    }
+
+    .list-item h2 {
+        display: inline-block;
+        margin: 0;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
 </style>
 
 <body>
@@ -27,7 +64,7 @@
     -->
     <header>
         <div class="header-bar"></div>
-        <div class="main"><a href="https://not-matthias.github.io">zX3no</a></div>
+        <div class="main"><a href="">zX3no</a></div>
         <nav>
             <a href="index.html">/home</a>
             <a href="posts.html">/posts</a>
@@ -106,6 +143,35 @@
                     will go over all the parts that are needed, what they are for, and what you need to watch out for.
                 </p>
             </a>
+            <a class="list-item" href="https://not-matthias.github.io/posts/mechanical-keyboard/">
+                <h2>
+                    <span>Allocators in Rust</span>
+                </h2>
+
+                <div class="sub-heading">
+                    <p>
+                        <img src="icons/user.svg" />
+                        DeepThought
+                        <img src="icons/calendar.svg" />
+                        September 16, 2022
+                    </p>
+
+                    <p>
+                        <img src="icons/clock.svg" />
+                        19 min
+                        <img src="icons/pencil.svg" />
+                        3697 words
+                    </p>
+                </div>
+
+                <p>
+                    I'm currently writing an AMD hypervisor in Rust and there I need to allocate memory for lots of
+                    different structures.
+                    And not all of them use the same memory, so I decided to create a helper structure to allocate and
+                    deallocate it for me.
+                </p>
+            </a>
+
             <a class="list-item" href="https://not-matthias.github.io/posts/mechanical-keyboard/">
                 <h2>
                     <span>Allocators in Rust</span>
