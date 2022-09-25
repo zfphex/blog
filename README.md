@@ -16,7 +16,7 @@ Imagine the following:
 
  <main class="list">
         <ul>
-            #posts
+            {{ posts }}
         </ul>
  </main>
 ```
@@ -25,26 +25,26 @@ Posts would be defined as some schema:
 ```html
  <a class="test" href="#link">
  <h2>
-     <span>#title</span>
+     <span>{{ title }}</span>
  </h2>
  <div class="sub-heading">
     <p>
         <i class="fa fa-user"></i>
-        #user
+        {{ user }}
         <i class="fa fa-calendar"></i>
-        #date
+        {{ date }}
     </p>
 
     <p>
         <i class="fa fa-clock-o"></i>
-        #duration
+        {{ duration }}
         <i class="fa fa-pencil"></i>
-        #words
+        {{ words }}
     </p>
 </div>
 
  <p>
-    #overview
+    {{ overview }} 
  </p>
 
 </a>
@@ -101,3 +101,30 @@ This could be complied into:
 
 ```
 
+### Markdown 
+
+```
++++
+title = "templates/title.html"
+user = "Bay"
+date = "25/09/22"
+duration = "10 minutes"
+words = "1500"
++++
+
+# h1 Heading 8-)
+## h2 Heading
+### h3 Heading
+#### h4 Heading
+##### h5 Heading
+###### h6 Heading
+
+## Horizontal Rules
+
+---
+
+## Emphasis
+
+**This is bold text**
+
+```
