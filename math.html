@@ -4,12 +4,15 @@
 
 <head>
     <title>bayd.xyz Math</title>
-    <!-- Removes the 300ms tap delay -->
     <meta name="viewport" content="width=device-width">
-    <link rel="preload" href="styles/style.css" as="style" />
+
+    <link rel="preload" href="styles/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <link rel="stylesheet" href="styles/style.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css"
-        integrity="sha384-bYdxxUwYipFNohQlHt0bjN/LCpueqWz13HufFEV1SUatKs1cm4L6fFgCi1jT643X" crossorigin="anonymous">
+
+
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css" as="style"
+        onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.css">
 
     <!-- The loading of KaTeX is deferred to speed up page rendering -->
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.2/dist/katex.min.js"
@@ -21,7 +24,7 @@
         integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
         onload="renderMathInElement(document.body);"></script>
 
-    <script>
+    <script defer>
         window.addEventListener('DOMContentLoaded', () => {
             const maths = document.querySelectorAll(".math");
             maths.forEach((math) => {
