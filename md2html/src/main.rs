@@ -22,6 +22,29 @@ Code
 <i><text></i>
 */
 
+/*
+Tables:
+
+This is probably the hardest thing to convert.
+
+<table>
+  <tr>
+    <td>Emil</td>
+    <td>Tobias</td>
+    <td>Linus</td>
+  </tr>
+  <tr>
+    <td>16</td>
+    <td>14</td>
+    <td>10</td>
+  </tr>
+</table>
+
+| Emil | Tobias | Linus |
+| ---- | ------ | ----- |
+|  16  |   14   |   10  |
+ */
+
 #[derive(Debug)]
 enum Token {
     H1,
@@ -46,10 +69,33 @@ enum Token {
     OpenParentheses,
     CloseParentheses,
     NewLine,
+    Pipe,
+    Hyphen,
     Char(char),
     Number(u8),
     FullStop,
     Tab,
+}
+
+///Some of the basic conversions
+fn convert(token: Token) -> &'static str {
+    match token {
+        Token::H1 => "<h1>",
+        Token::H2 => "<h2>",
+        Token::H3 => "<h3>",
+        Token::H4 => "<h4>",
+        Token::H5 => "<h5>",
+        Token::H6 => "<h6>",
+        Token::HorizontalRule => "<hr>",
+        Token::Italic => "<i>",
+        Token::Bold => "<b>",
+        Token::InlineCode => "<code>",
+        Token::Code => "<code>",
+        Token::BlockQuote(_) => "<blockquote>",
+        Token::NewLine => "<br>",
+        Token::Tab => "&emsp",
+        _ => todo!(),
+    }
 }
 
 //This system is not robust enough to do italics **Unspecified amount of text**.
@@ -94,6 +140,7 @@ fn main() {
                     }
                 }
             }
+            '-' => tokens.push(Token::Hyphen),
             '>' if start => {
                 let mut level = 1;
                 loop {
@@ -140,6 +187,7 @@ fn main() {
             ']' => tokens.push(Token::CloseBracket),
             '(' => tokens.push(Token::OpenParentheses),
             ')' => tokens.push(Token::CloseParentheses),
+            '|' => tokens.push(Token::Pipe),
             '0'..='9' => tokens.push(Token::Number(char as u8 - 48)),
             '.' => tokens.push(Token::FullStop),
             _ => {
