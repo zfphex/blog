@@ -115,3 +115,7 @@
       color: var(--primary);
       content: "# ";
   }
+
+  .math {
+      display: none;
+  }
