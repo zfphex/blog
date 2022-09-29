@@ -1,6 +1,6 @@
+#![allow(unused)]
 use std::{fs::File, io::Read};
 
-//TODO: Add text to lexer
 /*
 H1
 Text('This is my heading')
@@ -9,6 +9,17 @@ Code
 Text('int main() {')
 Text('}')
 Code
+*/
+
+/*
+# <text> \n
+<h1> <text> <\h1>\n
+
+## <text> \n
+<h2> <text> <\h2>\n
+
+*<text>*
+<i><text></i>
 */
 
 #[derive(Debug)]
@@ -34,7 +45,11 @@ enum Token {
     CloseBracket,
     OpenParentheses,
     CloseParentheses,
+    NewLine,
     Char(char),
+    Number(u8),
+    FullStop,
+    Tab,
 }
 
 //This system is not robust enough to do italics **Unspecified amount of text**.
@@ -115,12 +130,18 @@ fn main() {
                     tokens.push(Token::Italic);
                 }
             }
-            '\n' => start = true,
+            '\n' => {
+                start = true;
+                tokens.push(Token::NewLine);
+            }
+            '\t' => tokens.push(Token::Tab),
             '!' => tokens.push(Token::ExclamationMark),
             '[' => tokens.push(Token::OpenBracket),
             ']' => tokens.push(Token::CloseBracket),
             '(' => tokens.push(Token::OpenParentheses),
             ')' => tokens.push(Token::CloseParentheses),
+            '0'..='9' => tokens.push(Token::Number(char as u8 - 48)),
+            '.' => tokens.push(Token::FullStop),
             _ => {
                 // tokens.push(Token::Char(char));
             }
