@@ -69,9 +69,10 @@ enum Token {
     OpenParentheses,
     CloseParentheses,
     NewLine,
+    CarriageReturn,
     Pipe,
     Hyphen,
-    Char(char),
+    String(String),
     Number(u8),
     FullStop,
     Tab,
@@ -99,6 +100,7 @@ fn convert(token: Token) -> &'static str {
 }
 
 //This system is not robust enough to do italics **Unspecified amount of text**.
+//https://alajmovic.com/posts/writing-a-markdown-ish-parser/
 fn main() {
     let mut file = File::open("example.md").unwrap();
     let mut string = String::new();
@@ -108,6 +110,14 @@ fn main() {
     let mut start = true;
 
     let mut iter = string.chars().peekable();
+
+    let mut string = String::new();
+    let mut string_changed = false;
+
+    //TODO: I am doing the lexing and parsing in the same step.
+    //This is already to difficult to manage.
+    //Remove the H1-H6 + All of the iter.peek related logic.
+    //All of the start stuff is dumb too.
     while let Some(char) = iter.next() {
         match char {
             '#' if start => {
@@ -177,7 +187,11 @@ fn main() {
                     tokens.push(Token::Italic);
                 }
             }
+            '\r' => tokens.push(Token::CarriageReturn),
             '\n' => {
+                if iter.peek() == Some(&'\r') {
+                    iter.next();
+                }
                 start = true;
                 tokens.push(Token::NewLine);
             }
@@ -190,10 +204,20 @@ fn main() {
             '|' => tokens.push(Token::Pipe),
             '0'..='9' => tokens.push(Token::Number(char as u8 - 48)),
             '.' => tokens.push(Token::FullStop),
+            ' ' => (),
             _ => {
-                // tokens.push(Token::Char(char));
+                string.push(char);
+                string_changed = true;
             }
         }
+
+        if string_changed {
+            string_changed = false;
+        } else if !string.is_empty() {
+            tokens.push(Token::String(string));
+            string = String::new();
+        }
+
         if char != '\n' && start {
             start = false;
         }
