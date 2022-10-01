@@ -1,5 +1,5 @@
 #![allow(unused)]
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, iter::Peekable, slice::Iter};
 
 /*
 H1
@@ -47,22 +47,12 @@ This is probably the hardest thing to convert.
 
 #[derive(Debug)]
 enum Token {
-    H1,
-    H2,
-    H3,
-    H4,
-    H5,
-    H6,
+    Hash,
     HorizontalRule,
-    ///`*<text>*`
     Italic,
-    ///`**<text>**`
     Bold,
-    ///`<text>`
-    InlineCode,
-    Code,
-    ///Stores the level of indentation.
-    BlockQuote(usize),
+    BackTick,
+    BlockQuote,
     ExclamationMark,
     OpenBracket,
     CloseBracket,
@@ -79,36 +69,39 @@ enum Token {
 }
 
 ///Some of the basic conversions
-fn convert(token: Token) -> &'static str {
-    match token {
-        Token::H1 => "<h1>",
-        Token::H2 => "<h2>",
-        Token::H3 => "<h3>",
-        Token::H4 => "<h4>",
-        Token::H5 => "<h5>",
-        Token::H6 => "<h6>",
-        Token::HorizontalRule => "<hr>",
-        Token::Italic => "<i>",
-        Token::Bold => "<b>",
-        Token::InlineCode => "<code>",
-        Token::Code => "<code>",
-        Token::BlockQuote(_) => "<blockquote>",
-        Token::NewLine => "<br>",
-        Token::Tab => "&emsp",
-        _ => todo!(),
-    }
-}
+// fn convert(token: Token) -> &'static str {
+//     match token {
+//         Token::H1 => "<h1>",
+//         Token::H2 => "<h2>",
+//         Token::H3 => "<h3>",
+//         Token::H4 => "<h4>",
+//         Token::H5 => "<h5>",
+//         Token::H6 => "<h6>",
+//         Token::HorizontalRule => "<hr>",
+//         Token::Italic => "<i>",
+//         Token::Bold => "<b>",
+//         Token::InlineCode => "<code>",
+//         Token::Code => "<code>",
+//         Token::BlockQuote => "<blockquote>",
+//         Token::NewLine => "<br>",
+//         Token::Tab => "&emsp",
+//         _ => todo!(),
+//     }
+// }
 
 //This system is not robust enough to do italics **Unspecified amount of text**.
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
+
+//This markdown parser won't support proper markdown.
+//No __text__ or _text_ or maybe no **text** or *text*.
+//No links with titles [test](http://link.net "title")
+//No * or ~ for lists.
 fn main() {
     let mut file = File::open("example.md").unwrap();
     let mut string = String::new();
     file.read_to_string(&mut string).unwrap();
 
     let mut tokens: Vec<Token> = Vec::new();
-    let mut start = true;
-
     let mut iter = string.chars().peekable();
 
     let mut string = String::new();
@@ -120,28 +113,8 @@ fn main() {
     //All of the start stuff is dumb too.
     while let Some(char) = iter.next() {
         match char {
-            '#' if start => {
-                let mut h = 1;
-                loop {
-                    if iter.peek() == Some(&'#') {
-                        iter.next();
-                        h += 1;
-                    } else {
-                        break;
-                    }
-                }
-
-                match h {
-                    1 => tokens.push(Token::H1),
-                    2 => tokens.push(Token::H2),
-                    3 => tokens.push(Token::H3),
-                    4 => tokens.push(Token::H4),
-                    5 => tokens.push(Token::H5),
-                    6 => tokens.push(Token::H6),
-                    _ => unreachable!(),
-                }
-            }
-            '-' if start => {
+            '#' => tokens.push(Token::Hash),
+            '-' => {
                 if iter.peek() == Some(&'-') {
                     iter.next();
                     if iter.peek() == Some(&'-') {
@@ -151,34 +124,8 @@ fn main() {
                 }
             }
             '-' => tokens.push(Token::Hyphen),
-            '>' if start => {
-                let mut level = 1;
-                loop {
-                    match iter.peek() {
-                        Some(&'>') => {
-                            iter.next();
-                            level += 1;
-                        }
-                        Some(&' ') => {
-                            iter.next();
-                        }
-                        _ => break,
-                    }
-                }
-                tokens.push(Token::BlockQuote(level));
-            }
-            '`' if start => {
-                if iter.peek() == Some(&'`') {
-                    iter.next();
-
-                    if iter.peek() == Some(&'`') {
-                        iter.next();
-
-                        tokens.push(Token::Code);
-                    }
-                }
-            }
-            '`' => tokens.push(Token::InlineCode),
+            '>' => tokens.push(Token::BlockQuote),
+            '`' => tokens.push(Token::BackTick),
             '*' => {
                 if iter.peek() == Some(&'*') {
                     iter.next();
@@ -187,17 +134,12 @@ fn main() {
                     tokens.push(Token::Italic);
                 }
             }
-            '\r' => tokens.push(Token::CarriageReturn),
-            '\n' => {
-                if iter.peek() == Some(&'\r') {
-                    iter.next();
-                }
-                start = true;
-                tokens.push(Token::NewLine);
-            }
+            '\n' => tokens.push(Token::NewLine),
             '\t' => tokens.push(Token::Tab),
             '!' => tokens.push(Token::ExclamationMark),
-            '[' => tokens.push(Token::OpenBracket),
+            '[' => {
+                tokens.push(Token::OpenBracket);
+            }
             ']' => tokens.push(Token::CloseBracket),
             '(' => tokens.push(Token::OpenParentheses),
             ')' => tokens.push(Token::CloseParentheses),
@@ -205,6 +147,7 @@ fn main() {
             '0'..='9' => tokens.push(Token::Number(char as u8 - 48)),
             '.' => tokens.push(Token::FullStop),
             ' ' => (),
+            '\r' => (),
             _ => {
                 string.push(char);
                 string_changed = true;
@@ -214,13 +157,91 @@ fn main() {
         if string_changed {
             string_changed = false;
         } else if !string.is_empty() {
-            tokens.push(Token::String(string));
+            tokens.insert(tokens.len() - 1, Token::String(string));
             string = String::new();
         }
+    }
+    parse(&tokens);
+}
 
-        if char != '\n' && start {
-            start = false;
+#[derive(Debug)]
+enum Expr {
+    ///Level, Text
+    Heading(u8, String),
+    Bold(String),
+    Italic(String),
+    List(Vec<Expr>),
+    ///Title, Reference/Link
+    Link(String, String),
+}
+
+fn parse(tokens: &[Token]) {
+    let mut iter = tokens.iter().peekable();
+
+    let ast: Vec<Expr> = Vec::new();
+
+    while let Some(token) = iter.next() {
+        if let Some(expr) = expression(token, &mut iter) {
+            dbg!(expr);
         }
     }
-    dbg!(tokens);
+}
+
+fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
+    match token {
+        //How to do better?
+        Token::OpenBracket => {
+            //Full
+            if let Some(Token::String(title)) = iter.peek() {
+                iter.next();
+                if let Some(Token::CloseBracket) = iter.peek() {
+                    iter.next();
+                    if let Some(Token::OpenParentheses) = iter.peek() {
+                        iter.next();
+                        if let Some(Token::String(link)) = iter.peek() {
+                            iter.next();
+                            if let Some(Token::CloseParentheses) = iter.peek() {
+                                iter.next();
+                                return Some(Expr::Link(title.clone(), link.clone()));
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Empty
+            if let Some(Token::CloseBracket) = iter.peek() {
+                iter.next();
+                if let Some(Token::OpenParentheses) = iter.peek() {
+                    iter.next();
+                    if let Some(Token::CloseParentheses) = iter.peek() {
+                        iter.next();
+                        return Some(Expr::Link(String::new(), String::new()));
+                    }
+                }
+            }
+
+            return None;
+        }
+        Token::Hash => {
+            let mut level = 0;
+            while let Some(Token::Hash) = iter.next() {
+                if level > 6 {
+                    unreachable!();
+                }
+                level += 1;
+            }
+
+            if level == 0 {
+                todo!();
+            }
+
+            if let Some(Token::String(text)) = iter.peek() {
+                iter.next();
+                return Some(Expr::Heading(level, text.clone()));
+            }
+        }
+        _ => (),
+    }
+    None
 }
