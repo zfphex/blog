@@ -48,7 +48,6 @@ This is probably the hardest thing to convert.
 #[derive(Debug)]
 enum Token {
     Hash,
-    HorizontalRule,
     Italic,
     Bold,
     BackTick,
@@ -63,9 +62,8 @@ enum Token {
     Pipe,
     Hyphen,
     String(String),
-    Number(u8),
-    FullStop,
     Tab,
+    Hiphen,
 }
 
 ///Some of the basic conversions
@@ -97,7 +95,7 @@ enum Token {
 //No links with titles [test](http://link.net "title")
 //No * or ~ for lists.
 fn main() {
-    let mut file = File::open("example.md").unwrap();
+    let mut file = File::open("test.md").unwrap();
     let mut string = String::new();
     file.read_to_string(&mut string).unwrap();
 
@@ -114,15 +112,7 @@ fn main() {
     while let Some(char) = iter.next() {
         match char {
             '#' => tokens.push(Token::Hash),
-            '-' => {
-                if iter.peek() == Some(&'-') {
-                    iter.next();
-                    if iter.peek() == Some(&'-') {
-                        iter.next();
-                        tokens.push(Token::HorizontalRule);
-                    }
-                }
-            }
+            '-' => tokens.push(Token::Hiphen),
             '-' => tokens.push(Token::Hyphen),
             '>' => tokens.push(Token::BlockQuote),
             '`' => tokens.push(Token::BackTick),
@@ -135,6 +125,7 @@ fn main() {
                 }
             }
             '\n' => tokens.push(Token::NewLine),
+            '\r' => tokens.push(Token::CarriageReturn),
             '\t' => tokens.push(Token::Tab),
             '!' => tokens.push(Token::ExclamationMark),
             '[' => {
@@ -144,10 +135,11 @@ fn main() {
             '(' => tokens.push(Token::OpenParentheses),
             ')' => tokens.push(Token::CloseParentheses),
             '|' => tokens.push(Token::Pipe),
-            '0'..='9' => tokens.push(Token::Number(char as u8 - 48)),
-            '.' => tokens.push(Token::FullStop),
+            ' ' if !string.is_empty() => {
+                string.push(char);
+                string_changed = true;
+            }
             ' ' => (),
-            '\r' => (),
             _ => {
                 string.push(char);
                 string_changed = true;
@@ -161,6 +153,7 @@ fn main() {
             string = String::new();
         }
     }
+    dbg!(&tokens);
     parse(&tokens);
 }
 
@@ -224,23 +217,25 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
             return None;
         }
         Token::Hash => {
-            let mut level = 0;
-            while let Some(Token::Hash) = iter.next() {
-                if level > 6 {
-                    unreachable!();
+            let mut level = 1;
+            loop {
+                match iter.next() {
+                    Some(Token::Hash) => {
+                        if level > 6 {
+                            unreachable!()
+                        }
+                        level += 1;
+                    }
+                    Some(Token::String(string)) => {
+                        return Some(Expr::Heading(level, string.clone()));
+                    }
+                    _ => unreachable!(),
                 }
-                level += 1;
-            }
-
-            if level == 0 {
-                todo!();
-            }
-
-            if let Some(Token::String(text)) = iter.peek() {
-                iter.next();
-                return Some(Expr::Heading(level, text.clone()));
             }
         }
+        //--- HorizontalRule
+        //|----| Table
+        Token::Hiphen => {}
         _ => (),
     }
     None
