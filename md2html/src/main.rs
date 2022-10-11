@@ -163,9 +163,12 @@ enum Expr {
     Heading(u8, String),
     Bold(String),
     Italic(String),
+    ///Number, Content
+    NumberedList(u32, String),
     List(Vec<Expr>),
     ///Title, Reference/Link
     Link(String, String),
+    Text(String),
 }
 
 fn parse(tokens: &[Token]) {
@@ -236,6 +239,45 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
         //--- HorizontalRule
         //|----| Table
         Token::Hiphen => {}
+        Token::String(string) => {
+            let mut chars = string.chars();
+            let mut number = String::new();
+
+            //Match lists:
+            //1. First item
+            //2. Second item
+            //Currently the order doesn't matter and lists are not grouped.
+            //Weird orders like 3. 2. 1. are technically valid.
+            while let Some(char) = chars.next() {
+                if char.is_numeric() {
+                    number.push(char);
+                } else if char == '.' && !number.is_empty() && chars.next() == Some(' ') {
+                    if let Ok(number) = number.parse() {
+                        return Some(Expr::NumberedList(number, chars.collect()));
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            return Some(Expr::Text(string.clone()));
+        }
+        // **This is some bold text**
+        Token::Bold => {
+            if let Some(Token::String(string)) = iter.peek() {
+                iter.next();
+                return Some(Expr::Bold(string.clone()));
+            }
+        }
+        // *This is some italic text*
+        Token::Italic => {
+            if let Some(Token::String(string)) = iter.peek() {
+                iter.next();
+                return Some(Expr::Italic(string.clone()));
+            }
+        }
         _ => (),
     }
     None
