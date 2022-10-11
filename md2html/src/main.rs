@@ -1,3 +1,4 @@
+#![feature(iter_advance_by)]
 #![allow(unused)]
 use std::{fs::File, io::Read, iter::Peekable, slice::Iter};
 
@@ -50,7 +51,9 @@ enum Token {
     Hash,
     Italic,
     Bold,
+    Strikethrough,
     BackTick,
+    CodeBlock,
     BlockQuote,
     ExclamationMark,
     OpenBracket,
@@ -115,7 +118,18 @@ fn main() {
             '-' => tokens.push(Token::Hiphen),
             '-' => tokens.push(Token::Hyphen),
             '>' => tokens.push(Token::BlockQuote),
-            '`' => tokens.push(Token::BackTick),
+            '`' => {
+                let mut i = iter.clone();
+                if let Some('`') = i.next() {
+                    if let Some('`') = i.next() {
+                        iter.advance_by(2);
+                        tokens.push(Token::CodeBlock);
+                        continue;
+                    }
+                }
+
+                tokens.push(Token::BackTick);
+            }
             '*' => {
                 if iter.peek() == Some(&'*') {
                     iter.next();
@@ -135,6 +149,10 @@ fn main() {
             '(' => tokens.push(Token::OpenParentheses),
             ')' => tokens.push(Token::CloseParentheses),
             '|' => tokens.push(Token::Pipe),
+            '~' if iter.peek() == Some(&'~') => {
+                iter.next();
+                tokens.push(Token::Strikethrough);
+            }
             ' ' if !string.is_empty() => {
                 string.push(char);
                 string_changed = true;
@@ -161,14 +179,18 @@ fn main() {
 enum Expr {
     ///Level, Text
     Heading(u8, String),
+    ///Level, Text
+    BlockQuote(u8, String),
     Bold(String),
     Italic(String),
     ///Number, Content
-    NumberedList(u32, String),
+    NumberedList(u16, String),
     List(Vec<Expr>),
     ///Title, Reference/Link
     Link(String, String),
     Text(String),
+    Strikethrough(String),
+    CodeBlock(Vec<String>),
 }
 
 fn parse(tokens: &[Token]) {
@@ -183,6 +205,7 @@ fn parse(tokens: &[Token]) {
     }
 }
 
+//TODO: Remove all of the string clones.
 fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
     match token {
         //How to do better?
@@ -236,6 +259,20 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                 }
             }
         }
+        Token::BlockQuote => {
+            let mut level = 1;
+            loop {
+                match iter.next() {
+                    Some(Token::BlockQuote) => {
+                        level += 1;
+                    }
+                    Some(Token::String(string)) => {
+                        return Some(Expr::BlockQuote(level, string.clone()));
+                    }
+                    _ => unreachable!(),
+                }
+            }
+        }
         //--- HorizontalRule
         //|----| Table
         Token::Hiphen => {}
@@ -266,16 +303,44 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
         }
         // **This is some bold text**
         Token::Bold => {
-            if let Some(Token::String(string)) = iter.peek() {
-                iter.next();
-                return Some(Expr::Bold(string.clone()));
+            let mut i = iter.clone();
+            if let Some(Token::String(string)) = i.next() {
+                if let Some(Token::Bold) = i.next() {
+                    iter.advance_by(2);
+                    return Some(Expr::Bold(string.clone()));
+                }
             }
         }
         // *This is some italic text*
         Token::Italic => {
-            if let Some(Token::String(string)) = iter.peek() {
-                iter.next();
-                return Some(Expr::Italic(string.clone()));
+            let mut i = iter.clone();
+            if let Some(Token::String(string)) = i.next() {
+                if let Some(Token::Bold) = i.next() {
+                    iter.advance_by(2);
+                    return Some(Expr::Bold(string.clone()));
+                }
+            }
+        }
+        Token::Strikethrough => {
+            let mut i = iter.clone();
+            if let Some(Token::String(string)) = i.next() {
+                if let Some(Token::Strikethrough) = i.next() {
+                    iter.advance_by(2);
+                    return Some(Expr::Strikethrough(string.clone()));
+                }
+            }
+        }
+        Token::CodeBlock => {
+            let mut i = iter.clone();
+            let mut content = Vec::new();
+            for token in i {
+                match token {
+                    Token::CodeBlock => {
+                        return Some(Expr::CodeBlock(content));
+                    }
+                    Token::String(string) => content.push(string.clone()),
+                    _ => (),
+                }
             }
         }
         _ => (),
