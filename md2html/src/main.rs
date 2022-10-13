@@ -200,34 +200,36 @@ fn parse(tokens: &[Token]) {
 //TODO: Remove all of the string clones.
 fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
     match token {
-        //How to do better?
         Token::OpenBracket => {
-            //Full
-            if let Some(Token::String(title)) = iter.peek() {
-                iter.next();
-                if let Some(Token::CloseBracket) = iter.peek() {
-                    iter.next();
-                    if let Some(Token::OpenParentheses) = iter.peek() {
-                        iter.next();
-                        if let Some(Token::String(link)) = iter.peek() {
-                            iter.next();
-                            if let Some(Token::CloseParentheses) = iter.peek() {
-                                iter.next();
-                                return Some(Expr::Link(title.clone(), link.clone()));
-                            }
-                        }
-                    }
-                }
+            let mut i = iter.clone();
+
+            let mut title = String::new();
+
+            if let Some(Token::String(t)) = i.peek() {
+                i.next();
+                title = t.clone();
             }
 
-            //Empty
-            if let Some(Token::CloseBracket) = iter.peek() {
-                iter.next();
-                if let Some(Token::OpenParentheses) = iter.peek() {
-                    iter.next();
-                    if let Some(Token::CloseParentheses) = iter.peek() {
-                        iter.next();
-                        return Some(Expr::Link(String::new(), String::new()));
+            if let Some(Token::CloseBracket) = i.next() {
+                if let Some(Token::OpenParentheses) = i.next() {
+                    let mut link = String::new();
+                    if let Some(Token::String(l)) = i.peek() {
+                        i.next();
+                        link = l.clone();
+                    }
+
+                    if let Some(Token::CloseParentheses) = i.next() {
+                        iter.advance_by(3);
+
+                        if !title.is_empty() {
+                            iter.advance_by(1);
+                        }
+
+                        if !title.is_empty() {
+                            iter.advance_by(3);
+                        }
+
+                        return Some(Expr::Link(title, link));
                     }
                 }
             }
@@ -362,7 +364,6 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                 }
             }
         }
-
         _ => (),
     }
     None
