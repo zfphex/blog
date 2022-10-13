@@ -55,7 +55,6 @@ enum Token {
     BackTick,
     CodeBlock,
     BlockQuote,
-    ExclamationMark,
     OpenBracket,
     CloseBracket,
     OpenParentheses,
@@ -69,28 +68,21 @@ enum Token {
     Hiphen,
 }
 
-///Some of the basic conversions
-// fn convert(token: Token) -> &'static str {
-//     match token {
-//         Token::H1 => "<h1>",
-//         Token::H2 => "<h2>",
-//         Token::H3 => "<h3>",
-//         Token::H4 => "<h4>",
-//         Token::H5 => "<h5>",
-//         Token::H6 => "<h6>",
-//         Token::HorizontalRule => "<hr>",
-//         Token::Italic => "<i>",
-//         Token::Bold => "<b>",
-//         Token::InlineCode => "<code>",
-//         Token::Code => "<code>",
-//         Token::BlockQuote => "<blockquote>",
-//         Token::NewLine => "<br>",
-//         Token::Tab => "&emsp",
-//         _ => todo!(),
-//     }
-// }
+// Token::H1 => "<h1>",
+// Token::H2 => "<h2>",
+// Token::H3 => "<h3>",
+// Token::H4 => "<h4>",
+// Token::H5 => "<h5>",
+// Token::H6 => "<h6>",
+// Token::HorizontalRule => "<hr>",
+// Token::Italic => "<i>",
+// Token::Bold => "<b>",
+// Token::InlineCode => "<code>",
+// Token::Code => "<code>",
+// Token::BlockQuote => "<blockquote>",
+// Token::NewLine => "<br>",
+// Token::Tab => "&emsp",
 
-//This system is not robust enough to do italics **Unspecified amount of text**.
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
 
 //This markdown parser won't support proper markdown.
@@ -141,7 +133,6 @@ fn main() {
             '\n' => tokens.push(Token::NewLine),
             '\r' => tokens.push(Token::CarriageReturn),
             '\t' => tokens.push(Token::Tab),
-            '!' => tokens.push(Token::ExclamationMark),
             '[' => {
                 tokens.push(Token::OpenBracket);
             }
@@ -191,6 +182,7 @@ enum Expr {
     Text(String),
     Strikethrough(String),
     CodeBlock(Vec<String>),
+    Code(String),
 }
 
 fn parse(tokens: &[Token]) {
@@ -276,6 +268,25 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
         //--- HorizontalRule
         //|----| Table
         Token::Hiphen => {}
+        Token::String(string) if string == "!" => {
+            let mut i = iter.clone();
+            if let Some(Token::OpenBracket) = i.next() {
+                if let Some(Token::String(title)) = i.next() {
+                    if let Some(Token::CloseBracket) = i.next() {
+                        if let Some(Token::OpenParentheses) = i.next() {
+                            if let Some(Token::String(link)) = i.next() {
+                                if let Some(Token::CloseParentheses) = i.next() {
+                                    iter.advance_by(6);
+                                    return Some(Expr::Link(title.clone(), link.clone()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return Some(Expr::Text(String::from("!")));
+        }
         Token::String(string) => {
             let mut chars = string.chars();
             let mut number = String::new();
@@ -330,10 +341,18 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                 }
             }
         }
-        Token::CodeBlock => {
+        Token::BackTick => {
             let mut i = iter.clone();
+            if let Some(Token::String(string)) = i.next() {
+                if let Some(Token::BackTick) = i.next() {
+                    iter.advance_by(2);
+                    return Some(Expr::Code(string.clone()));
+                }
+            }
+        }
+        Token::CodeBlock => {
             let mut content = Vec::new();
-            for token in i {
+            for token in iter.by_ref() {
                 match token {
                     Token::CodeBlock => {
                         return Some(Expr::CodeBlock(content));
@@ -343,6 +362,7 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                 }
             }
         }
+
         _ => (),
     }
     None
