@@ -162,8 +162,47 @@ fn main() {
             string = String::new();
         }
     }
-    dbg!(&tokens);
-    parse(&tokens);
+
+    // dbg!(&tokens);
+
+    let ast = parse(&tokens);
+    let mut html = String::new();
+
+    for expr in ast {
+        match expr {
+            Expr::Heading(level, content) => {
+                let h = match level {
+                    1 => ("<h1>", r"</h1>"),
+                    2 => ("<h2>", r"</h2>"),
+                    3 => ("<h3>", r"</h3>"),
+                    4 => ("<h4>", r"</h4>"),
+                    5 => ("<h5>", r"</h5>"),
+                    6 => ("<h6>", r"</h6>"),
+                    _ => unreachable!(),
+                };
+
+                html.push_str(h.0);
+                html.push_str(&content);
+                html.push_str(h.1);
+                html.push('\n');
+            }
+            Expr::BlockQuote(_, _) => todo!(),
+            Expr::Bold(_) => todo!(),
+            Expr::Italic(_) => todo!(),
+            Expr::NumberedList(_, _) => todo!(),
+            Expr::List(_) => todo!(),
+            Expr::Link(title, link) => {
+                html.push_str(&format!("<a href=\"{}\">{}<\\a>", link, title));
+                html.push('\n');
+            }
+            Expr::Text(_) => todo!(),
+            Expr::Strikethrough(_) => todo!(),
+            Expr::CodeBlock(_) => todo!(),
+            Expr::Code(_) => todo!(),
+        }
+    }
+
+    println!("{}", html);
 }
 
 #[derive(Debug)]
@@ -185,16 +224,19 @@ enum Expr {
     Code(String),
 }
 
-fn parse(tokens: &[Token]) {
+fn parse(tokens: &[Token]) -> Vec<Expr> {
     let mut iter = tokens.iter().peekable();
 
-    let ast: Vec<Expr> = Vec::new();
+    let mut ast: Vec<Expr> = Vec::new();
 
     while let Some(token) = iter.next() {
         if let Some(expr) = expression(token, &mut iter) {
-            dbg!(expr);
+            // dbg!(&expr);
+            ast.push(expr);
         }
     }
+
+    ast
 }
 
 //TODO: Remove all of the string clones.
