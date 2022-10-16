@@ -27,7 +27,8 @@ This is probably the hardest thing to convert.
 
 #[derive(Debug)]
 enum Token {
-    Hash,
+    ///Level
+    Heading(u8),
     Italic,
     Bold,
     Strikethrough,
@@ -81,9 +82,25 @@ fn main() {
     let mut string = String::new();
     let mut string_changed = false;
 
+    let mut start = true;
+
     while let Some(char) = iter.next() {
         match char {
-            '#' => tokens.push(Token::Hash),
+            '#' if start => {
+                let mut i = iter.clone();
+                let mut level = 1;
+
+                while let Some('#') = i.next() {
+                    level += 1;
+                }
+
+                if level > 6 {
+                    unreachable!("Invalid heading level.");
+                }
+
+                iter.advance_by(level);
+                tokens.push(Token::Heading(level as u8));
+            }
             '>' => tokens.push(Token::BlockQuote),
             '`' => {
                 let mut i = iter.clone();
@@ -134,6 +151,14 @@ fn main() {
         } else if !string.is_empty() {
             tokens.insert(tokens.len() - 1, Token::String(string));
             string = String::new();
+        }
+
+        //Certain tokens like # are only valid if
+        //they occur at the start of a string.
+        if char == '\n' {
+            start = true;
+        } else {
+            start = false
         }
     }
 
@@ -205,23 +230,12 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
 
             return None;
         }
-        Token::Hash => {
-            let mut level = 1;
-            loop {
-                match iter.next() {
-                    Some(Token::Hash) => {
-                        if level > 6 {
-                            unreachable!()
-                        }
-                        level += 1;
-                    }
-                    Some(Token::String(string)) => {
-                        return Some(Expr::Heading(level, string.clone()));
-                    }
-                    _ => unreachable!(),
-                }
+        Token::Heading(level) => match iter.next() {
+            Some(Token::String(string)) => {
+                return Some(Expr::Heading(*level, string.clone()));
             }
-        }
+            _ => unreachable!("No string after hash!"),
+        },
         Token::BlockQuote => {
             let mut level = 1;
             loop {
