@@ -43,6 +43,10 @@ enum Token {
     CarriageReturn,
     String(String),
     Tab,
+    TemplateStart,
+    TemplateEnd,
+    CommentStart,
+    CommentEnd,
 }
 
 #[derive(Debug)]
@@ -63,6 +67,7 @@ enum Expr {
     CodeBlock(Vec<String>),
     Code(String),
     HorizontalRule,
+    Template(String),
 }
 
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
@@ -85,6 +90,24 @@ fn main() {
     let mut start = true;
 
     while let Some(char) = iter.next() {
+        if char == '<' {
+            let mut i = iter.clone();
+            if i.next() == Some('!') && i.next() == Some('-') && i.next() == Some('-') {
+                iter.advance_by(3);
+                tokens.push(Token::CommentStart);
+                continue;
+            }
+        }
+
+        if char == '-' {
+            let mut i = iter.clone();
+            if i.next() == Some('-') && i.next() == Some('>') {
+                iter.advance_by(2);
+                tokens.push(Token::CommentEnd);
+                continue;
+            }
+        }
+
         match char {
             '#' if start => {
                 let mut i = iter.clone();
@@ -134,6 +157,18 @@ fn main() {
             '~' if iter.peek() == Some(&'~') => {
                 iter.next();
                 tokens.push(Token::Strikethrough);
+            }
+            '{' => {
+                if iter.peek() == Some(&'{') {
+                    iter.next();
+                    tokens.push(Token::TemplateStart);
+                }
+            }
+            '}' => {
+                if iter.peek() == Some(&'}') {
+                    iter.next();
+                    tokens.push(Token::TemplateEnd);
+                }
             }
             ' ' if !string.is_empty() => {
                 string.push(char);
@@ -349,6 +384,24 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                 }
             }
         }
+        Token::TemplateStart => {
+            let mut i = iter.clone();
+            if let Some(Token::String(text)) = i.next() {
+                if let Some(Token::TemplateEnd) = i.next() {
+                    iter.advance_by(2);
+                    let name = format!("templates/{}.html", text.trim());
+                    let file = if let Ok(file) = std::fs::read_to_string(&name) {
+                        file
+                    } else {
+                        format!(
+                            "<!-- TEMPLATE FILE '{}.html' DOES NOT EXIST! -->",
+                            text.trim()
+                        )
+                    };
+                    return Some(Expr::Template(file));
+                }
+            }
+        }
         _ => (),
     }
     None
@@ -402,6 +455,7 @@ fn convert(ast: Vec<Expr>) -> String {
             }
             Expr::Code(code) => html.push_str(&format!("<code>{}</code>", code)),
             Expr::HorizontalRule => html.push_str("<hr>"),
+            Expr::Template(code) => html.push_str(&code),
         }
         html.push('\n');
     }
