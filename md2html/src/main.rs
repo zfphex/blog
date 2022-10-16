@@ -68,21 +68,6 @@ enum Token {
     Hiphen,
 }
 
-// Token::H1 => "<h1>",
-// Token::H2 => "<h2>",
-// Token::H3 => "<h3>",
-// Token::H4 => "<h4>",
-// Token::H5 => "<h5>",
-// Token::H6 => "<h6>",
-// Token::HorizontalRule => "<hr>",
-// Token::Italic => "<i>",
-// Token::Bold => "<b>",
-// Token::InlineCode => "<code>",
-// Token::Code => "<code>",
-// Token::BlockQuote => "<blockquote>",
-// Token::NewLine => "<br>",
-// Token::Tab => "&emsp",
-
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
 
 //This markdown parser won't support proper markdown.
@@ -168,6 +153,13 @@ fn main() {
     let ast = parse(&tokens);
     let mut html = String::new();
 
+    // Token::H1 => "<h1>",
+    // Token::H2 => "<h2>",
+    // Token::H3 => "<h3>",
+    // Token::H4 => "<h4>",
+    // Token::H5 => "<h5>",
+    // Token::H6 => "<h6>",
+    // Token::HorizontalRule => "<hr>",
     for expr in ast {
         match expr {
             Expr::Heading(level, content) => {
@@ -184,25 +176,41 @@ fn main() {
                 html.push_str(h.0);
                 html.push_str(&content);
                 html.push_str(h.1);
-                html.push('\n');
             }
-            Expr::BlockQuote(_, _) => todo!(),
-            Expr::Bold(_) => todo!(),
-            Expr::Italic(_) => todo!(),
+            Expr::BlockQuote(level, text) => {
+                for _ in 0..level {
+                    html.push_str("<blockquote>");
+                }
+                html.push_str(&text);
+
+                for _ in 0..level {
+                    html.push_str("</blockquote>");
+                }
+            }
+            Expr::Bold(text) => html.push_str(&format!("<b>{}</b>", text)),
+            Expr::Italic(text) => html.push_str(&format!("<i>{}</i>", text)),
             Expr::NumberedList(_, _) => todo!(),
             Expr::List(_) => todo!(),
             Expr::Link(title, link) => {
-                html.push_str(&format!("<a href=\"{}\">{}<\\a>", link, title));
-                html.push('\n');
+                html.push_str(&format!("<a href=\"{}\">{}</a>", link, title))
             }
-            Expr::Text(_) => todo!(),
-            Expr::Strikethrough(_) => todo!(),
-            Expr::CodeBlock(_) => todo!(),
-            Expr::Code(_) => todo!(),
+            Expr::Text(text) => html.push_str(&format!("<p>{}</p>", text)),
+            Expr::Strikethrough(text) => html.push_str(&format!("<i>{}</i>", text)),
+            //Fenced code blocks don't exist in html so this is kina of dumb.
+            Expr::CodeBlock(lines) => {
+                html.push_str("<code>\n");
+                for line in lines {
+                    html.push_str(&format!("{}\n", line));
+                }
+                html.push_str("</code>");
+            }
+            Expr::Code(code) => html.push_str(&format!("<code>{}</code>", code)),
         }
+        html.push('\n');
     }
 
     println!("{}", html);
+    std::fs::write("test.html", html).unwrap();
 }
 
 #[derive(Debug)]

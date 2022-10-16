@@ -6,3 +6,16 @@
 [title](link)
 
 []()
+
+`this is some code`
+
+yo whats up
+
+
+>> testing
+
+```
+testing 
+lil
+bro
+```
