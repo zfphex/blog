@@ -3,27 +3,6 @@
 use std::{fs::File, io::Read, iter::Peekable, slice::Iter};
 
 /*
-H1
-Text('This is my heading')
-HorizontalRule
-Code
-Text('int main() {')
-Text('}')
-Code
-*/
-
-/*
-# <text> \n
-<h1> <text> <\h1>\n
-
-## <text> \n
-<h2> <text> <\h2>\n
-
-*<text>*
-<i><text></i>
-*/
-
-/*
 Tables:
 
 This is probably the hardest thing to convert.
@@ -61,11 +40,28 @@ enum Token {
     CloseParentheses,
     NewLine,
     CarriageReturn,
-    Pipe,
-    Hyphen,
     String(String),
     Tab,
-    Hiphen,
+}
+
+#[derive(Debug)]
+enum Expr {
+    ///Level, Text
+    Heading(u8, String),
+    ///Level, Text
+    BlockQuote(u8, String),
+    Bold(String),
+    Italic(String),
+    ///Number, Content
+    NumberedList(u16, String),
+    List(Vec<Expr>),
+    ///Title, Reference/Link
+    Link(String, String),
+    Text(String),
+    Strikethrough(String),
+    CodeBlock(Vec<String>),
+    Code(String),
+    HorizontalRule,
 }
 
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
@@ -85,15 +81,9 @@ fn main() {
     let mut string = String::new();
     let mut string_changed = false;
 
-    //TODO: I am doing the lexing and parsing in the same step.
-    //This is already to difficult to manage.
-    //Remove the H1-H6 + All of the iter.peek related logic.
-    //All of the start stuff is dumb too.
     while let Some(char) = iter.next() {
         match char {
             '#' => tokens.push(Token::Hash),
-            '-' => tokens.push(Token::Hiphen),
-            '-' => tokens.push(Token::Hyphen),
             '>' => tokens.push(Token::BlockQuote),
             '`' => {
                 let mut i = iter.clone();
@@ -124,7 +114,6 @@ fn main() {
             ']' => tokens.push(Token::CloseBracket),
             '(' => tokens.push(Token::OpenParentheses),
             ')' => tokens.push(Token::CloseParentheses),
-            '|' => tokens.push(Token::Pipe),
             '~' if iter.peek() == Some(&'~') => {
                 iter.next();
                 tokens.push(Token::Strikethrough);
@@ -148,88 +137,18 @@ fn main() {
         }
     }
 
+    //Insert the final string.
+    if !string.is_empty() {
+        tokens.insert(tokens.len(), Token::String(string));
+    }
+
     // dbg!(&tokens);
 
     let ast = parse(&tokens);
-    let mut html = String::new();
-
-    // Token::H1 => "<h1>",
-    // Token::H2 => "<h2>",
-    // Token::H3 => "<h3>",
-    // Token::H4 => "<h4>",
-    // Token::H5 => "<h5>",
-    // Token::H6 => "<h6>",
-    // Token::HorizontalRule => "<hr>",
-    for expr in ast {
-        match expr {
-            Expr::Heading(level, content) => {
-                let h = match level {
-                    1 => ("<h1>", r"</h1>"),
-                    2 => ("<h2>", r"</h2>"),
-                    3 => ("<h3>", r"</h3>"),
-                    4 => ("<h4>", r"</h4>"),
-                    5 => ("<h5>", r"</h5>"),
-                    6 => ("<h6>", r"</h6>"),
-                    _ => unreachable!(),
-                };
-
-                html.push_str(h.0);
-                html.push_str(&content);
-                html.push_str(h.1);
-            }
-            Expr::BlockQuote(level, text) => {
-                for _ in 0..level {
-                    html.push_str("<blockquote>");
-                }
-                html.push_str(&text);
-
-                for _ in 0..level {
-                    html.push_str("</blockquote>");
-                }
-            }
-            Expr::Bold(text) => html.push_str(&format!("<b>{}</b>", text)),
-            Expr::Italic(text) => html.push_str(&format!("<i>{}</i>", text)),
-            Expr::NumberedList(_, _) => todo!(),
-            Expr::List(_) => todo!(),
-            Expr::Link(title, link) => {
-                html.push_str(&format!("<a href=\"{}\">{}</a>", link, title))
-            }
-            Expr::Text(text) => html.push_str(&format!("<p>{}</p>", text)),
-            Expr::Strikethrough(text) => html.push_str(&format!("<i>{}</i>", text)),
-            //Fenced code blocks don't exist in html so this is kina of dumb.
-            Expr::CodeBlock(lines) => {
-                html.push_str("<code>\n");
-                for line in lines {
-                    html.push_str(&format!("{}\n", line));
-                }
-                html.push_str("</code>");
-            }
-            Expr::Code(code) => html.push_str(&format!("<code>{}</code>", code)),
-        }
-        html.push('\n');
-    }
+    let mut html = convert(ast);
 
     println!("{}", html);
     std::fs::write("test.html", html).unwrap();
-}
-
-#[derive(Debug)]
-enum Expr {
-    ///Level, Text
-    Heading(u8, String),
-    ///Level, Text
-    BlockQuote(u8, String),
-    Bold(String),
-    Italic(String),
-    ///Number, Content
-    NumberedList(u16, String),
-    List(Vec<Expr>),
-    ///Title, Reference/Link
-    Link(String, String),
-    Text(String),
-    Strikethrough(String),
-    CodeBlock(Vec<String>),
-    Code(String),
 }
 
 fn parse(tokens: &[Token]) -> Vec<Expr> {
@@ -313,13 +232,15 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                     Some(Token::String(string)) => {
                         return Some(Expr::BlockQuote(level, string.clone()));
                     }
-                    _ => unreachable!(),
+                    _ => unreachable!("No string after block quote?"),
                 }
             }
         }
-        //--- HorizontalRule
-        //|----| Table
-        Token::Hiphen => {}
+        Token::String(string) if string.starts_with('-') => {
+            if string.len() > 2 && string.chars().all(|c| c == '-') {
+                return Some(Expr::HorizontalRule);
+            }
+        }
         Token::String(string) if string == "!" => {
             let mut i = iter.clone();
             if let Some(Token::OpenBracket) = i.next() {
@@ -417,4 +338,58 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
         _ => (),
     }
     None
+}
+
+fn convert(ast: Vec<Expr>) -> String {
+    let mut html = String::new();
+    for expr in ast {
+        match expr {
+            Expr::Heading(level, content) => {
+                let h = match level {
+                    1 => ("<h1>", r"</h1>"),
+                    2 => ("<h2>", r"</h2>"),
+                    3 => ("<h3>", r"</h3>"),
+                    4 => ("<h4>", r"</h4>"),
+                    5 => ("<h5>", r"</h5>"),
+                    6 => ("<h6>", r"</h6>"),
+                    _ => unreachable!(),
+                };
+
+                html.push_str(h.0);
+                html.push_str(&content);
+                html.push_str(h.1);
+            }
+            Expr::BlockQuote(level, text) => {
+                for _ in 0..level {
+                    html.push_str("<blockquote>");
+                }
+                html.push_str(&text);
+
+                for _ in 0..level {
+                    html.push_str("</blockquote>");
+                }
+            }
+            Expr::Bold(text) => html.push_str(&format!("<b>{}</b>", text)),
+            Expr::Italic(text) => html.push_str(&format!("<i>{}</i>", text)),
+            Expr::NumberedList(_, _) => todo!(),
+            Expr::List(_) => todo!(),
+            Expr::Link(title, link) => {
+                html.push_str(&format!("<a href=\"{}\">{}</a>", link, title))
+            }
+            Expr::Text(text) => html.push_str(&format!("<p>{}</p>", text)),
+            Expr::Strikethrough(text) => html.push_str(&format!("<i>{}</i>", text)),
+            //Fenced code blocks don't exist in html so this is kina of dumb.
+            Expr::CodeBlock(lines) => {
+                html.push_str("<code>\n");
+                for line in lines {
+                    html.push_str(&format!("{}\n", line));
+                }
+                html.push_str("</code>");
+            }
+            Expr::Code(code) => html.push_str(&format!("<code>{}</code>", code)),
+            Expr::HorizontalRule => html.push_str("<hr>"),
+        }
+        html.push('\n');
+    }
+    html
 }
