@@ -3,7 +3,7 @@
 - [ ] Create basic template for website
 - [ ] Move all css into single file. The styling should be consistant across the website. Use h1/h2 over changing the font size.
 - [ ] Markdown to html compiler
-- [ ] Compiler to replace tags with html (#tag)
+- [ ] Custom HTML to html compiler
 
 #### Compiler
 

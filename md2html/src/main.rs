@@ -2,29 +2,6 @@
 #![allow(unused)]
 use std::{fs::File, io::Read, iter::Peekable, slice::Iter};
 
-/*
-Tables:
-
-This is probably the hardest thing to convert.
-
-<table>
-  <tr>
-    <td>Emil</td>
-    <td>Tobias</td>
-    <td>Linus</td>
-  </tr>
-  <tr>
-    <td>16</td>
-    <td>14</td>
-    <td>10</td>
-  </tr>
-</table>
-
-| Emil | Tobias | Linus |
-| ---- | ------ | ----- |
-|  16  |   14   |   10  |
- */
-
 #[derive(Debug, PartialEq, Eq)]
 enum Token {
     ///Level
@@ -377,12 +354,13 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
         Token::Italic => {
             let mut i = iter.clone();
             if let Some(Token::String(string)) = i.next() {
-                if let Some(Token::Bold) = i.next() {
+                if let Some(Token::Italic) = i.next() {
                     iter.advance_by(2);
-                    return Some(Expr::Bold(string.clone()));
+                    return Some(Expr::Italic(string.clone()));
                 }
             }
         }
+        // *This is some striken? text*
         Token::Strikethrough => {
             let mut i = iter.clone();
             if let Some(Token::String(string)) = i.next() {
@@ -486,7 +464,7 @@ fn convert(ast: Vec<Expr>) -> String {
                 html.push_str(&format!("<a href=\"{}\">{}</a>", link, title))
             }
             Expr::Text(text) => html.push_str(&format!("<p>{}</p>", text)),
-            Expr::Strikethrough(text) => html.push_str(&format!("<i>{}</i>", text)),
+            Expr::Strikethrough(text) => html.push_str(&format!("<s>{}</s>", text)),
             //Fenced code blocks don't exist in html so this is kina of dumb.
             Expr::CodeBlock(lines) => {
                 html.push_str("<code>\n");
