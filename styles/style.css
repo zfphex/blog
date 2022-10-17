@@ -102,13 +102,10 @@
   }
 
   p {
+      font-size: 18px;
       font-weight: 300;
-      color: (--text-dim)
-  }
-
-  h2::before {
-      color: var(--primary);
-      content: "# ";
+      color: (--text-dim);
+      line-height: 1.5;
   }
 
   h1::before {
@@ -116,6 +113,72 @@
       content: "# ";
   }
 
+  h2::before {
+      color: var(--primary);
+      content: "# ";
+  }
+
+  h3::before {
+      color: var(--primary);
+      content: "# ";
+  }
+
+  h4::before {
+      color: var(--primary);
+      content: "# ";
+  }
+
+  h5::before {
+      color: var(--primary);
+      content: "# ";
+  }
+
+  h6::before {
+      color: var(--primary);
+      content: "# ";
+  }
+
   .math {
       display: none;
+  }
+
+
+  /* The navigation menu links in posts */
+  .sidebar {
+      z-index: 1;
+      position: fixed;
+      top: 10%;
+      left: 75%;
+  }
+
+  .sidebar a {
+      text-decoration: none;
+      font-size: 18px;
+      color: var(--text);
+      margin: 2px;
+      display: block;
+      border: solid 2px rgb(0, 0, 0, 0);
+      border-radius: 5%;
+  }
+
+  .sidebar a:hover {
+      color: var(--bg-0);
+      background: rgb(37, 128, 212);
+      border: solid 2px rgb(37, 128, 212);
+  }
+
+  .post-header {
+      font-size: 3em;
+      line-height: 100%;
+  }
+
+  .post-metadata {
+      font-size: 18px;
+      color: #999;
+      letter-spacing: -0.5px;
+  }
+
+  .dot {
+      font-size: 1.6em;
+      color: var(--primary)
   }
