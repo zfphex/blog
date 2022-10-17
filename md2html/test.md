@@ -1,3 +1,11 @@
+<!-- +++
+title = "templates/title.html"
+user = "Bay"
+date = auto-generate
+duration = auto-generate
+words = auto-generate
++++ -->
+
 # Heading 1
 ## Heading 2
 ### Heading 3

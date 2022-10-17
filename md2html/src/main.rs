@@ -47,6 +47,8 @@ enum Token {
     TemplateEnd,
     CommentStart,
     CommentEnd,
+    Tag,
+    Equal,
 }
 
 #[derive(Debug)]
@@ -158,6 +160,14 @@ fn main() {
                 iter.next();
                 tokens.push(Token::Strikethrough);
             }
+            '=' => tokens.push(Token::Equal),
+            '+' => {
+                let mut i = iter.clone();
+                if i.next() == Some('+') && i.next() == Some('+') {
+                    iter.advance_by(2);
+                    tokens.push(Token::Tag);
+                }
+            }
             '{' => {
                 if iter.peek() == Some(&'{') {
                     iter.next();
@@ -202,13 +212,13 @@ fn main() {
         tokens.insert(tokens.len(), Token::String(string));
     }
 
-    // dbg!(&tokens);
+    dbg!(&tokens);
 
     let ast = parse(&tokens);
     let mut html = convert(ast);
 
-    println!("{}", html);
-    std::fs::write("test.html", html).unwrap();
+    // println!("{}", html);
+    // std::fs::write("test.html", html).unwrap();
 }
 
 fn parse(tokens: &[Token]) -> Vec<Expr> {
@@ -401,6 +411,13 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                     return Some(Expr::Template(file));
                 }
             }
+        }
+        Token::Tag => {
+            //Tag
+            //Key = "Value"
+            //Key = "Value"
+            //Key = "Value"
+            //Tag
         }
         _ => (),
     }
