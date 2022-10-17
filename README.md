@@ -126,5 +126,19 @@ words = "1500"
 ## Emphasis
 
 **This is bold text**
+```
 
+```
+|
+|- src
+|   |- index.html
+|   |- about.html
+|   |- posts.html
+|   |- projects.html
+|- build
+|   |- posts.html //posts are compiled into a list with word count, date modified etc.
+|- templates
+|   |- 
+|- posts
+     |- post processing.md
 ```
