@@ -25,7 +25,7 @@ This is probably the hardest thing to convert.
 |  16  |   14   |   10  |
  */
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Token {
     ///Level
     Heading(u8),
@@ -51,7 +51,7 @@ enum Token {
     Equal,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Expr {
     ///Level, Text
     Heading(u8, String),
@@ -59,8 +59,7 @@ enum Expr {
     BlockQuote(u8, String),
     Bold(String),
     Italic(String),
-    ///Number, Content
-    NumberedList(u16, String),
+    OrderedList(Vec<String>),
     List(Vec<Expr>),
     ///Title, Reference/Link
     Link(String, String),
@@ -212,13 +211,13 @@ fn main() {
         tokens.insert(tokens.len(), Token::String(string));
     }
 
-    dbg!(&tokens);
+    // dbg!(&tokens);
 
     let ast = parse(&tokens);
     let mut html = convert(ast);
 
-    // println!("{}", html);
-    // std::fs::write("test.html", html).unwrap();
+    println!("{}", html);
+    std::fs::write("test.html", html).unwrap();
 }
 
 fn parse(tokens: &[Token]) -> Vec<Expr> {
@@ -228,12 +227,30 @@ fn parse(tokens: &[Token]) -> Vec<Expr> {
 
     while let Some(token) = iter.next() {
         if let Some(expr) = expression(token, &mut iter) {
-            // dbg!(&expr);
             ast.push(expr);
         }
     }
 
     ast
+}
+
+fn list_item(string: &str) -> Option<&str> {
+    let mut chars = string.chars();
+    if let Some(first) = chars.next() {
+        for char in chars {
+            if char == '.' {
+                let index = string.find(". ").unwrap();
+                if let Some(item) = string.get(index + 2..) {
+                    return Some(item);
+                };
+            }
+
+            if !char.is_numeric() {
+                return None;
+            }
+        }
+    }
+    None
 }
 
 //TODO: Remove all of the string clones.
@@ -320,29 +337,31 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
             return Some(Expr::Text(String::from("!")));
         }
         Token::String(string) => {
-            let mut chars = string.chars();
-            let mut number = String::new();
+            if let Some(item) = list_item(string) {
+                let mut items: Vec<String> = vec![item.to_string()];
 
-            //Match lists:
-            //1. First item
-            //2. Second item
-            //Currently the order doesn't matter and lists are not grouped.
-            //Weird orders like 3. 2. 1. are technically valid.
-            while let Some(char) = chars.next() {
-                if char.is_numeric() {
-                    number.push(char);
-                } else if char == '.' && !number.is_empty() && chars.next() == Some(' ') {
-                    if let Ok(number) = number.parse() {
-                        return Some(Expr::NumberedList(number, chars.collect()));
+                let mut i = iter.clone();
+
+                loop {
+                    if i.next() == Some(&Token::CarriageReturn) && i.next() == Some(&Token::NewLine)
+                    {
+                        if let Some(Token::String(string)) = i.next() {
+                            if let Some(list) = list_item(string) {
+                                iter.advance_by(3);
+                                items.push(list.to_string());
+                            } else {
+                                break;
+                            }
+                        }
                     } else {
                         break;
                     }
-                } else {
-                    break;
                 }
-            }
 
-            return Some(Expr::Text(string.clone()));
+                return Some(Expr::OrderedList(items));
+            } else {
+                return Some(Expr::Text(string.clone()));
+            }
         }
         // **This is some bold text**
         Token::Bold => {
@@ -455,7 +474,13 @@ fn convert(ast: Vec<Expr>) -> String {
             }
             Expr::Bold(text) => html.push_str(&format!("<b>{}</b>", text)),
             Expr::Italic(text) => html.push_str(&format!("<i>{}</i>", text)),
-            Expr::NumberedList(_, _) => todo!(),
+            Expr::OrderedList(items) => {
+                html.push_str("<ol>\n");
+                for item in items {
+                    html.push_str(&format!("\t<li>{}</li>\n", item));
+                }
+                html.push_str("</ol>");
+            }
             Expr::List(_) => todo!(),
             Expr::Link(title, link) => {
                 html.push_str(&format!("<a href=\"{}\">{}</a>", link, title))
