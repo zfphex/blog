@@ -1,6 +1,12 @@
 #![feature(iter_advance_by)]
 #![allow(unused)]
-use std::{fs::File, io::Read, iter::Peekable, slice::Iter};
+use std::{
+    fs::{self, File},
+    io::Read,
+    iter::Peekable,
+    slice::Iter,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 #[derive(Debug, PartialEq, Eq)]
 enum Token {
@@ -46,6 +52,100 @@ enum Expr {
     Code(String),
     HorizontalRule,
     Template(String),
+    Variable(String),
+}
+
+fn html() {
+    let file = "posts.html";
+    let string = fs::read_to_string(file).unwrap();
+
+    let mut iter = string.chars().peekable();
+    let mut tokens = Vec::new();
+
+    let mut string = String::new();
+    let mut string_changed = false;
+
+    while let Some(char) = iter.next() {
+        match char {
+            '{' => {
+                if iter.peek() == Some(&'{') {
+                    iter.next();
+                    tokens.push(Token::TemplateStart);
+                }
+            }
+            '}' => {
+                if iter.peek() == Some(&'}') {
+                    iter.next();
+                    tokens.push(Token::TemplateEnd);
+                }
+            }
+            _ => {
+                string.push(char);
+                string_changed = true;
+            }
+        }
+
+        if string_changed {
+            string_changed = false;
+        } else if !string.is_empty() {
+            tokens.insert(tokens.len() - 1, Token::String(string));
+            string = String::new();
+        }
+    }
+
+    let mut tree = Vec::new();
+    let mut iter = tokens.iter().peekable();
+
+    while let Some(token) = iter.next() {
+        if let Token::TemplateStart = token {
+            let mut i = iter.clone();
+            if let Some(Token::String(string)) = i.next() {
+                if let Some(Token::TemplateEnd) = i.next() {
+                    iter.advance_by(2);
+                    tree.push(Expr::Variable(string.trim().to_string()));
+                }
+            }
+        } else if let Token::String(string) = token {
+            tree.push(Expr::Text(string.clone()));
+        }
+    }
+
+    let mut html = String::new();
+
+    for expr in tree {
+        match expr {
+            Expr::Text(text) => html.push_str(&text),
+            Expr::Variable(var) => {
+                match &*var {
+                    //Some hardcoded items.
+                    "date" => {
+                        let now = SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs();
+                        html.push_str(&format!("{}", now));
+                    }
+                    "duration" => (),
+                    "words" => (),
+                    "link" => {
+                        html.push_str(&format!("posts/{}", file));
+                    }
+                    _ => (),
+                }
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    println!("{}", html);
+    std::fs::write("posts_compiled.html", html).unwrap();
+
+    //Get the variable types from the markdown file.
+    // title = "templates/title.html"
+    // user = "Bay"
+    // date = auto-generate
+    // duration = auto-generate
+    // words = auto-generate
 }
 
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
@@ -55,6 +155,9 @@ enum Expr {
 //No links with titles [test](http://link.net "title")
 //No * or ~ for lists.
 fn main() {
+    html();
+    return;
+
     let mut file = File::open("test.md").unwrap();
     let mut string = String::new();
     file.read_to_string(&mut string).unwrap();
@@ -476,6 +579,7 @@ fn convert(ast: Vec<Expr>) -> String {
             Expr::Code(code) => html.push_str(&format!("<code>{}</code>", code)),
             Expr::HorizontalRule => html.push_str("<hr>"),
             Expr::Template(code) => html.push_str(&code),
+            _ => (),
         }
         html.push('\n');
     }
