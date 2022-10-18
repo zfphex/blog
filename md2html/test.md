@@ -1,5 +1,5 @@
 <!-- +++
-title = "templates/title.html"
+title = "Why we should abolish fornite."
 user = "Bay"
 date = auto-generate
 duration = auto-generate
@@ -29,8 +29,6 @@ testing
 lil
 bro
 ```
-
-<!-- {{ header }} -->
 
 [text](text)
 

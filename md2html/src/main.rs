@@ -55,6 +55,29 @@ enum Expr {
     Variable(String),
 }
 
+/*
+Posts are markdown files.
+The posts page will compile a list of all the posts and using a post template.
+
+for each post in "/posts"
+get the post title, user, date, word count, read duration, file path (to use as hyperlink).
+
+Then create the posts page using the posts template:
+
+<body>
+    <!-- {{ header }} -->
+    <h1 style="text-align: center;">Posts</h1>
+    <main class="list">
+        <ul>
+            <!-- {{ list_items }} -->
+        </ul>
+    </main>
+</body>
+
+I though I would need to inject code into my markdown files but that was wrong.
+Altough that might be useful in the future for things like syntax highlighting/LaTeX.
+*/
+
 fn html() {
     let file = "posts.html";
     let string = fs::read_to_string(file).unwrap();
