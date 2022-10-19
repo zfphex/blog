@@ -2,11 +2,15 @@
 #![allow(unused)]
 use std::{
     fs::{self, File},
-    io::Read,
+    io::{BufRead, BufReader, Read},
     iter::Peekable,
+    os::windows::prelude::MetadataExt,
+    path::{Path, PathBuf},
     slice::Iter,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
+
+use walkdir::WalkDir;
 
 #[derive(Debug, PartialEq, Eq)]
 enum Token {
@@ -77,6 +81,104 @@ Then create the posts page using the posts template:
 I though I would need to inject code into my markdown files but that was wrong.
 Altough that might be useful in the future for things like syntax highlighting/LaTeX.
 */
+
+#[derive(Debug)]
+struct Post {
+    path: PathBuf,
+    title: String,
+    user: String,
+    word_count: usize,
+    date: SystemTime,
+    last_edited: u64,
+    read_duration: Duration,
+}
+
+impl Default for Post {
+    fn default() -> Self {
+        Self {
+            path: Default::default(),
+            title: Default::default(),
+            user: Default::default(),
+            word_count: Default::default(),
+            date: SystemTime::now(),
+            last_edited: Default::default(),
+            read_duration: Default::default(),
+        }
+    }
+}
+
+fn parse_post(path: &Path) -> Option<Post> {
+    let file = File::open(path).unwrap();
+    let br = BufReader::new(&file);
+    let lines: Vec<String> = br.lines().flatten().collect();
+
+    if lines[0] != "<!-- +++" {
+        return None;
+    }
+
+    let metadata = file.metadata().unwrap();
+
+    let mut post = Post {
+        path: path.to_path_buf(),
+        date: metadata.created().unwrap(),
+        //TODO: Convert dumb windows date into real one.
+        last_edited: metadata.last_write_time(),
+        ..Default::default()
+    };
+
+    let mut iter = lines.into_iter();
+
+    for line in &mut iter {
+        if line == "<!-- +++" {
+            continue;
+        }
+
+        if line == "+++ -->" {
+            break;
+        }
+
+        let (key, value) = line.split_once('=').unwrap();
+        let key = key.trim();
+        let value = value.trim();
+        match key {
+            "title" => {
+                post.title = value.to_string();
+                println!("{}", &post.title);
+            }
+            "user" => post.user = value.to_string(),
+            _ => (),
+        }
+    }
+
+    //This includes symbols so it's quite inaccurate.
+    let mut word_count = 0;
+    for line in iter {
+        let split = line.split(' ');
+        word_count += split.count();
+    }
+    post.word_count = word_count;
+    //Time to read at 250 WPM.
+    let read_duration = word_count as f32 / 250.0 * 60.0;
+    post.read_duration = Duration::from_secs(read_duration as u64);
+    //TODO: If it's a short post it should say "<1 minute read" or something.
+
+    Some(post)
+}
+
+fn collect_posts() -> Vec<Post> {
+    WalkDir::new("posts")
+        .into_iter()
+        .flatten()
+        .filter_map(|entry| {
+            if let Some(ex) = entry.path().extension() {
+                if ex == "md" {
+                    return parse_post(entry.path());
+                }
+            }
+            None
+        })
+        .collect()
+}
 
 fn html() {
     let file = "posts.html";
@@ -178,7 +280,9 @@ fn html() {
 //No links with titles [test](http://link.net "title")
 //No * or ~ for lists.
 fn main() {
-    html();
+    // html();
+    let posts = collect_posts();
+    dbg!(posts);
     return;
 
     let mut file = File::open("test.md").unwrap();

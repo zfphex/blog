@@ -1,6 +1,6 @@
 <!-- +++
-title = "Why we should abolish fornite."
-user = "Bay"
+title = Why we should abolish fornite.
+user = Bay
 date = auto-generate
 duration = auto-generate
 words = auto-generate
