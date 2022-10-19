@@ -50,11 +50,28 @@ Posts would be defined as some schema:
 </a>
 ```
 
-This could be complied into:
+Post in markdown:
+
+```
++++
+title = "Example Post"
+user = "Bay"
++++
+
+# Heading 8-)
+
+> Use math as the language to enable KaTeX parsing.
+```math
+  c = \pm\sqrt{a^2 + b^2}
+.```
+
+```
+
+This will be complied into a list of posts:
 ```html
-<header>
+  <header>
         <div class="header-bar"></div>
-        <div class="main"><a href="https://not-matthias.github.io">not-matthias</a></div>
+        <div class="main"><a href="index.html">zX3no</a></div>
         <nav>
             <a href="index.html">/home</a>
             <a href="posts.html">/posts</a>
@@ -69,64 +86,34 @@ This could be complied into:
         <ul>
             <a class="test" href="https://not-matthias.github.io/posts/first-year-of-uni/">
                 <h2>
-                    <span>Kernel Driver with Rust in 2022</span>
+                    <span>Example Post</span>
                 </h2>
 
                 <div class="sub-heading">
                     <p>
                         <i class="fa fa-user"></i>
-                        DeepThought
+                        Bay
                         <i class="fa fa-calendar"></i>
-                        September 16, 2022
+                        September 19, 2022
                     </p>
 
                     <p>
                         <i class="fa fa-clock-o"></i>
-                        19 min
+                        < 1 minute read 
                         <i class="fa fa-pencil"></i>
-                        3697 words
+                        30 words
                     </p>
                 </div>
 
-                <p>
-                    A lot has changed since I wrote my first blog post on how to write kernel drivers with Rust. I
-                    learned more about the
-                    language and worked on more projects. The goal of this blog post is to keep you updated on the
-                    changes from the last 2
-                    years.
-                </p>
+                <summary>
+                </summary>
+
             </a>
         </ul>
     </main>
 
 ```
 
-### Markdown 
-
-```
-+++
-title = "templates/title.html"
-user = "Bay"
-date = "25/09/22"
-duration = "10 minutes"
-words = "1500"
-+++
-
-# h1 Heading 8-)
-## h2 Heading
-### h3 Heading
-#### h4 Heading
-##### h5 Heading
-###### h6 Heading
-
-## Horizontal Rules
-
----
-
-## Emphasis
-
-**This is bold text**
-```
 
 ```
 |

@@ -1,6 +1,5 @@
   :root {
       --text: rgba(255, 255, 255, 87%);
-      --text-dim: rgba(255, 255, 255, 50%);
       /* --bg: #121212; */
       --bg: #141516;
       --bg-1: rgba(255, 255, 255, 5%);
@@ -103,8 +102,11 @@
 
   p {
       font-size: 18px;
-      font-weight: 300;
-      color: (--text-dim);
+      line-height: 1.5;
+  }
+
+  summary {
+      font-size: 18px;
       line-height: 1.5;
   }
 
