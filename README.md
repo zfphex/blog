@@ -54,8 +54,8 @@ Post in markdown:
 
 ```
 +++
-title = "Example Post"
-user = "Bay"
+title = Example Post
+user = Bay
 +++
 
 # Heading 8-)
@@ -65,6 +65,14 @@ user = "Bay"
   c = \pm\sqrt{a^2 + b^2}
 .```
 
+```
+
+Alternative syntax:
+```
+---
+title: Example Post
+user: Bay
+---
 ```
 
 This will be complied into a list of posts:
