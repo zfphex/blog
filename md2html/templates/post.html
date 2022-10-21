@@ -1,23 +1,25 @@
-<a class="list_item" href="posts/posts.html">
+<a class="list_item" href="{{ link }}">
     <h2>
-        <span></span>
+        <span>{{ title }}</span>
     </h2>
 
     <div class="sub-heading">
         <p>
             <img src="icons/user.svg" />
-            
+            {{ user }}
             <img src="icons/calendar.svg" />
-            1666164223
+            {{ date }}
         </p>
 
         <p>
             <img src="icons/clock.svg" />
-            
+            {{ duration }}
             <img src="icons/pencil.svg" />
-            
+            {{ words }}
         </p>
     </div>
 
     <p>
-        
+        {{ summary }}
+    </p>
+</a>

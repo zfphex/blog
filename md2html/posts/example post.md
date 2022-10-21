@@ -1,9 +1,6 @@
 <!-- +++
-title = Why we should abolish fornite.
+title = Example post lil bro
 user = Bay
-date = auto-generate
-duration = auto-generate
-words = auto-generate
 +++ -->
 
 # Hi there!

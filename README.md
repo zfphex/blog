@@ -68,6 +68,7 @@ user = Bay
 ```
 
 Alternative syntax:
+
 ```
 ---
 title: Example Post
@@ -121,7 +122,6 @@ This will be complied into a list of posts:
     </main>
 
 ```
-
 
 ```
 |

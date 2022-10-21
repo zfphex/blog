@@ -180,11 +180,8 @@ fn collect_posts() -> Vec<Post> {
         .collect()
 }
 
-fn html() {
-    let file = "posts.html";
-    let string = fs::read_to_string(file).unwrap();
-
-    let mut iter = string.chars().peekable();
+fn generate_post_item(post: Post, template: &str) -> String {
+    let mut iter = template.chars().peekable();
     let mut tokens = Vec::new();
 
     let mut string = String::new();
@@ -218,6 +215,10 @@ fn html() {
         }
     }
 
+    if !string.is_empty() {
+        tokens.insert(tokens.len(), Token::String(string));
+    }
+
     let mut tree = Vec::new();
     let mut iter = tokens.iter().peekable();
 
@@ -232,6 +233,8 @@ fn html() {
             }
         } else if let Token::String(string) = token {
             tree.push(Expr::Text(string.clone()));
+        } else {
+            unreachable!()
         }
     }
 
@@ -242,35 +245,34 @@ fn html() {
             Expr::Text(text) => html.push_str(&text),
             Expr::Variable(var) => {
                 match &*var {
-                    //Some hardcoded items.
-                    "date" => {
-                        let now = SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .unwrap()
-                            .as_secs();
-                        html.push_str(&format!("{}", now));
-                    }
-                    "duration" => (),
-                    "words" => (),
                     "link" => {
-                        html.push_str(&format!("posts/{}", file));
+                        html.push_str(&post.path.to_string_lossy());
                     }
-                    _ => (),
+                    "title" => html.push_str(&post.title),
+                    "user" => html.push_str(&post.user),
+                    "date" => {
+                        // let now = SystemTime::now()
+                        //     .duration_since(UNIX_EPOCH)
+                        //     .unwrap()
+                        //     .as_secs();
+                        // html.push_str(&format!("{}", now));
+                    }
+                    "duration" => {
+                        let mins = post.read_duration.as_secs_f32() / 60.0;
+                        html.push_str(&mins.to_string());
+                    }
+                    "words" => html.push_str(&post.word_count.to_string()),
+                    "summary" => html.push_str("Test Summary"),
+                    _ => unreachable!(),
                 }
             }
             _ => unreachable!(),
         }
     }
+    html.push('\n');
 
-    println!("{}", html);
-    std::fs::write("posts_compiled.html", html).unwrap();
-
-    //Get the variable types from the markdown file.
-    // title = "templates/title.html"
-    // user = "Bay"
-    // date = auto-generate
-    // duration = auto-generate
-    // words = auto-generate
+    // println!("{}", html);
+    html
 }
 
 //https://alajmovic.com/posts/writing-a-markdown-ish-parser/
@@ -279,10 +281,28 @@ fn html() {
 //No __text__ or _text_ or maybe no **text** or *text*.
 //No links with titles [test](http://link.net "title")
 //No * or ~ for lists.
+
+fn generate_posts_list(posts: Vec<Post>, template: &str) -> String {
+    let mut html = String::new();
+    for post in posts {
+        html.push_str(&generate_post_item(post, template));
+    }
+
+    // println!("{}", html);
+    html
+}
+
+const POST_TEMPLATE: &str = "templates/post.html";
+
 fn main() {
     // html();
+    //Collect the posts
     let posts = collect_posts();
-    dbg!(posts);
+    //Generate the html based on the template.
+    let post_template = fs::read_to_string(POST_TEMPLATE).unwrap();
+    let html = generate_posts_list(posts, &post_template);
+    fs::write("posts.html", html);
+    // println!("{}", html);
     return;
 
     let mut file = File::open("test.md").unwrap();
