@@ -87,9 +87,8 @@ struct Post {
     path: PathBuf,
     title: String,
     user: String,
-    word_count: usize,
+    words: usize,
     date: SystemTime,
-    last_edited: u64,
     read_duration: Duration,
 }
 
@@ -99,9 +98,8 @@ impl Default for Post {
             path: Default::default(),
             title: Default::default(),
             user: Default::default(),
-            word_count: Default::default(),
+            words: Default::default(),
             date: SystemTime::now(),
-            last_edited: Default::default(),
             read_duration: Default::default(),
         }
     }
@@ -121,8 +119,6 @@ fn parse_post(path: &Path) -> Option<Post> {
     let mut post = Post {
         path: path.to_path_buf(),
         date: metadata.created().unwrap(),
-        //TODO: Convert dumb windows date into real one.
-        last_edited: metadata.last_write_time(),
         ..Default::default()
     };
 
@@ -156,7 +152,7 @@ fn parse_post(path: &Path) -> Option<Post> {
         let split = line.split(' ');
         word_count += split.count();
     }
-    post.word_count = word_count;
+    post.words = word_count;
     //Time to read at 250 WPM.
     let read_duration = word_count as f32 / 250.0 * 60.0;
     post.read_duration = Duration::from_secs(read_duration as u64);
@@ -261,7 +257,7 @@ fn generate_post_item(post: Post, template: &str) -> String {
                         let mins = post.read_duration.as_secs_f32() / 60.0;
                         html.push_str(&mins.to_string());
                     }
-                    "words" => html.push_str(&post.word_count.to_string()),
+                    "words" => html.push_str(&post.words.to_string()),
                     "summary" => html.push_str("Test Summary"),
                     _ => unreachable!(),
                 }

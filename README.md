@@ -1,4 +1,4 @@
-#### Tasks: 
+#### Tasks:
 
 - [ ] Create basic template for website
 - [ ] Move all css into single file. The styling should be consistant across the website. Use h1/h2 over changing the font size.
@@ -9,7 +9,7 @@
 
 Imagine the following:
 
-```html 
+```html
  #header
 
  <h1 style="text-align: center;">Posts</h1>
@@ -44,7 +44,7 @@ Posts would be defined as some schema:
 </div>
 
  <p>
-    {{ overview }} 
+    {{ overview }}
  </p>
 
 </a>
@@ -76,51 +76,63 @@ user: Bay
 ---
 ```
 
-This will be complied into a list of posts:
+Updated template:
+
+```rust
+struct Post {
+    path: PathBuf,
+    title: String,
+    user: String,
+    words: usize,
+    date: SystemTime,
+    last_edited: u64,
+    read_duration: Duration,
+}
+```
+
+
 ```html
-  <header>
-        <div class="header-bar"></div>
-        <div class="main"><a href="index.html">zX3no</a></div>
-        <nav>
-            <a href="index.html">/home</a>
-            <a href="posts.html">/posts</a>
-            <a href="projects.html">/projects</a>
-            <a href="about.html">/about</a>
-        </nav>
-    </header>
+<header>
+    <div class="header-bar"></div>
+    <div class="main"><a href="index.html">zX3no</a></div>
+    <nav>
+        <a href="index.html">/home</a>
+        <a href="posts.html">/posts</a>
+        <a href="projects.html">/projects</a>
+        <a href="about.html">/about</a>
+    </nav>
+</header>
 
-    <h1 style="text-align: center;">Posts</h1>
+<h1 style="text-align: center;">Posts</h1>
 
-    <main class="list">
-        <ul>
-            <a class="test" href="https://not-matthias.github.io/posts/first-year-of-uni/">
-                <h2>
-                    <span>Example Post</span>
-                </h2>
-
-                <div class="sub-heading">
-                    <p>
-                        <i class="fa fa-user"></i>
-                        Bay
-                        <i class="fa fa-calendar"></i>
-                        September 19, 2022
-                    </p>
-
-                    <p>
-                        <i class="fa fa-clock-o"></i>
-                        < 1 minute read 
-                        <i class="fa fa-pencil"></i>
-                        30 words
-                    </p>
-                </div>
-
-                <summary>
-                </summary>
-
-            </a>
-        </ul>
-    </main>
-
+<main class="list">
+    <ul>
+        {% for post in posts %}
+        <a class="test" href="{{ post.name }}">
+            <h2>
+                <span>{{ post.title }}</span>
+            </h2>
+            <div class="sub-heading">
+                <p>
+                    <i class="fa fa-user"></i>
+                    {{ post.user }}
+                    <i class="fa fa-calendar"></i>
+                    {{ post.date }}
+                </p>
+                <p>
+                    <i class="fa fa-clock-o"></i>
+                    {{ post.duration }}
+                    <i class="fa fa-pencil"></i>
+                    {{ post.words }}
+                </p>
+            </div>
+            <p>
+                {{ post.overview }}
+            </p>
+        </a>
+        {% endfor %}
+    </ul>
+</main>
 ```
 
 ```
@@ -133,7 +145,8 @@ This will be complied into a list of posts:
 |- build
 |   |- posts.html //posts are compiled into a list with word count, date modified etc.
 |- templates
-|   |- 
+|   |-
 |- posts
      |- post processing.md
 ```
+
