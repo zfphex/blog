@@ -79,6 +79,7 @@ user: Bay
 Updated template:
 
 ```rust
+#[derive(Template)]
 struct Post {
     path: PathBuf,
     title: String,
@@ -88,8 +89,11 @@ struct Post {
     last_edited: u64,
     read_duration: Duration,
 }
-```
 
+html!("templates/posts.html", Post);
+//^ Something like this?
+
+```
 
 ```html
 <header>
