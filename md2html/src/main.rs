@@ -36,6 +36,8 @@ enum Token {
     CommentEnd,
     Tag,
     Equal,
+    ShortcodeStart,
+    ShortcodeEnd,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -185,17 +187,21 @@ fn generate_post_item(post: Post, template: &str) -> String {
 
     while let Some(char) = iter.next() {
         match char {
-            '{' => {
-                if iter.peek() == Some(&'{') {
-                    iter.next();
-                    tokens.push(Token::TemplateStart);
-                }
+            '{' if iter.peek() == Some(&'{') => {
+                iter.next();
+                tokens.push(Token::TemplateStart);
             }
-            '}' => {
-                if iter.peek() == Some(&'}') {
-                    iter.next();
-                    tokens.push(Token::TemplateEnd);
-                }
+            '{' if iter.peek() == Some(&'%') => {
+                iter.next();
+                tokens.push(Token::ShortcodeStart);
+            }
+            '%' if iter.peek() == Some(&'}') => {
+                iter.next();
+                tokens.push(Token::ShortcodeEnd);
+            }
+            '}' if iter.peek() == Some(&'}') => {
+                iter.next();
+                tokens.push(Token::TemplateEnd);
             }
             _ => {
                 string.push(char);
@@ -219,18 +225,23 @@ fn generate_post_item(post: Post, template: &str) -> String {
     let mut iter = tokens.iter().peekable();
 
     while let Some(token) = iter.next() {
-        if let Token::TemplateStart = token {
-            let mut i = iter.clone();
-            if let Some(Token::String(string)) = i.next() {
-                if let Some(Token::TemplateEnd) = i.next() {
-                    iter.advance_by(2);
-                    tree.push(Expr::Variable(string.trim().to_string()));
+        match token {
+            Token::TemplateStart => {
+                let mut i = iter.clone();
+                if let Some(Token::String(string)) = i.next() {
+                    if let Some(Token::TemplateEnd) = i.next() {
+                        iter.advance_by(2);
+                        tree.push(Expr::Variable(string.trim().to_string()));
+                    }
                 }
             }
-        } else if let Token::String(string) = token {
-            tree.push(Expr::Text(string.clone()));
-        } else {
-            unreachable!()
+            Token::ShortcodeStart => {
+                todo!();
+            }
+            Token::String(string) => {
+                tree.push(Expr::Text(string.clone()));
+            }
+            _ => unreachable!(),
         }
     }
 
@@ -288,7 +299,7 @@ fn generate_posts_list(posts: Vec<Post>, template: &str) -> String {
     html
 }
 
-const POST_TEMPLATE: &str = "templates/post.html";
+const POST_TEMPLATE: &str = "templates/posts.html";
 
 fn main() {
     // html();
