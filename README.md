@@ -90,7 +90,7 @@ struct Post {
     read_duration: Duration,
 }
 
-html!("templates/posts.html", Post);
+html!("templates/posts.html", posts: Vec<Post>);
 //^ Something like this?
 
 ```
