@@ -151,10 +151,14 @@ fn parse_post(path: &Path) -> Option<Post> {
     //This includes symbols so it's quite inaccurate.
     let mut word_count = 0;
     let mut lines = 0;
-    let mut summary = String::new();
+
+    //The summary should probably be done while turning markdown into html.
+    //Because everything is interpreted as a string, it includes symbols.
+    //"# Title" should be parsed as "Title"
 
     //There should be a word cap on this i think?
     //Or maybe it should show just the first paragraph?
+    let mut summary = String::new();
     for line in &mut iter {
         if lines < 7 {
             lines += 1;
@@ -294,9 +298,9 @@ fn generate_post_item(post: Post, template: &str) -> String {
             _ => unreachable!(),
         }
     }
+
     html.push('\n');
 
-    // println!("{}", html);
     html
 }
 
@@ -320,7 +324,6 @@ fn generate_posts_list(posts: Vec<Post>, template: &str) -> String {
 const POST_TEMPLATE: &str = "templates/post.html";
 
 fn main() {
-    // html();
     //Collect the posts
     let posts = collect_posts();
     //Generate the html based on the template.
@@ -329,8 +332,19 @@ fn main() {
     //TODO: Inject html into template
     fs::write("posts.html", html);
     // println!("{}", html);
-    return;
+}
 
+fn test() {
+    //Load Template
+    //html!("templates/posts.html", posts: Vec<Post>)
+    //create the variable posts
+    //read iterator from tempalte and convert to rust
+    //{% for post in posts %}
+
+    //It's going to be really complicated to dynamicly create a variable.
+}
+
+fn md2html() {
     let mut file = File::open("test.md").unwrap();
     let mut string = String::new();
     file.read_to_string(&mut string).unwrap();
