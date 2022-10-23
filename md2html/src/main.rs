@@ -91,7 +91,8 @@ struct Post {
     user: String,
     words: usize,
     date: SystemTime,
-    read_duration: Duration,
+    duration: String,
+    summary: String,
 }
 
 impl Default for Post {
@@ -102,7 +103,8 @@ impl Default for Post {
             user: Default::default(),
             words: Default::default(),
             date: SystemTime::now(),
-            read_duration: Default::default(),
+            duration: Default::default(),
+            summary: Default::default(),
         }
     }
 }
@@ -138,11 +140,9 @@ fn parse_post(path: &Path) -> Option<Post> {
         let (key, value) = line.split_once('=').unwrap();
         let key = key.trim();
         let value = value.trim();
+
         match key {
-            "title" => {
-                post.title = value.to_string();
-                println!("{}", &post.title);
-            }
+            "title" => post.title = value.to_string(),
             "user" => post.user = value.to_string(),
             _ => (),
         }
@@ -150,15 +150,32 @@ fn parse_post(path: &Path) -> Option<Post> {
 
     //This includes symbols so it's quite inaccurate.
     let mut word_count = 0;
-    for line in iter {
+    let mut lines = 0;
+    let mut summary = String::new();
+
+    //There should be a word cap on this i think?
+    //Or maybe it should show just the first paragraph?
+    for line in &mut iter {
+        if lines < 7 {
+            lines += 1;
+            summary.push_str(&line);
+            summary.push('\n');
+        }
+
         let split = line.split(' ');
         word_count += split.count();
     }
+
+    post.summary = summary;
     post.words = word_count;
+
     //Time to read at 250 WPM.
-    let read_duration = word_count as f32 / 250.0 * 60.0;
-    post.read_duration = Duration::from_secs(read_duration as u64);
-    //TODO: If it's a short post it should say "<1 minute read" or something.
+    let duration = word_count as f32 / 250.0;
+    post.duration = if duration < 1.0 {
+        String::from("&lt;1 minute read")
+    } else {
+        format!("{} minute read", duration as u64)
+    };
 
     Some(post)
 }
@@ -253,7 +270,10 @@ fn generate_post_item(post: Post, template: &str) -> String {
             Expr::Variable(var) => {
                 match &*var {
                     "link" => {
-                        html.push_str(&post.path.to_string_lossy());
+                        html.push_str(&format!(
+                            "build/{}.html",
+                            post.path.file_stem().unwrap().to_string_lossy()
+                        ));
                     }
                     "title" => html.push_str(&post.title),
                     "user" => html.push_str(&post.user),
@@ -264,12 +284,10 @@ fn generate_post_item(post: Post, template: &str) -> String {
                         //     .as_secs();
                         // html.push_str(&format!("{}", now));
                     }
-                    "duration" => {
-                        let mins = post.read_duration.as_secs_f32() / 60.0;
-                        html.push_str(&mins.to_string());
-                    }
+                    "duration" => html.push_str(&post.duration),
                     "words" => html.push_str(&post.words.to_string()),
-                    "summary" => html.push_str("Test Summary"),
+                    //A summary should be 2 paragraphs or 400 words.
+                    "summary" => html.push_str(&post.summary),
                     _ => unreachable!(),
                 }
             }
@@ -299,7 +317,7 @@ fn generate_posts_list(posts: Vec<Post>, template: &str) -> String {
     html
 }
 
-const POST_TEMPLATE: &str = "templates/posts.html";
+const POST_TEMPLATE: &str = "templates/post.html";
 
 fn main() {
     // html();
@@ -308,6 +326,7 @@ fn main() {
     //Generate the html based on the template.
     let post_template = fs::read_to_string(POST_TEMPLATE).unwrap();
     let html = generate_posts_list(posts, &post_template);
+    //TODO: Inject html into template
     fs::write("posts.html", html);
     // println!("{}", html);
     return;
@@ -450,7 +469,7 @@ fn main() {
     let ast = parse(&tokens);
     let mut html = convert(ast);
 
-    println!("{}", html);
+    // println!("{}", html);
     std::fs::write("test.html", html).unwrap();
 }
 
