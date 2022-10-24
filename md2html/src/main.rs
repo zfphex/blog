@@ -40,6 +40,36 @@ enum Token {
     ShortcodeEnd,
 }
 
+impl ToString for Token {
+    fn to_string(&self) -> String {
+        match self {
+            Token::Heading(level) => unreachable!(),
+            Token::Italic => String::from("*"),
+            Token::Bold => String::from("**"),
+            Token::Strikethrough => String::from("~~"),
+            Token::BackTick => String::from("`"),
+            Token::CodeBlock => String::from("```"),
+            Token::BlockQuote => String::from(">"),
+            Token::OpenBracket => String::from("["),
+            Token::CloseBracket => String::from("]"),
+            Token::OpenParentheses => String::from("("),
+            Token::CloseParentheses => String::from(")"),
+            Token::NewLine => String::from("\n"),
+            Token::CarriageReturn => String::from("\r"),
+            Token::String(string) => string.clone(),
+            Token::Tab => String::from("\t"),
+            Token::TemplateStart => String::from("{{"),
+            Token::TemplateEnd => String::from("}}"),
+            Token::CommentStart => String::from("<!-- "),
+            Token::CommentEnd => String::from("-->"),
+            Token::Tag => String::from("+++"),
+            Token::Equal => String::from("="),
+            Token::ShortcodeStart => String::from("{%"),
+            Token::ShortcodeEnd => String::from("%}"),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 enum Expr {
     ///Level, Text
@@ -200,47 +230,7 @@ fn collect_posts() -> Vec<Post> {
 }
 
 fn generate_post_item(post: Post, template: &str) -> String {
-    let mut iter = template.chars().peekable();
-    let mut tokens = Vec::new();
-
-    let mut string = String::new();
-    let mut string_changed = false;
-
-    while let Some(char) = iter.next() {
-        match char {
-            '{' if iter.peek() == Some(&'{') => {
-                iter.next();
-                tokens.push(Token::TemplateStart);
-            }
-            '{' if iter.peek() == Some(&'%') => {
-                iter.next();
-                tokens.push(Token::ShortcodeStart);
-            }
-            '%' if iter.peek() == Some(&'}') => {
-                iter.next();
-                tokens.push(Token::ShortcodeEnd);
-            }
-            '}' if iter.peek() == Some(&'}') => {
-                iter.next();
-                tokens.push(Token::TemplateEnd);
-            }
-            _ => {
-                string.push(char);
-                string_changed = true;
-            }
-        }
-
-        if string_changed {
-            string_changed = false;
-        } else if !string.is_empty() {
-            tokens.insert(tokens.len() - 1, Token::String(string));
-            string = String::new();
-        }
-    }
-
-    if !string.is_empty() {
-        tokens.insert(tokens.len(), Token::String(string));
-    }
+    let mut tokens = generate_tokens(template);
 
     let mut tree = Vec::new();
     let mut iter = tokens.iter().peekable();
@@ -262,7 +252,7 @@ fn generate_post_item(post: Post, template: &str) -> String {
             Token::String(string) => {
                 tree.push(Expr::Text(string.clone()));
             }
-            _ => unreachable!(),
+            _ => tree.push(Expr::Text(token.to_string())),
         }
     }
 
@@ -333,22 +323,15 @@ fn main() {
     fs::write("posts.html", html);
     // println!("{}", html);
 }
+//Load Template
+//html!("templates/posts.html", posts: Vec<Post>)
+//create the variable posts
+//read iterator from tempalte and convert to rust
+//{% for post in posts %}
 
-fn test() {
-    //Load Template
-    //html!("templates/posts.html", posts: Vec<Post>)
-    //create the variable posts
-    //read iterator from tempalte and convert to rust
-    //{% for post in posts %}
+//It's going to be really complicated to dynamicly create a variable.
 
-    //It's going to be really complicated to dynamicly create a variable.
-}
-
-fn md2html() {
-    let mut file = File::open("test.md").unwrap();
-    let mut string = String::new();
-    file.read_to_string(&mut string).unwrap();
-
+fn generate_tokens(string: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut iter = string.chars().peekable();
 
@@ -377,6 +360,22 @@ fn md2html() {
         }
 
         match char {
+            '{' if iter.peek() == Some(&'{') => {
+                iter.next();
+                tokens.push(Token::TemplateStart);
+            }
+            '{' if iter.peek() == Some(&'%') => {
+                iter.next();
+                tokens.push(Token::ShortcodeStart);
+            }
+            '%' if iter.peek() == Some(&'}') => {
+                iter.next();
+                tokens.push(Token::ShortcodeEnd);
+            }
+            '}' if iter.peek() == Some(&'}') => {
+                iter.next();
+                tokens.push(Token::TemplateEnd);
+            }
             '#' if start => {
                 let mut i = iter.clone();
                 let mut level = 1;
@@ -478,16 +477,10 @@ fn md2html() {
         tokens.insert(tokens.len(), Token::String(string));
     }
 
-    // dbg!(&tokens);
-
-    let ast = parse(&tokens);
-    let mut html = convert(ast);
-
-    // println!("{}", html);
-    std::fs::write("test.html", html).unwrap();
+    tokens
 }
 
-fn parse(tokens: &[Token]) -> Vec<Expr> {
+fn parse_tokens(tokens: &[Token]) -> Vec<Expr> {
     let mut iter = tokens.iter().peekable();
 
     let mut ast: Vec<Expr> = Vec::new();
