@@ -38,12 +38,14 @@ enum Token {
     Equal,
     ShortcodeStart,
     ShortcodeEnd,
+    Plus,
 }
 
 impl ToString for Token {
     fn to_string(&self) -> String {
         match self {
             Token::Heading(level) => unreachable!(),
+            Token::Plus => String::from("+++"),
             Token::Italic => String::from("*"),
             Token::Bold => String::from("**"),
             Token::Strikethrough => String::from("~~"),
@@ -201,6 +203,23 @@ fn parse_post(path: &Path) -> Option<Post> {
     }
 
     post.summary = summary;
+
+    let string = fs::read_to_string(path).unwrap();
+    let tokens = generate_tokens(&string);
+    //TODO: Skip over the Metadata +++ .
+    let lines: Vec<String> = tokens
+        .into_iter()
+        .filter_map(|token| {
+            if let Token::String(string) = token {
+                Some(string)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    //TODO: Generate summary fromtokens.
+
     post.words = word_count;
 
     //Time to read at 250 WPM.
@@ -214,6 +233,7 @@ fn parse_post(path: &Path) -> Option<Post> {
     Some(post)
 }
 
+//Collects all markdown files into metadata for the posts page.
 fn collect_posts() -> Vec<Post> {
     WalkDir::new("posts")
         .into_iter()
@@ -331,9 +351,10 @@ fn main() {
 
 //It's going to be really complicated to dynamicly create a variable.
 
-fn generate_tokens(string: &str) -> Vec<Token> {
+///Convert markdown into a stream of tokens
+fn generate_tokens(markdown: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = Vec::new();
-    let mut iter = string.chars().peekable();
+    let mut iter = markdown.chars().peekable();
 
     let mut string = String::new();
     let mut string_changed = false;
@@ -360,6 +381,13 @@ fn generate_tokens(string: &str) -> Vec<Token> {
         }
 
         match char {
+            '+' => {
+                let mut i = iter.clone();
+                if i.next() == Some('+') && i.next() == Some('+') {
+                    iter.advance_by(2);
+                    tokens.push(Token::Plus);
+                }
+            }
             '{' if iter.peek() == Some(&'{') => {
                 iter.next();
                 tokens.push(Token::TemplateStart);
