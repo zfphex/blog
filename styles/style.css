@@ -144,31 +144,7 @@
       display: none;
   }
 
-
   /* The navigation menu links in posts */
-  .sidebar {
-      z-index: 1;
-      position: fixed;
-      top: 10%;
-      left: 75%;
-  }
-
-  .sidebar a {
-      text-decoration: none;
-      font-size: 18px;
-      color: var(--text);
-      margin: 2px;
-      display: block;
-      border: solid 2px rgb(0, 0, 0, 0);
-      border-radius: 5%;
-  }
-
-  .sidebar a:hover {
-      color: var(--bg-0);
-      background: rgb(37, 128, 212);
-      border: solid 2px rgb(37, 128, 212);
-  }
-
   .post-header {
       font-size: 44px;
       line-height: 100%;

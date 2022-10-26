@@ -5,6 +5,56 @@
     <link rel="preload" href="styles/style.css" as="style" />
     <link rel="stylesheet" href="styles/style.css" />
 </head>
+<style>
+    .container {
+        display: flex;
+        /* establish flex container */
+        justify-content: space-between;
+    }
+
+    .container>div {
+        /* width: auto;
+        height: auto; */
+        padding: 12px;
+    }
+
+    /* .container .sidebar {
+        padding: 10px;
+    } */
+
+    /* .sidebar {
+        z-index: 1;
+        position: fixed;
+        top: 10%;
+        left: 75%;
+    }
+
+    .sidebar a {
+        text-decoration: none;
+        font-size: 18px;
+        color: var(--text);
+        margin: 2px;
+        display: block;
+        border: solid 2px rgb(0, 0, 0, 0);
+        border-radius: 5%;
+    }
+
+    .sidebar a:hover {
+        color: var(--bg-0);
+        background: rgb(37, 128, 212);
+        border: solid 2px rgb(37, 128, 212);
+    } */
+    .sidebar ul {
+        border-left: 1px solid #dbdbdb;
+        margin: 0.75em;
+        padding-left: 0.75em;
+        line-height: 150%;
+    }
+
+    .sidebar li {
+        list-style-type: none;
+    }
+</style>
 
 <body>
     <header>
@@ -18,81 +68,112 @@
         </nav>
     </header>
 
-    <nav class="sidebar">
-        <h4>Contents</h4>
+    <div class="container">
 
-        <!-- <a href="#prefece">Preface</a> -->
-        <!-- <a href="#oranges">Oranges</a> -->
-    </nav>
+        <div>
+            <div class="post-header">
+                This is a very very very long example heading<span class="dot">.</span>
+                <div class="post-metadata">Posted on <time>2022-05-20</time></div>
+            </div>
 
-    <div class="post-header">
-        This is a very very very long example heading<span class="dot">.</span>
-        <div class="post-metadata">Posted on <time>2022-05-20</time></div>
+            <div class="post">
+                <h2 class="toc" id="Preface">Preface</h2>
+                <p>A <a href="https://github.com/sariaki">friend of mine</a> recently brought up his custom mechanical
+                    keyboard
+                    while we were hanging out in voice chat, and at first, nobody understood why anyone would buy one.
+                    At
+                    that
+                    time, I had no clue that there are entire <a
+                        href="https://reddit.com/r/MechanicalKeyboards/">communities</a> about building custom
+                    keyboards.
+                    With
+                    every sentence that was said, we got deeper into this community. We explored different YouTube
+                    channels,
+                    watched comparisons, and listened to sound tests.</p>
+                <p>Only a few hours later, all of us were hooked and wanted to build our own keyboards as well. This
+                    post
+                    will
+                    go over all the parts that are needed, what they are for, and what you need to watch out for.</p>
+
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+                </br>
+
+                <h2 class="toc" id="Oranges">Oranges</h2>
+
+                <p>
+                    Hi there!
+                </p>
+
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <h3>Contents</h3>
+
+            <ul>
+                <li>
+                    <a href="#prefece">Preface</a>
+                    <ul>
+                        <a href="#deface">Deface</a>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#oranges">Oranges</a>
+                    <ul>
+                        <a href="#oranges">Orange Oranges</a>
+                        <a href="#oranges">Orange Oranges Orange</a>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#apples">Apples</a>
+                </li>
+            </ul>
+        </div>
+
     </div>
 
-    <div class="post">
-        <h2 class="toc" id="Preface">Preface</h2>
-        <p>A <a href="https://github.com/sariaki">friend of mine</a> recently brought up his custom mechanical keyboard
-            while we were hanging out in voice chat, and at first, nobody understood why anyone would buy one. At that
-            time, I had no clue that there are entire <a
-                href="https://reddit.com/r/MechanicalKeyboards/">communities</a> about building custom keyboards. With
-            every sentence that was said, we got deeper into this community. We explored different YouTube channels,
-            watched comparisons, and listened to sound tests.</p>
-        <p>Only a few hours later, all of us were hooked and wanted to build our own keyboards as well. This post will
-            go over all the parts that are needed, what they are for, and what you need to watch out for.</p>
-
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-        </br>
-
-        <h2 class="toc" id="Oranges">Oranges</h2>
-
-        <p>
-            Hi there!
-        </p>
-
-    </div>
-
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
         const sideBar = document.querySelector("nav.sidebar");
         const menuBarHeight = sideBar.clientHeight;
         const tocItems = document.querySelectorAll(".toc");
@@ -144,6 +225,7 @@
                 isTicking = true;
             }
         }, false);
-    </script>
+    </script> -->
+
 
 </body>
