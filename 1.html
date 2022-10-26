@@ -4,6 +4,7 @@
     <title>Example post - bayd.xyz</title>
     <link rel="preload" href="styles/style.css" as="style" />
     <link rel="stylesheet" href="styles/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <style>
     .container {
@@ -16,6 +17,13 @@
         /* width: auto;
         height: auto; */
         padding: 12px;
+    }
+
+    .container .sidebar {
+        position: -webkit-sticky;
+        position: sticky;
+        align-self: flex-start;
+        top: 0;
     }
 
     /* .container .sidebar {
