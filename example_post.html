@@ -10,14 +10,11 @@
         justify-content: center;
     }
 
-    .child {
-        height: 100px;
-        width: 100px;
-        margin: 1rem 1rem;
-        padding: 1.25rem;
-    }
 
     .left {
+        margin: 1rem 1rem;
+        padding: 1.25rem;
+
         width: 80%;
         margin-left: 10%;
         background-color: #fff;
@@ -28,13 +25,23 @@
     }
 
     .right {
-        border: 1px solid black;
+        margin: 1rem 1rem;
+        padding: 1.25rem;
+
+        /* border: 1px solid black; */
         height: auto;
         width: 20%;
 
         top: 0;
+
+        /* Makes the right div sticky */
         align-self: flex-start;
         position: sticky;
+    }
+
+    .right ul {
+        /* Removes the default padding */
+        padding: 0;
     }
 
     .menu {
@@ -53,6 +60,10 @@
     a {
         text-decoration: none;
         color: inherit;
+        padding: 4px;
+        /* background: #485fc7; */
+        /* box-sizing: border-box; */
+        display: block;
     }
 
     .menu .is-active {
@@ -61,8 +72,11 @@
     }
 
     .menu a:not(.is-active):hover {
-        color: white;
-        background: #464343;
+        /* color: white;
+        background: #c4c1c1; */
+
+        background-color: #f5f5f5;
+        color: #363636
     }
 
     @media only screen and (max-width: 750px) {
@@ -75,143 +89,79 @@
             display: none;
         }
     }
+
+    .box {
+        height: 500px;
+    }
 </style>
+
+<!-- https://deepthought-theme.netlify.app/docs/extended-shortcodes/ -->
 
 <body>
     <div class="container">
-        <div class="child left">
-            This is a test.
+        <div class="left">
+
+            <h2 id="mermaid">Mermaid</h2>
+            <div class="box"></div>
+
+            <h2 id="flowchart">Flowchart</h2>
+            <div class="box"></div>
+
+            <h2 id="sequence-diagram">Sequence Diagram</h2>
+            <div class="box"></div>
+
+            <h2 id="gantt-diagram">Gantt Diagram</h2>
+            <div class="box"></div>
 
         </div>
 
-        <div class="child right">
-            <p style="font-size: 18px;"><b>Contents</b></p>
+        <div class="right">
             <ul class="menu">
+                <p style="font-size: 18px;"><b>Contents</b></p>
+
                 <li>
-                    <a class="is-active" id="link-mermaid"
-                        href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#mermaid">
+                    <a class="is-active" id="menu-mermaid" href="#mermaid">
                         Mermaid
                     </a>
 
                     <ul>
                         <li>
-                            <a id="link-flowchart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#flowchart">
+                            <a id="menu-flowchart" href="#flowchart">
                                 Flowchart
                             </a>
                         </li>
 
                         <li>
-                            <a id="link-sequence-diagram"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#sequence-diagram">
+                            <a id="menu-sequence-diagram" href="#sequence-diagram">
                                 Sequence Diagram
                             </a>
                         </li>
 
                         <li>
-                            <a id="link-gantt-diagram"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#gantt-diagram">
+                            <a id="menu-gantt-diagram" href="#gantt-diagram">
                                 Gantt diagram
                             </a>
                         </li>
 
                         <li>
-                            <a id="link-class-diagram-experimental"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#class-diagram-experimental">
+                            <a>
                                 Class diagram - experimental
                             </a>
                         </li>
 
                         <li>
-                            <a id="link-entity-relationship-diagram-experimental"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#entity-relationship-diagram-experimental">
+                            <a>
                                 Entity Relationship Diagram - experimental
                             </a>
                         </li>
 
                         <li>
-                            <a id="link-user-journey-diagram"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#user-journey-diagram">
+                            <a>
                                 User Journey Diagram
                             </a>
                         </li>
 
                     </ul>
-
-                </li>
-
-                <li>
-                    <a id="link-mapbox" href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#mapbox">
-                        Mapbox
-                    </a>
-
-                </li>
-
-                <li>
-                    <a id="link-chart" href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#chart">
-                        Chart
-                    </a>
-
-                    <ul>
-
-                        <li>
-                            <a id="link-line-chart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#line-chart">
-                                Line chart
-                            </a>
-                        </li>
-
-                        <li>
-                            <a id="link-xy-chart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#xy-chart">
-                                XY chart
-                            </a>
-                        </li>
-
-                        <li>
-                            <a id="link-bar-chart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#bar-chart">
-                                Bar chart
-                            </a>
-                        </li>
-
-                        <li>
-                            <a id="link-stacked-bar-chart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#stacked-bar-chart">
-                                Stacked bar chart
-                            </a>
-                        </li>
-
-                        <li>
-                            <a id="link-pie-doughnut-chart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#pie-doughnut-chart">
-                                Pie/Doughnut chart
-                            </a>
-                        </li>
-
-                        <li>
-                            <a id="link-radar-chart"
-                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#radar-chart">
-                                Radar chart
-                            </a>
-                        </li>
-
-                    </ul>
-
-                </li>
-
-                <li>
-                    <a id="link-galleria"
-                        href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#galleria">
-                        Galleria
-                    </a>
-
-                </li>
-
-                <li>
-                    <a id="link-katex" href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#katex">
-                        KaTeX
-                    </a>
 
                 </li>
 
@@ -222,5 +172,56 @@
     </div>
 
 </body>
+
+<script type="text/javascript">
+    const menu_items = document.querySelectorAll(".menu a");
+    let links = new Array(menu_items.length);
+
+    menu_items.forEach((el, i) => {
+        let id = el.getAttribute("id");
+        if (id != null) {
+            if (id.startsWith("menu")) {
+                let link_id = id.substring(5);
+                let link = document.getElementById(link_id);
+                if (link != null) {
+                    links[i] = link;
+                }
+            }
+        }
+    })
+
+
+    function isInViewport(element) {
+        const rect = element.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    }
+
+    var isTicking = null;
+    window.addEventListener('scroll', () => {
+        if (!isTicking) {
+            window.requestAnimationFrame(() => {
+                let found_first = false;
+
+                links.forEach((element, i) => {
+                    if (isInViewport(element) && !found_first) {
+                        menu_items[i].classList.add('is-active');
+                        found_first = true;
+                    } else {
+                        menu_items[i].classList.remove('is-active');
+                    }
+                });
+
+                isTicking = false;
+            });
+
+            isTicking = true;
+        }
+    }, false);
+</script>
 
 </html>
