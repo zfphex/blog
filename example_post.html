@@ -3,12 +3,17 @@
 
 <head>
     <title>Example post - bayd.xyz</title>
-    <!-- <link rel="preload" href="styles/style.css" as="style" />
-    <link rel="stylesheet" href="styles/style.css" /> -->
+    <link rel="preload" href="styles/style.css" as="style" />
+    <link rel="stylesheet" href="styles/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 <style>
+    body {
+        max-width: none;
+        margin: 0;
+    }
+
     .container {
         display: flex;
         justify-content: center;
@@ -20,10 +25,12 @@
 
         width: 80%;
         margin-left: 10%;
-        background-color: #fff;
+        /* background-color: rgb(126, 120, 120); */
+        /* background-color: var(--bg-1); */
+        /* color: #4a4a4a; */
         border-radius: 6px;
-        box-shadow: 0 0.5em 1em -0.125em rgb(10 10 10 / 10%), 0 0px 0 1px rgb(10 10 10 / 2%);
-        color: #4a4a4a;
+        box-shadow: 1px 1px 5px rgba(255, 255, 255, 0.5);
+
     }
 
     .right {
@@ -99,6 +106,19 @@
 <!-- https://deepthought-theme.netlify.app/docs/extended-shortcodes/ -->
 
 <body>
+    <header>
+        <div class="header-bar"></div>
+        <div class="main"><a href="index.html">zX3no</a></div>
+        <nav>
+            <a href="index.html">/home</a>
+            <a href="posts.html">/posts</a>
+            <a href="projects.html">/projects</a>
+            <a href="about.html">/about</a>
+        </nav>
+    </header>
+
+    <!-- TODO: Content is not aligned with the header -->
+
     <div class="container">
         <div class="left">
             <h2 id="mermaid">Mermaid</h2>
@@ -165,6 +185,20 @@
         );
     }
 
+    function update() {
+        let found_first = false;
+
+        links.forEach((element, i) => {
+            if (isInViewport(element) && !found_first) {
+                menu_items[i].classList.add('is-active');
+                found_first = true;
+            } else {
+                menu_items[i].classList.remove('is-active');
+            }
+        });
+
+    }
+
     const menu_items = document.querySelectorAll(".menu a");
     let links = new Array(menu_items.length);
     let isTicking = null;
@@ -182,19 +216,12 @@
         }
     })
 
+    update();
+
     window.addEventListener('scroll', () => {
         if (!isTicking) {
             window.requestAnimationFrame(() => {
-                let found_first = false;
-
-                links.forEach((element, i) => {
-                    if (isInViewport(element) && !found_first) {
-                        menu_items[i].classList.add('is-active');
-                        found_first = true;
-                    } else {
-                        menu_items[i].classList.remove('is-active');
-                    }
-                });
+                update();
 
                 isTicking = false;
             });
