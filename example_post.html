@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+</head>
+
+<style>
+    .container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .child {
+        height: 100px;
+        width: 100px;
+        margin: 1rem 1rem;
+        padding: 1.25rem;
+    }
+
+    .left {
+        width: 80%;
+        margin-left: 10%;
+        background-color: #fff;
+        border-radius: 6px;
+        box-shadow: 0 0.5em 1em -0.125em rgb(10 10 10 / 10%), 0 0px 0 1px rgb(10 10 10 / 2%);
+        color: #4a4a4a;
+        height: 2000px;
+    }
+
+    .right {
+        border: 1px solid black;
+        height: auto;
+        width: 20%;
+
+        top: 0;
+        align-self: flex-start;
+        position: sticky;
+    }
+
+    .menu {
+        line-height: 1.25;
+        list-style: none;
+    }
+
+    .menu ul {
+        list-style-type: none;
+        border-left: 1px solid #686363;
+        margin: 0.75em;
+        padding-left: 0.75em;
+        line-height: 150%;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .menu .is-active {
+        background-color: #485fc7;
+        color: #fff;
+    }
+
+    .menu a:not(.is-active):hover {
+        color: white;
+        background: #464343;
+    }
+
+    @media only screen and (max-width: 750px) {
+        .left {
+            /* Override the 10% left offset */
+            margin: 1rem 1rem;
+        }
+
+        .right {
+            display: none;
+        }
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div class="child left">
+            This is a test.
+
+        </div>
+
+        <div class="child right">
+            <p style="font-size: 18px;"><b>Contents</b></p>
+            <ul class="menu">
+                <li>
+                    <a class="is-active" id="link-mermaid"
+                        href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#mermaid">
+                        Mermaid
+                    </a>
+
+                    <ul>
+                        <li>
+                            <a id="link-flowchart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#flowchart">
+                                Flowchart
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-sequence-diagram"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#sequence-diagram">
+                                Sequence Diagram
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-gantt-diagram"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#gantt-diagram">
+                                Gantt diagram
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-class-diagram-experimental"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#class-diagram-experimental">
+                                Class diagram - experimental
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-entity-relationship-diagram-experimental"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#entity-relationship-diagram-experimental">
+                                Entity Relationship Diagram - experimental
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-user-journey-diagram"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#user-journey-diagram">
+                                User Journey Diagram
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </li>
+
+                <li>
+                    <a id="link-mapbox" href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#mapbox">
+                        Mapbox
+                    </a>
+
+                </li>
+
+                <li>
+                    <a id="link-chart" href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#chart">
+                        Chart
+                    </a>
+
+                    <ul>
+
+                        <li>
+                            <a id="link-line-chart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#line-chart">
+                                Line chart
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-xy-chart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#xy-chart">
+                                XY chart
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-bar-chart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#bar-chart">
+                                Bar chart
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-stacked-bar-chart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#stacked-bar-chart">
+                                Stacked bar chart
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-pie-doughnut-chart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#pie-doughnut-chart">
+                                Pie/Doughnut chart
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="link-radar-chart"
+                                href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#radar-chart">
+                                Radar chart
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </li>
+
+                <li>
+                    <a id="link-galleria"
+                        href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#galleria">
+                        Galleria
+                    </a>
+
+                </li>
+
+                <li>
+                    <a id="link-katex" href="https://deepthought-theme.netlify.app/docs/extended-shortcodes/#katex">
+                        KaTeX
+                    </a>
+
+                </li>
+
+            </ul>
+        </div>
+
+
+    </div>
+
+</body>
+
+</html>
