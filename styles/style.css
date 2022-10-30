@@ -15,10 +15,11 @@
   }
 
   body {
+      max-width: 800px;
+      margin: 0 auto;
+
       background: var(--bg);
       color: var(--text);
-      max-width: 944px;
-      margin: 0 auto;
       padding: 0 24px;
       word-wrap: break-word;
 
@@ -30,14 +31,10 @@
   }
 
   header {
-      max-width: 944px;
-      margin: 0 auto;
-
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-between;
-      padding-top: 0.25em;
-      padding-bottom: 1em;
+      padding-top: 6px;
+      padding-bottom: 6px;
       font-size: 40px;
   }
 

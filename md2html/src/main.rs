@@ -299,7 +299,7 @@ fn generate_post_item(post: Post, template: &str) -> String {
                         // html.push_str(&format!("{}", now));
                     }
                     "duration" => html.push_str(&post.duration),
-                    "words" => html.push_str(&post.words.to_string()),
+                    "words" => html.push_str(&format!("{} words", post.words)),
                     //A summary should be 2 paragraphs or 400 words.
                     "summary" => html.push_str(&post.summary),
                     _ => unreachable!(),
