@@ -708,7 +708,7 @@ fn expression(token: &Token, iter: &mut Peekable<Iter<Token>>) -> Option<Expr> {
                 if let Some(Token::TemplateEnd) = i.next() {
                     iter.advance_by(2);
                     let name = format!("templates/{}.html", text.trim());
-                    let file = if let Ok(file) = std::fs::read_to_string(&name) {
+                    let file = if let Ok(file) = std::fs::read_to_string(name) {
                         file
                     } else {
                         format!(
