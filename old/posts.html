@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Posts - bayd.xyz</title>
+    <link rel="preload" href="../styles/old_style.css" as="style" />
+    <link rel="stylesheet" href="../styles/old_style.css" />
+
+</head>
+
+<style>
+    img {
+        display: inline;
+        filter: invert(85%);
+        width: 18px;
+        height: 18px;
+    }
+
+    .list_item h2::before {
+        color: var(--primary);
+        content: "#";
+    }
+
+    .list_item {
+        display: block;
+
+        margin: 0.75em;
+        padding: 1em;
+
+        border: 2px solid var(--bg-1);
+        border-radius: 5px;
+
+        transform-origin: center;
+        transition: transform 200ms;
+    }
+
+    .list_item:hover {
+        transform: scale(1.02, 1.02);
+    }
+
+    .list_item:hover span {
+        background-color: var(--primary);
+    }
+
+    .list_item span {
+        border-bottom: 3px solid var(--primary);
+    }
+
+    .list_item h2 {
+        display: inline-block;
+        margin: 0;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+</style>
+
+
+<body>
+    <!--
+        Header hides when page is too small: https://deepthought-theme.netlify.app/posts/
+        Table of contents: https://deepthought-theme.netlify.app/docs/extended-shortcodes/
+        LaTex: https://katex.org/
+    -->
+    <header>
+        <div class="header-bar"></div>
+        <div><a>zX3no</a></div>
+        <nav>
+            <a href="index.html">/home</a>
+            <a href="posts.html">/posts</a>
+            <a href="projects.html">/projects</a>
+            <a href="about.html">/about</a>
+        </nav>
+    </header>
+
+    <h1 style="text-align: center;">Posts</h1>
+
+    <main class="list">
+        <ul>
+            <a class="list_item" href="example_post.html">
+                <h2>
+                    <span>Kernel Driver with Rust in 2022</span>
+                </h2>
+
+                <div class="sub-heading">
+                    <p>
+                        <img src="../icons/user.svg" />
+                        DeepThought
+                        <img src="../icons/calendar.svg" />
+                        September 16, 2022
+                    </p>
+
+                    <p>
+                        <img src="../icons/clock.svg" />
+                        19 min
+                        <img src="../icons/pencil.svg" />
+                        3697 words
+                    </p>
+                </div>
+
+                <summary>
+                    A lot has changed since I wrote my first blog post on how to write kernel drivers with Rust. I
+                    learned more about the
+                    language and worked on more projects. The goal of this blog post is to keep you updated on the
+                    changes from the last 2
+                    years.
+                </summary>
+            </a>
+
+            <a class="list_item" href="https://not-matthias.github.io/posts/mechanical-keyboard/">
+                <h2>
+                    <span>Building my first mechanical keyboard</span>
+                </h2>
+                <div class="sub-heading">
+                    <p>
+                        <img src="../icons/user.svg" />
+                        DeepThought
+                        <img src="../icons/calendar.svg" />
+                        September 16, 2022
+                    </p>
+
+                    <p>
+                        <img src="../icons/clock.svg" />
+                        19 min
+                        <img src="../icons/pencil.svg" />
+                        3697 words
+                    </p>
+                </div>
+
+                <summary>
+                    A friend of mine recently brought up his custom mechanical keyboard while we were hanging out in
+                    voice
+                    chat, and at first, nobody understood why anyone would buy one. At that time, I had no clue that
+                    there
+                    are entire communities about building custom keyboards. With every sentence that was said, we got
+                    deeper
+                    into this community. We explored different YouTube channels, watched comparisons, and listened to
+                    sound
+                    tests.
+
+                    Only a few hours later, all of us were hooked and wanted to build our own keyboards as well. This
+                    post
+                    will go over all the parts that are needed, what they are for, and what you need to watch out for.
+                </summary>
+            </a>
+            <a class="list_item" href="https://not-matthias.github.io/posts/mechanical-keyboard/">
+                <h2>
+                    <span>Allocators in Rust</span>
+                </h2>
+
+                <div class="sub-heading">
+                    <p>
+                        <img src="../icons/user.svg" />
+                        DeepThought
+                        <img src="../icons/calendar.svg" />
+                        September 16, 2022
+                    </p>
+
+                    <p>
+                        <img src="../icons/clock.svg" />
+                        19 min
+                        <img src="../icons/pencil.svg" />
+                        3697 words
+                    </p>
+                </div>
+
+                <summary>
+                    I'm currently writing an AMD hypervisor in Rust and there I need to allocate memory for lots of
+                    different structures.
+                    And not all of them use the same memory, so I decided to create a helper structure to allocate and
+                    deallocate it for me.
+                </summary>
+            </a>
+
+            <a class="list_item" href="https://not-matthias.github.io/posts/mechanical-keyboard/">
+                <h2>
+                    <span>Allocators in Rust</span>
+                </h2>
+
+                <div class="sub-heading">
+                    <p>
+                        <img src="../icons/user.svg" />
+                        DeepThought
+                        <img src="../icons/calendar.svg" />
+                        September 16, 2022
+                    </p>
+
+                    <p>
+                        <img src="../icons/clock.svg" />
+                        19 min
+                        <img src="../icons/pencil.svg" />
+                        3697 words
+                    </p>
+                </div>
+
+                <summary>
+                    I'm currently writing an AMD hypervisor in Rust and there I need to allocate memory for lots of
+                    different structures.
+                    And not all of them use the same memory, so I decided to create a helper structure to allocate and
+                    deallocate it for me.
+                </summary>
+            </a>
+            <a class="list_item" href="posts\example post.md">
+                <h2>
+                    <span>Example post lil bro</span>
+                </h2>
+
+                <div class="sub-heading">
+                    <p>
+                        <img src="../icons/user.svg" />
+                        Bay
+                        <img src="../icons/calendar.svg" />
+
+                    </p>
+
+                    <p>
+                        <img src="../icons/clock.svg" />
+                        &lt;1 minute read
+                        <img src="../icons/pencil.svg" />
+                        4
+                    </p>
+                </div>
+
+                <p>
+
+                    # Hi there!
+
+                </p>
+            </a>
+            <a class="list_item" href="posts\test.md">
+                <h2>
+                    <span>Why we should abolish fornite.</span>
+                </h2>
+
+                <div class="sub-heading">
+                    <p>
+                        <img src="../icons/user.svg" />
+                        Bay
+                        <img src="../icons/calendar.svg" />
+
+                    </p>
+
+                    <p>
+                        <img src="../icons/clock.svg" />
+                        3 minute read
+                        <img src="../icons/pencil.svg" />
+                        914
+                    </p>
+                </div>
+
+                <p>
+
+                    Woah, that's interesting but I sure don't care!
+                    Woah, that's interesting but I sure don't care!
+                    Woah, that's interesting but I sure don't care!
+                    Woah, that's interesting but I sure don't care!
+                    Woah, that's interesting but I sure don't care!
+                    Woah, that's interesting but I sure don't care!
+
+                </p>
+            </a>
+
+
+        </ul>
+    </main>
+
+</body>

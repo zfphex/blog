@@ -1,163 +1,141 @@
-  :root {
-      --text: rgba(255, 255, 255, 87%);
-      /* --bg: #121212; */
-      --bg: #141516;
-      --bg-1: rgba(255, 255, 255, 5%);
-      --primary: #aa61c5;
-  }
+ :root {
+     --text: rgba(255, 255, 255, 87%);
+     /* --bg: #121212; */
+     --bg: #141516;
+     --bg-1: rgba(255, 255, 255, 5%);
+     --primary: #aa61c5;
+ }
 
-  @font-face {
-      font-family: "jetbrains";
-      src: url('../fonts/JetBrainsMono.ttf');
-      /* Ensure text remains visible during webfont load */
-      /* font-display: swap; */
-      font-display: block;
-  }
+ @font-face {
+     font-family: "jetbrains";
+     src: url('../fonts/JetBrainsMono.ttf');
+     /* Ensure text remains visible during webfont load */
+     /* font-display: swap; */
+     font-display: block;
+ }
 
-  body {
-      max-width: 800px;
-      margin: 0 auto;
+ body {
+     margin: 6px 24px 0px 24px;
 
-      background: var(--bg);
-      color: var(--text);
-      padding: 0 24px;
-      word-wrap: break-word;
+     background: var(--bg);
+     color: var(--text);
 
-      /* Show vertical scrollbar */
-      overflow-y: scroll;
+     /* Show vertical scrollbar */
+     overflow-y: scroll;
 
-      font-family: "jetbrains", monospace;
-      font-weight: 400;
-  }
+     font-family: "jetbrains", monospace;
+     font-weight: 400;
+ }
 
-  header {
-      display: flex;
-      justify-content: space-between;
-      padding-top: 6px;
-      padding-bottom: 6px;
-      font-size: 40px;
-  }
+ a {
+     border-bottom: 3px solid var(--primary);
+     padding-bottom: 1px;
+     text-decoration: none;
+     color: inherit;
+ }
 
-  header a:hover {
-      background-color: var(--primary);
-  }
+ p {
+     font-size: 18px;
+     line-height: 1.5;
+ }
 
-  header nav {
-      display: flex;
-      padding: 1.0em;
-      font-size: 20px;
-  }
+ #top-bar {
+     border-top: 4px solid;
+     border-image-source: linear-gradient(90deg, var(--bg), var(--primary), var(--bg));
+     border-image-slice: 1;
+     position: fixed;
+     top: 0;
+     right: 0;
+     left: 0;
+ }
 
-  header nav a {
-      margin-left: 0.7em;
-  }
+ #grid {
+     padding: 0;
+     display: grid;
+     grid-template-columns: 1fr minmax(0px, 950px) 1fr;
+     grid-template-rows: 1fr auto;
+ }
 
-  /* I believe this would require some javascript :/*/
-  /* @media only screen and (max-width: 900px) {
-      header nav a {
-          display: none;
-      }
-  } */
+ #center {
+     display: flex;
+     justify-content: space-between;
+     align-items: flex-end;
+     padding-bottom: 16px;
+     padding-top: 8px;
+ }
 
-  .header-bar {
-      border-top: 4px solid;
-      border-image-source: linear-gradient(90deg, var(--bg), var(--primary), var(--bg));
-      border-image-slice: 1;
-      position: fixed;
-      top: 0;
-      right: 0;
-      left: 0;
-  }
+ #bottom-middle {
+     border-radius: 6px;
+     /* box-shadow: 1px 1px 2px 2px rgba(255, 255, 255, 0.2); */
+     padding: 8px;
+ }
 
-  .article-header {
-      font-size: 2.25em;
-      padding-bottom: 10px;
-      font-weight: 801;
-      text-align: center;
-  }
+ #bottom-right {
+     padding-left: 24px;
+     width: fit-content;
+ }
 
-  .sub-heading {
-      display: flex;
-      justify-content: space-between;
-  }
+ #table-of-contents {
+     position: sticky;
+     top: 0;
+     list-style: none;
+     line-height: 150%;
+ }
 
-  .time {
-      font-size: 16px;
-      color: #999;
-      letter-spacing: -0.5px;
-      padding-left: 25px;
-  }
+ #table-of-contents p {
+     margin: 0;
+     margin-bottom: 8px;
+ }
 
-  a {
-      text-decoration: none;
-      color: inherit;
-      border-bottom: 3px solid var(--primary);
-  }
+ #table-of-contents ul {
+     list-style-type: none;
+     border-left: 1px solid #686363;
+     margin: 8px;
+     padding-left: 8px;
+ }
 
-  img {
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-      border-radius: 20%;
-  }
+ #table-of-contents a {
+     display: block;
+     border: 0;
+     padding: 2px;
+ }
 
-  p {
-      font-size: 18px;
-      line-height: 1.5;
-  }
+ #table-of-contents .is-active {
+     background-color: #485fc7;
+     color: #fff;
+ }
 
-  summary {
-      font-size: 18px;
-      line-height: 1.5;
-  }
+ #table-of-contents a:not(.is-active):hover {
+     background-color: #f5eeee33;
+     color: var(--text);
+ }
 
-  h1::before {
-      color: var(--primary);
-      content: "# ";
-  }
+ h1::before {
+     color: var(--primary);
+     content: "# ";
+ }
 
-  h2::before {
-      color: var(--primary);
-      content: "# ";
-  }
+ h2::before {
+     color: var(--primary);
+     content: "# ";
+ }
 
-  h3::before {
-      color: var(--primary);
-      content: "# ";
-  }
+ h3::before {
+     color: var(--primary);
+     content: "# ";
+ }
 
-  h4::before {
-      color: var(--primary);
-      content: "# ";
-  }
+ h4::before {
+     color: var(--primary);
+     content: "# ";
+ }
 
-  h5::before {
-      color: var(--primary);
-      content: "# ";
-  }
+ h5::before {
+     color: var(--primary);
+     content: "# ";
+ }
 
-  h6::before {
-      color: var(--primary);
-      content: "# ";
-  }
-
-  .math {
-      display: none;
-  }
-
-  /* The navigation menu links in posts */
-  .post-header {
-      font-size: 44px;
-      line-height: 100%;
-  }
-
-  .post-metadata {
-      font-size: 18px;
-      color: #999;
-      letter-spacing: -0.5px;
-  }
-
-  .dot {
-      font-size: 1.6em;
-      color: var(--primary)
-  }
+ h6::before {
+     color: var(--primary);
+     content: "# ";
+ }
