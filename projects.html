@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Posts - bayd.xyz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preload" href="styles/style.css" as="style" />
+    <link rel="stylesheet" href="styles/style.css" />
+</head>
+
+<style>
+    #projects {
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+    }
+
+    #row {
+        display: flex;
+        flex: 1;
+    }
+
+    #photo {
+        border: 1px solid var(--bg-1);
+        border-radius: 8px;
+        flex: 1;
+    }
+
+    #project {
+        border: 1px solid var(--bg-1);
+        border-radius: 8px;
+        flex: 1;
+    }
+</style>
+
+<body>
+    <div id="top-bar"></div>
+
+    <div id="grid">
+        <div id="left"></div>
+
+        <div id="center" style="font-size: 21px">
+            <a style="font-size: 36px" href="index.html">zX3no</a>
+            <nav style="padding-bottom: 3px">
+                <a href="index.html">/home</a>
+                <a href="posts.html">/posts</a>
+                <a href="projects.html">/projects</a>
+                <a href="about.html">/about</a>
+            </nav>
+        </div>
+
+        <div id="right"></div>
+        <div id="bottom-left"></div>
+
+        <div id="bottom-middle">
+            <h1 style="text-align: center;">Projects</h1>
+
+            <div id="projects">
+                <div id="row">
+                    <div id="photo"></div>
+                    <div id="photo"></div>
+                </div>
+
+                <div id="row">
+                    <div id="project"></div>
+                    <div id="project"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="bottom-right">
+        </div>
+    </div>
+
+
+</body>
+
+</html>
