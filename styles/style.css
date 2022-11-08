@@ -4,6 +4,8 @@
      --bg: #141516;
      --bg-1: rgba(255, 255, 255, 5%);
      --primary: #aa61c5;
+     --pink: #ff79c6;
+     --cyan: #8be9fd;
  }
 
  @font-face {
@@ -47,6 +49,8 @@
      top: 0;
      right: 0;
      left: 0;
+     animation: 20s infinite alternate example;
+
  }
 
  #grid {
