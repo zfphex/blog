@@ -40,6 +40,34 @@
         margin-right: auto;
         width: 100%;
     }
+
+
+    #button {
+        position: absolute;
+        /* left: 50%; */
+        bottom: 18%;
+        background: var(--bg-1);
+        border: none;
+        width: 100px;
+        height: 50px;
+        border-radius: 8px;
+    }
+
+    #button:hover {
+        background: var(--grey);
+    }
+
+    #button:hover svg {
+        filter: invert(0%);
+    }
+
+    svg {
+        width: 25px;
+        height: 25px;
+        display: block;
+        margin: auto;
+        filter: invert(100%);
+    }
 </style>
 
 <body>
@@ -64,7 +92,7 @@
         <div id="bottom-middle">
             <h1 style="text-align: center;">Projects</h1>
 
-            <button onclick="myFunction()">Next</button>
+
 
             <div id="1" class="projects" style="display: none;">
                 <div id="row">
@@ -111,15 +139,25 @@
                     </div>
                 </div>
             </div>
+
+            <div style="display: flex;justify-content: center;">
+                <button onclick="next()" id="button">
+                    <svg class="flickity-button-icon" viewBox="0 0 100 100">
+                        <path d="M 10,50 L 60,100 L 70,90 L 30,50  L 70,10 L 60,0 Z" class="arrow"
+                            transform="translate(100, 100) rotate(180) "></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div id="bottom-right">
         </div>
     </div>
+
 </body>
 
 <script>
-    function myFunction() {
+    function next() {
         let one = document.getElementById("1");
         let two = document.getElementById("2");
 
