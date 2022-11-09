@@ -4,6 +4,8 @@
 - [ ] Move all css into single file. The styling should be consistant across the website. Use h1/h2 over changing the font size.
 - [ ] Markdown to html compiler
 - [ ] Custom HTML to html compiler
+- [ ] Hide header when page is too small
+- [ ] Hide sidebar when page is too small
 
 #### Compiler
 
