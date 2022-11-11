@@ -8,6 +8,23 @@
     <link rel="stylesheet" href="styles/style.css" />
 </head>
 
+<style>
+    h1 {
+        font-size: 44px;
+        line-height: 100%;
+    }
+
+    h1:before {
+        content: "";
+    }
+
+    #metadata {
+        font-size: 18px;
+        color: #999;
+        letter-spacing: -0.5px;
+    }
+</style>
+
 <body>
     <div id="top-bar"></div>
 
@@ -28,7 +45,30 @@
         <div id="bottom-left"></div>
 
         <div id="bottom-middle">
-            HI there this is a test of the main section!
+            <div id="post">
+                <h1>
+                    This is a very very very long example heading<span class="dot">.</span>
+                    <div id="metadata">Posted on <time>2022-05-20</time></div>
+                </h1>
+
+                <h2>Preface</h2>
+                <p>A <a href="https://github.com/sariaki">friend of mine</a> recently brought up his custom mechanical
+                    keyboard
+                    while we were hanging out in voice chat, and at first, nobody understood why anyone would buy one.
+                    At
+                    that
+                    time, I had no clue that there are entire <a
+                        href="https://reddit.com/r/MechanicalKeyboards/">communities</a> about building custom
+                    keyboards.
+                    With
+                    every sentence that was said, we got deeper into this community. We explored different YouTube
+                    channels,
+                    watched comparisons, and listened to sound tests.</p>
+                <p>Only a few hours later, all of us were hooked and wanted to build our own keyboards as well. This
+                    post
+                    will
+                    go over all the parts that are needed, what they are for, and what you need to watch out for.</p>
+            </div>
         </div>
 
         <div id="bottom-right">
