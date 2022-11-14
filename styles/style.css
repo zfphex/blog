@@ -69,7 +69,7 @@
      padding-top: 8px;
  }
 
- nav {
+ #center nav {
      display: flex;
      flex-direction: row;
  }
@@ -118,16 +118,13 @@
      width: fit-content;
  }
 
+ /* Sidebar style */
+
  #table-of-contents {
      position: sticky;
      top: 0;
      list-style: none;
      line-height: 150%;
- }
-
- #table-of-contents p {
-     margin: 0;
-     margin-bottom: 8px;
  }
 
  #table-of-contents ul {
@@ -140,7 +137,7 @@
  #table-of-contents a {
      display: block;
      border: 0;
-     padding: 2px;
+     padding: 6px;
  }
 
  #table-of-contents .is-active {
