@@ -10,6 +10,7 @@ use std::{
 
 const MARKDOWN_PATH: &str = "markdown";
 const BUILD_PATH: &str = "build";
+const TEMPLATE_PATH: &str = "utils/blog_template.html";
 const POLL_DURATION: Duration = Duration::from_millis(500);
 
 fn update_files(files: &mut HashMap<PathBuf, String>) -> Vec<PathBuf> {
@@ -34,7 +35,9 @@ fn update_files(files: &mut HashMap<PathBuf, String>) -> Vec<PathBuf> {
                 }
             }
 
-            let _ = files.insert(path, hash);
+            if files.insert(path.clone(), hash).is_none() {
+                outdated_files.push(path);
+            };
         });
 
     outdated_files
@@ -50,7 +53,7 @@ fn run() {
         for file in outdated_files {
             match build(&file) {
                 Ok(_) => info!("Re-compiled: {file:?}"),
-                Err(_) => warn!("Failed to compile: {file:?}"),
+                Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
             }
         }
     }
@@ -58,23 +61,34 @@ fn run() {
 
 fn build(path: &Path) -> io::Result<()> {
     use pulldown_cmark::*;
-    let path = path.to_path_buf();
 
-    let markdown_input = fs::read_to_string(&path)?;
+    //Read the template
+    let template = fs::read_to_string(TEMPLATE_PATH)?;
+    //Find where the new content should be inserted.
+    let index = template.find("<!-- content -->").unwrap();
+    //Remove the locator.
+    let mut template = template.replace("<!-- content -->", "");
+
+    //Read the markdown file.
+    let markdown_input = fs::read_to_string(path)?;
+
+    //Convert the markdown to html.
     let parser = Parser::new_ext(&markdown_input, Options::all());
+    let mut html = String::new();
+    html::push_html(&mut html, parser);
 
-    // Write to a new String buffer.
-    let mut html_output = String::new();
-    html::push_html(&mut html_output, parser);
+    //Insert the converted markdown into the template.
+    template.insert_str(index, &html);
 
+    //Convert "markdown/test.md" to "build/test.html"
     let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
     name.pop();
     name.pop();
     name.push_str("html");
-
     let path = PathBuf::from(BUILD_PATH).join(name);
 
-    fs::write(path, html_output)?;
+    //Save the compiled template.
+    fs::write(path, template)?;
 
     Ok(())
 }

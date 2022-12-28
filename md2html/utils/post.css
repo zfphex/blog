@@ -1,0 +1,54 @@
+  @font-face {
+      font-family: 'jetbrains';
+      src: url('JetBrainsMono.ttf');
+      font-display: block;
+  }
+
+  body {
+      font-family: 'jetbrains';
+      font-weight: 400;
+      color: #EFEFEF;
+      margin: 0;
+      padding: 0;
+      background-color: #101010;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+
+  #content {
+      margin: 1em;
+      padding: 20px;
+      border: 2px solid #383838;
+      border-radius: 25px;
+      overflow-wrap: break-word;
+      max-width: 50%;
+      min-width: 800px;
+  }
+
+  h1 {
+      padding: 0;
+      margin: 0;
+  }
+
+  h2 {
+      padding: 0;
+      margin: 0;
+  }
+
+  a {
+
+      color: inherit;
+      text-decoration: underline;
+  }
+
+  blockquote {
+      margin-inline-start: 20px;
+  }
+
+  img {
+      max-width: 70%;
+      max-height: 70%;
+      /* width: 500px; */
+      /* height: 500px; */
+  }
