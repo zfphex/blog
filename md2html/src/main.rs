@@ -1,3 +1,4 @@
+use log::{info, warn};
 use std::{
     collections::HashMap,
     error::Error,
@@ -6,8 +7,6 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-
-use log::{info, warn};
 
 const MARKDOWN_PATH: &str = "markdown";
 const BUILD_PATH: &str = "build";
@@ -62,10 +61,7 @@ fn build(path: &Path) -> io::Result<()> {
     let path = path.to_path_buf();
 
     let markdown_input = fs::read_to_string(&path)?;
-
-    let mut options = Options::empty();
-    options.insert(Options::ENABLE_STRIKETHROUGH);
-    let parser = Parser::new_ext(&markdown_input, options);
+    let parser = Parser::new_ext(&markdown_input, Options::all());
 
     // Write to a new String buffer.
     let mut html_output = String::new();
@@ -115,6 +111,48 @@ fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
     Ok(hex)
 }
 
+fn clean() {
+    let markdown_files: Vec<PathBuf> = walkdir::WalkDir::new(MARKDOWN_PATH)
+        .into_iter()
+        .flatten()
+        .map(|dir_entry| dir_entry.path().to_path_buf())
+        .filter(|path| {
+            if let Some(ex) = path.extension() {
+                ex.to_ascii_lowercase() == "md"
+            } else {
+                false
+            }
+        })
+        .collect();
+
+    let build_files: Vec<PathBuf> = walkdir::WalkDir::new(BUILD_PATH)
+        .into_iter()
+        .flatten()
+        .map(|dir_entry| dir_entry.path().to_path_buf())
+        .filter(|path| path.is_file())
+        .collect();
+
+    let expected_files: Vec<PathBuf> = markdown_files
+        .into_iter()
+        .map(|file| {
+            let mut name = file.file_name().unwrap().to_str().unwrap().to_string();
+            name.pop();
+            name.pop();
+            name.push_str("html");
+            PathBuf::from(BUILD_PATH).join(name)
+        })
+        .collect();
+
+    for file in build_files {
+        if !expected_files.contains(&file) {
+            match fs::remove_file(&file) {
+                Ok(_) => info!("Removed unexpected file: {file:?}"),
+                Err(_) => warn!("Failed to remove unexpected file: {file:?}"),
+            }
+        }
+    }
+}
+
 fn build_all() {
     info!("Compliling files in {:?}", Path::new(MARKDOWN_PATH));
     walkdir::WalkDir::new(MARKDOWN_PATH)
@@ -141,7 +179,8 @@ fn help() {
 
 Options
    run           Watch for file changes and compile.
-   build         Compile all markdown files"#
+   build         Compile all markdown files.
+   clean         Remove unused files."#
     );
 }
 
@@ -154,6 +193,7 @@ fn main() {
         match arg.as_str() {
             "run" => run(),
             "build" => build_all(),
+            "clean" => clean(),
             _ => help(),
         }
     } else {
