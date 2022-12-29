@@ -130,10 +130,16 @@ fn build(path: &Path) -> io::Result<()> {
     let mut template = template.replace("<!-- content -->", "");
 
     //Read the markdown file.
-    let markdown_input = fs::read_to_string(path)?;
+    let markdown = fs::read_to_string(path)?;
+
+    //???
+    let pattern = "~~~\n";
+    let start = markdown.find(pattern).unwrap();
+    let end = markdown[start + pattern.len()..].find(pattern).unwrap();
+    let markdown = &markdown[end + pattern.len() + pattern.len()..];
 
     //Convert the markdown to html.
-    let parser = Parser::new_ext(&markdown_input, Options::all());
+    let parser = Parser::new_ext(markdown, Options::all());
     let mut html = String::new();
     html::push_html(&mut html, parser);
 
