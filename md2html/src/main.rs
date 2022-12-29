@@ -1,3 +1,4 @@
+use chrono::{DateTime, Datelike, Utc};
 use log::{info, warn};
 use std::{
     collections::HashMap,
@@ -49,14 +50,73 @@ fn run() {
     loop {
         std::thread::sleep(POLL_DURATION);
         let outdated_files = update_files(&mut files);
+        if !outdated_files.is_empty() {
+            //TODO: Build the posts page with all the post metadata.
+            for file in files.keys() {
+                //TODO: Log errors.
+                let meta = metadata(file).unwrap();
+                info!("{meta:?}");
+            }
 
-        for file in outdated_files {
-            match build(&file) {
-                Ok(_) => info!("Re-compiled: {file:?}"),
-                Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+            for file in outdated_files {
+                match build(&file) {
+                    Ok(_) => info!("Re-compiled: {file:?}"),
+                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                }
             }
         }
     }
+}
+
+#[derive(Default, Debug)]
+struct Metadata {
+    pub title: String,
+    pub summary: String,
+    pub date: String,
+}
+
+fn metadata(path: impl AsRef<Path>) -> Result<Metadata, Box<dyn Error>> {
+    let file = fs::read_to_string(&path)?;
+
+    let pattern = "~~~\n";
+    let start = file.find(pattern).ok_or("")?;
+    let end = file[start + pattern.len()..].find(pattern).ok_or("")?;
+
+    //Ignore the last newline.
+    let config = &file[start + pattern.len()..end + pattern.len() - 1];
+
+    let mut metadata = Metadata::default();
+
+    for line in config.split('\n') {
+        let (k, v) = line.split_once(':').ok_or("")?;
+        match k {
+            "title" => metadata.title = v.to_string(),
+            "summary" => metadata.summary = v.to_string(),
+            _ => unreachable!(),
+        }
+    }
+
+    let date = fs::metadata(path)?.created()?;
+    let now: DateTime<Utc> = date.into();
+    let month = match now.month() {
+        1 => "January",
+        2 => "February",
+        3 => "March",
+        4 => "April",
+        5 => "May",
+        6 => "June",
+        7 => "July",
+        8 => "August",
+        9 => "September",
+        10 => "October",
+        11 => "November",
+        12 => "December",
+        _ => unreachable!(),
+    };
+
+    metadata.date = format!("{} {} {}", now.day(), month, now.year());
+
+    Ok(metadata)
 }
 
 fn build(path: &Path) -> io::Result<()> {

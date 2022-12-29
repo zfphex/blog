@@ -14,3 +14,4 @@ memmap2 = "0.5.8"
 hex = "0.4.3"
 log = "0.4"
 simple_logger = "*"
+chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
