@@ -64,7 +64,6 @@ dependencies = [
  "blake3",
  "chrono",
  "hex",
- "log",
  "memmap2",
  "pulldown-cmark",
  "walkdir",

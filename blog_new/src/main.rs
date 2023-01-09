@@ -79,6 +79,12 @@ impl Watcher {
             })
             .collect()
     }
+    pub fn md(&self) -> Vec<&PathBuf> {
+        self.files
+            .keys()
+            .filter(|key| key.extension().and_then(OsStr::to_str) == Some("md"))
+            .collect()
+    }
     pub fn found_new(&mut self) -> bool {
         let new = self.new;
         self.new = false;
@@ -109,16 +115,25 @@ fn run() -> Result<(), Box<dyn Error>> {
                     updated = true;
                     info!("Re-building templates.");
                     posts.update_templates();
-                    posts.build();
-                    for post in posts.posts.values() {
-                        post.write()?;
+
+                    for path in watcher.md() {
+                        match Post::new(&posts.post_template, path) {
+                            Ok(post) => {
+                                info!("Compiled: {path:?}");
+                                post.write()?;
+                                posts.insert(path.clone(), post);
+                            }
+                            Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
+                        }
                     }
+
+                    posts.build();
                 }
                 _ => (),
             }
         }
 
-        if watcher.found_new() {
+        if watcher.found_new() & !updated {
             posts.build();
         }
 
@@ -152,6 +167,7 @@ impl Posts {
     }
     ///Build the list of posts.
     pub fn build(&mut self) {
+        info!("Compiled: \"build\\\\post_list.html\"");
         let index = self.list_template.find("<!-- posts -->").unwrap();
         let mut template = self.list_template.replace("<!-- posts -->", "");
 
