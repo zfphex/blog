@@ -2,9 +2,6 @@
 title: Markdown Cheatsheet
 summary: A quick reference for the markdown template language.
 ~~~
-
-# What the hell?
-
 ===================
 
 - - - -

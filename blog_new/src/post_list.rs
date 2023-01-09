@@ -12,7 +12,7 @@ pub fn build(list_template: &str, list_item_template: &str, metadata: &[Metadata
             .replace("<!-- title -->", &post.title)
             .replace("<!-- date -->", &format!("{day} {month} {year}"))
             .replace("<!-- read_time -->", &post.read_time())
-            .replace("<!-- word_count -->", &post.word_count.to_string())
+            .replace("<!-- word_count -->", &post.word_count())
             .replace("<!-- summary -->", &post.summary);
 
         template.insert_str(index, &list_item);

@@ -1,4 +1,4 @@
-use crate::{build_path, metadata};
+use crate::{build_path, metadata, warn, Metadata};
 use pulldown_cmark::*;
 use std::{
     error::Error,
@@ -8,18 +8,23 @@ use std::{
 
 pub fn build(post_template: &str, markdown: &Path) -> Result<(), Box<dyn Error>> {
     //Read the markdown file.
-    let string = fs::read_to_string(markdown)?;
-    let string = &string.get(3..).ok_or("Missing metadata")?;
-    let end = string.find("~~~").unwrap();
-    let string = &string[end + "~~~".len()..];
+    let file = fs::read_to_string(markdown)?;
+    let (file, metadata) = if file.contains("~~~") {
+        let end = file[2..].find("~~~").ok_or("Corrupt metadata.")?;
+        (
+            file[end + "~~~".len()..].trim_start(),
+            metadata(&file, markdown)?,
+        )
+    } else {
+        warn!("{:?} missing metadata.", markdown);
+        (file.as_str(), Metadata::default())
+    };
 
     //Convert the markdown to html.
-    let parser = Parser::new_ext(string, Options::all());
+    let parser = Parser::new_ext(file, Options::all());
     let mut html = String::new();
     html::push_html(&mut html, parser);
 
-    //Get the metadata from the markdown file.
-    let metadata = metadata(markdown)?;
     //Generate the post using the metadata and html.
     let (day, month, year) = metadata.date();
     let post = post_template

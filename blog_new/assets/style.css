@@ -25,6 +25,8 @@
 
      /* Show vertical scrollbar */
      overflow-y: scroll;
+     /* Hide horizontal scrollbar */
+     overflow-x: hidden;
 
      font-family: "jetbrains", monospace;
      font-weight: 400;
@@ -40,6 +42,12 @@
  p {
      font-size: 18px;
      line-height: 1.5;
+ }
+
+ pre:has(code) {
+     border: solid var(--grey) 2px;
+     border-radius: 8px;
+     padding: 8px
  }
 
  #top-bar {

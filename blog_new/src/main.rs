@@ -2,7 +2,6 @@ mod post;
 mod post_list;
 
 use chrono::{DateTime, Datelike, Utc};
-use log::{info, warn};
 use std::{
     collections::HashMap,
     error::Error,
@@ -11,6 +10,22 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
+
+#[macro_export]
+macro_rules! info {
+    ($($arg:tt)*) => {{
+        print!("\x1b[94mINFO\x1b[0m ");
+        println!($($arg)*);
+    }};
+}
+
+#[macro_export]
+macro_rules! warn {
+    ($($arg:tt)*) => {{
+        print!("\x1b[93mWARN\x1b[0m '{}:{}:{}' ", file!(), line!(), column!());
+        println!($($arg)*);
+    }};
+}
 
 const MARKDOWN_PATH: &str = "markdown";
 const TEMPLATE_PATH: &str = "templates";
@@ -100,7 +115,10 @@ fn run() -> Result<(), Box<dyn Error>> {
             post_template = fs::read_to_string("templates/post.html")?;
 
             //Build post list
-            let metadata: Vec<Metadata> = files.keys().flat_map(|path| metadata(path)).collect();
+            let metadata: Vec<Metadata> = files
+                .keys()
+                .flat_map(|path| metadata(&fs::read_to_string(path)?, path))
+                .collect();
             post_list::build(&list_template, &list_item_template, &metadata);
 
             //Build all posts
@@ -114,7 +132,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         //Update any outdated files.
         else if !outdated_files.is_empty() {
             //Build post list.
-            let metadata: Vec<Metadata> = files.keys().flat_map(|path| metadata(path)).collect();
+            let metadata: Vec<Metadata> = files
+                .keys()
+                .flat_map(|path| metadata(&fs::read_to_string(path)?, path))
+                .collect();
             post_list::build(&list_template, &list_item_template, &metadata);
 
             //Build outdated posts.
@@ -197,24 +218,20 @@ impl Metadata {
     }
 }
 
-fn metadata(path: &Path) -> Result<Metadata, Box<dyn Error>> {
-    let file = fs::read_to_string(path)?;
-
-    let pattern = "~~~\n";
-    let start = file.find(pattern).ok_or("")?;
-    let end = file[start + pattern.len()..].find(pattern).ok_or("")?;
-
-    //Ignore the last newline.
-    let config = &file[start + pattern.len()..end + pattern.len() - 1];
+fn metadata(file: &str, path: &Path) -> Result<Metadata, Box<dyn Error>> {
+    let end = file[2..].find("~~~").ok_or("Missing metadata")?;
+    let config = &file[2..end];
 
     let mut metadata = Metadata::default();
 
     for line in config.split('\n') {
-        let (k, v) = line.split_once(':').ok_or("")?;
-        match k {
-            "title" => metadata.title = v.to_string(),
-            "summary" => metadata.summary = v.to_string(),
-            _ => unreachable!(),
+        if let Some((k, v)) = line.split_once(':') {
+            let v = v.trim();
+            match k {
+                "title" => metadata.title = v.to_string(),
+                "summary" => metadata.summary = v.to_string(),
+                _ => continue,
+            }
         }
     }
 
@@ -224,7 +241,7 @@ fn metadata(path: &Path) -> Result<Metadata, Box<dyn Error>> {
     pathbuf.set_extension("html");
     metadata.path = pathbuf.file_name().unwrap().to_str().unwrap().to_string();
 
-    metadata.word_count = count(&file);
+    metadata.word_count = count(file);
     metadata.read_time = metadata.word_count as f32 / 250.0;
 
     Ok(metadata)
@@ -397,8 +414,6 @@ Options
 }
 
 fn main() {
-    simple_logger::SimpleLogger::new().init().unwrap();
-
     let args: Vec<String> = std::env::args().skip(1).collect();
 
     if let Some(arg) = args.get(0) {
