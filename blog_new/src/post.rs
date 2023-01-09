@@ -9,9 +9,9 @@ use std::{
 pub fn build(post_template: &str, markdown: &Path) -> Result<(), Box<dyn Error>> {
     //Read the markdown file.
     let string = fs::read_to_string(markdown)?;
-    let string = &string[3..];
-    let end = string.find("~~~\n").unwrap();
-    let string = &string[end + "~~~\n".len()..];
+    let string = &string.get(3..).ok_or("Missing metadata")?;
+    let end = string.find("~~~").unwrap();
+    let string = &string[end + "~~~".len()..];
 
     //Convert the markdown to html.
     let parser = Parser::new_ext(string, Options::all());
@@ -21,9 +21,10 @@ pub fn build(post_template: &str, markdown: &Path) -> Result<(), Box<dyn Error>>
     //Get the metadata from the markdown file.
     let metadata = metadata(markdown)?;
     //Generate the post using the metadata and html.
+    let (day, month, year) = metadata.date();
     let post = post_template
         .replace("<!-- title -->", &metadata.title)
-        .replace("<!-- date -->", &metadata.date)
+        .replace("<!-- date -->", &format!("{day} of {month}, {year}"))
         .replace("<!-- content -->", &html);
 
     let path = build_path(markdown);

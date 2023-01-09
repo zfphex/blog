@@ -128,12 +128,73 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 }
 
+//TODO: Swap to using posts?
+
+#[derive(Default, Debug)]
+pub struct Post {
+    pub content: String,
+    pub metadata: Metadata,
+}
+
+#[allow(unused)]
+fn new_post(path: &Path) -> Post {
+    todo!();
+}
+
 #[derive(Default, Debug)]
 pub struct Metadata {
     pub title: String,
     pub summary: String,
-    pub date: String,
+    pub date: DateTime<Utc>,
     pub path: String,
+    pub word_count: usize,
+    pub read_time: f32,
+}
+impl Metadata {
+    pub fn word_count(&self) -> String {
+        if self.word_count != 1 {
+            format!("{} words", self.word_count)
+        } else {
+            String::from("1 word")
+        }
+    }
+    pub fn read_time(&self) -> String {
+        if self.read_time < 1.0 {
+            String::from("&lt;1 minute read")
+        } else {
+            format!("{} minute read", self.read_time as usize)
+        }
+    }
+    pub fn date(&self) -> (String, String, i32) {
+        let month = match self.date.month() {
+            1 => "January",
+            2 => "February",
+            3 => "March",
+            4 => "April",
+            5 => "May",
+            6 => "June",
+            7 => "July",
+            8 => "August",
+            9 => "September",
+            10 => "October",
+            11 => "November",
+            12 => "December",
+            _ => unreachable!(),
+        };
+
+        //Ordinal suffix.
+        let day = self.date.day();
+        let i = day % 10;
+        let j = day % 100;
+        let day = match i {
+            1 if j != 11 => format!("{day}st"),
+            2 if j != 12 => format!("{day}nd"),
+            3 if j != 13 => format!("{day}rd"),
+            _ => format!("{day}th"),
+        };
+
+        (day, month.to_string(), self.date.year())
+    }
 }
 
 fn metadata(path: &Path) -> Result<Metadata, Box<dyn Error>> {
@@ -157,32 +218,64 @@ fn metadata(path: &Path) -> Result<Metadata, Box<dyn Error>> {
         }
     }
 
-    let date = fs::metadata(path)?.created()?;
-    let now: DateTime<Utc> = date.into();
-    let month = match now.month() {
-        1 => "January",
-        2 => "February",
-        3 => "March",
-        4 => "April",
-        5 => "May",
-        6 => "June",
-        7 => "July",
-        8 => "August",
-        9 => "September",
-        10 => "October",
-        11 => "November",
-        12 => "December",
-        _ => unreachable!(),
-    };
+    metadata.date = fs::metadata(path)?.created()?.into();
 
-    metadata.date = format!("{} {} {}", now.day(), month, now.year());
-
-    //HACK
     let mut pathbuf = path.to_path_buf();
     pathbuf.set_extension("html");
     metadata.path = pathbuf.file_name().unwrap().to_str().unwrap().to_string();
 
+    metadata.word_count = count(&file);
+    metadata.read_time = metadata.word_count as f32 / 250.0;
+
     Ok(metadata)
+}
+
+pub fn count<S: AsRef<str>>(s: S) -> usize {
+    let mut in_word = false;
+    let mut consecutive_dashes = 0;
+
+    let mut count = 0;
+
+    for c in s.as_ref().chars() {
+        if c.is_whitespace() {
+            consecutive_dashes = 0;
+
+            if in_word {
+                count += 1;
+
+                in_word = false;
+            }
+        } else {
+            match c {
+                '-' => {
+                    consecutive_dashes += 1;
+
+                    if consecutive_dashes > 1 && in_word {
+                        if consecutive_dashes == 2 {
+                            count += 1;
+                        }
+
+                        in_word = false;
+
+                        continue;
+                    }
+                }
+                _ => {
+                    consecutive_dashes = 0;
+                }
+            }
+
+            if !in_word {
+                in_word = true;
+            }
+        }
+    }
+
+    if in_word {
+        count += 1;
+    }
+
+    count
 }
 
 ///Convert "markdown/example.md" to "build/example.html"

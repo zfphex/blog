@@ -3,7 +3,8 @@ title: Markdown Cheatsheet
 summary: A quick reference for the markdown template language.
 ~~~
 
-<!-- Markdown Cheatsheet<a name="TOP"></a> -->
+# What the hell?
+
 ===================
 
 - - - -
