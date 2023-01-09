@@ -1,9 +1,9 @@
 ~~~
-title: Markdown reference.
+title: Markdown Cheatsheet
 summary: A quick reference for the markdown template language.
 ~~~
 
-Markdown Cheatsheet<a name="TOP"></a>
+<!-- Markdown Cheatsheet<a name="TOP"></a> -->
 ===================
 
 - - - -

@@ -1,3 +1,4 @@
+mod post;
 mod post_list;
 
 use chrono::{DateTime, Datelike, Utc};
@@ -6,7 +7,7 @@ use std::{
     collections::HashMap,
     error::Error,
     fs::{self, File},
-    io::{self, Cursor},
+    io::Cursor,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -57,7 +58,7 @@ fn run() {
             post_list::build(&metadata);
 
             for file in outdated_files {
-                match build_markdown(&file) {
+                match post::build(&file) {
                     Ok(_) => info!("Re-compiled: {file:?}"),
                     Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
                 }
@@ -115,34 +116,6 @@ fn metadata(path: impl AsRef<Path>) -> Result<Metadata, Box<dyn Error>> {
     metadata.date = format!("{} {} {}", now.day(), month, now.year());
 
     Ok(metadata)
-}
-
-fn build_markdown(path: &Path) -> io::Result<()> {
-    use pulldown_cmark::*;
-
-    //Read the markdown file.
-    let string = fs::read_to_string(path)?;
-    let markdown = &string[3..];
-    let end = markdown.find("~~~\n").unwrap();
-    let markdown = &markdown[end + "~~~\n".len()..];
-
-    //Convert the markdown to html.
-    let parser = Parser::new_ext(markdown, Options::all());
-    let mut html = String::new();
-    html::push_html(&mut html, parser);
-
-    //Convert "markdown/test.md" to "build/test.html"
-    let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
-    name.pop();
-    name.pop();
-    name.push_str("html");
-
-    let path = PathBuf::from(BUILD_PATH).join(name);
-
-    //Save the compiled template.
-    fs::write(path, html)?;
-
-    Ok(())
 }
 
 fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
@@ -220,22 +193,23 @@ fn clean() {
 }
 
 fn build_all() {
-    info!("Compliling files in {:?}", Path::new(MARKDOWN_PATH));
-    walkdir::WalkDir::new(MARKDOWN_PATH)
-        .into_iter()
-        .flatten()
-        .map(|dir_entry| dir_entry.path().to_path_buf())
-        .filter(|path| {
-            if let Some(ex) = path.extension() {
-                ex.to_ascii_lowercase() == "md"
-            } else {
-                false
-            }
-        })
-        .for_each(|path| match build_markdown(&path) {
-            Ok(_) => info!("Sucessfully compiled: {path:?}"),
-            Err(_) => warn!("Failed to compile: {path:?}"),
-        });
+    todo!();
+    // info!("Compliling files in {:?}", Path::new(MARKDOWN_PATH));
+    // walkdir::WalkDir::new(MARKDOWN_PATH)
+    //     .into_iter()
+    //     .flatten()
+    //     .map(|dir_entry| dir_entry.path().to_path_buf())
+    //     .filter(|path| {
+    //         if let Some(ex) = path.extension() {
+    //             ex.to_ascii_lowercase() == "md"
+    //         } else {
+    //             false
+    //         }
+    //     })
+    //     .for_each(|path| match post::build(&path) {
+    //         Ok(_) => info!("Sucessfully compiled: {path:?}"),
+    //         Err(_) => warn!("Failed to compile: {path:?}"),
+    //     });
 }
 
 fn help() {

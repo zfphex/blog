@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Layout - bayd.xyz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preload" href="../assets/style.css" as="style" />
+    <link rel="stylesheet" href="../assets/style.css" />
+</head>
+
+<style>
+    h1 {
+        font-size: 44px;
+        line-height: 100%;
+    }
+
+    h1:before {
+        content: "";
+    }
+
+    #metadata {
+        font-size: 18px;
+        color: #999;
+        letter-spacing: -0.5px;
+    }
+</style>
+
+<body>
+    <div id="top-bar"></div>
+
+    <div id="grid">
+        <div id="left"></div>
+
+        <div id="center" style="font-size: 21px">
+            <a style="font-size: 36px" href="index.html">zX3no</a>
+            <nav style="padding-bottom: 4px">
+                <a href="index.html">/home</a>
+                <a href="posts.html">/posts</a>
+                <a href="projects.html">/projects</a>
+            </nav>
+        </div>
+
+        <div id="right"></div>
+        <div id="bottom-left"></div>
+
+        <div id="bottom-middle">
+            <div id="post">
+                <h1>
+                    <!-- title --><span class="dot">.</span>
+                    <div id="metadata">Posted on <time><!-- date --></time></div>
+                </h1>
+
+                <!-- content -->
+            </div>
+        </div>
+
+        <div id="bottom-right"></div>
+    </div>
+
+</body>
+
+</html>

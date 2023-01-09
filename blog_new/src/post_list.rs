@@ -1,10 +1,7 @@
+use crate::Metadata;
 use std::fs;
 
-use lazy_static::lazy_static;
-
-use crate::Metadata;
-
-lazy_static! {
+lazy_static::lazy_static! {
     static ref TEMPLATE: String =
         String::from_utf8_lossy(include_bytes!("../templates/post_list.html")).to_string();
     static ref LIST_ITEM: String =
