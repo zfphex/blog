@@ -1,3 +1,5 @@
+mod post_list;
+
 use chrono::{DateTime, Datelike, Utc};
 use log::{info, warn};
 use std::{
@@ -11,7 +13,6 @@ use std::{
 
 const MARKDOWN_PATH: &str = "markdown";
 const BUILD_PATH: &str = "build";
-const TEMPLATE_PATH: &str = "utils/blog_template.html";
 const POLL_DURATION: Duration = Duration::from_millis(500);
 
 fn update_files(files: &mut HashMap<PathBuf, String>) -> Vec<PathBuf> {
@@ -52,14 +53,11 @@ fn run() {
         let outdated_files = update_files(&mut files);
         if !outdated_files.is_empty() {
             //TODO: Build the posts page with all the post metadata.
-            for file in files.keys() {
-                //TODO: Log errors.
-                let meta = metadata(file).unwrap();
-                info!("{meta:?}");
-            }
+            let metadata: Vec<Metadata> = files.keys().flat_map(metadata).collect();
+            post_list::build(&metadata);
 
             for file in outdated_files {
-                match build(&file) {
+                match build_markdown(&file) {
                     Ok(_) => info!("Re-compiled: {file:?}"),
                     Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
                 }
@@ -69,7 +67,7 @@ fn run() {
 }
 
 #[derive(Default, Debug)]
-struct Metadata {
+pub struct Metadata {
     pub title: String,
     pub summary: String,
     pub date: String,
@@ -119,42 +117,30 @@ fn metadata(path: impl AsRef<Path>) -> Result<Metadata, Box<dyn Error>> {
     Ok(metadata)
 }
 
-fn build(path: &Path) -> io::Result<()> {
+fn build_markdown(path: &Path) -> io::Result<()> {
     use pulldown_cmark::*;
 
-    //Read the template
-    let template = fs::read_to_string(TEMPLATE_PATH)?;
-    //Find where the new content should be inserted.
-    let index = template.find("<!-- content -->").unwrap();
-    //Remove the locator.
-    let mut template = template.replace("<!-- content -->", "");
-
     //Read the markdown file.
-    let markdown = fs::read_to_string(path)?;
-
-    //???
-    let pattern = "~~~\n";
-    let start = markdown.find(pattern).unwrap();
-    let end = markdown[start + pattern.len()..].find(pattern).unwrap();
-    let markdown = &markdown[end + pattern.len() + pattern.len()..];
+    let string = fs::read_to_string(path)?;
+    let markdown = &string[3..];
+    let end = markdown.find("~~~\n").unwrap();
+    let markdown = &markdown[end + "~~~\n".len()..];
 
     //Convert the markdown to html.
     let parser = Parser::new_ext(markdown, Options::all());
     let mut html = String::new();
     html::push_html(&mut html, parser);
 
-    //Insert the converted markdown into the template.
-    template.insert_str(index, &html);
-
     //Convert "markdown/test.md" to "build/test.html"
     let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
     name.pop();
     name.pop();
     name.push_str("html");
+
     let path = PathBuf::from(BUILD_PATH).join(name);
 
     //Save the compiled template.
-    fs::write(path, template)?;
+    fs::write(path, html)?;
 
     Ok(())
 }
@@ -246,7 +232,7 @@ fn build_all() {
                 false
             }
         })
-        .for_each(|path| match build(&path) {
+        .for_each(|path| match build_markdown(&path) {
             Ok(_) => info!("Sucessfully compiled: {path:?}"),
             Err(_) => warn!("Failed to compile: {path:?}"),
         });
@@ -271,12 +257,12 @@ fn main() {
 
     if let Some(arg) = args.get(0) {
         match arg.as_str() {
-            "run" => run(),
             "build" => build_all(),
             "clean" => clean(),
+            "run" => run(),
             _ => help(),
         }
     } else {
-        help();
+        run();
     }
 }

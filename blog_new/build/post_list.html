@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Posts - bayd.xyz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preload" href="../assets/style.css" as="style" />
+    <link rel="stylesheet" href="../assets/style.css" />
+</head>
+
+<style>
+    #bottom-middle {
+        box-shadow: none;
+    }
+
+    img {
+        display: inline;
+        filter: invert(85%);
+        width: 18px;
+        height: 18px;
+    }
+
+    #post h2::before {
+        color: var(--primary);
+        content: "#";
+    }
+
+    #post {
+        display: block;
+
+        margin: 0.75em;
+        padding: 1em;
+
+        border: 2px solid var(--bg-1);
+        border-radius: 5px;
+
+        transform-origin: center;
+        transition: transform 120ms;
+    }
+
+    #post:hover {
+        transform: scale(1.02, 1.02);
+    }
+
+    #post:hover span {
+        background-color: var(--primary);
+    }
+
+    #post span {
+        border-bottom: 3px solid var(--primary);
+    }
+
+    #post h2 {
+        display: inline-block;
+        margin: 0;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    #post p {
+        font-size: 18px;
+    }
+</style>
+
+<body>
+    <div id="top-bar"></div>
+
+    <div id="grid">
+        <div id="left"></div>
+
+        <div id="center" style="font-size: 21px">
+            <a style="font-size: 36px" href="index.html">zX3no</a>
+            <nav style="padding-bottom: 4px">
+                <a href="index.html">/home</a>
+                <a href="posts.html">/posts</a>
+                <a href="projects.html">/projects</a>
+            </nav>
+        </div>
+
+        <div id="right"></div>
+        <div id="bottom-left"></div>
+
+        <div id="bottom-middle">
+            <h1 style="text-align: center;">Posts</h1>
+            <ul>
+                <a id="post" href="post.html">
+    <h2>
+        <span> Markdown reference.</span>
+    </h2>
+    <div class="sub-heading">
+        <p>
+            <img src="../assets/user.svg" />
+            User
+            <img src="../assets/calendar.svg" />
+            9 January 2023
+        </p>
+        <p>
+            <img src="../assets/clock.svg" />
+            Read Time
+            <img src="../assets/pencil.svg" />
+            Word Count
+        </p>
+    </div>
+    <summary>
+         A quick reference for the markdown template language.
+    </summary>
+</a>
+            </ul>
+        </div>
+
+        <div id="bottom-right"></div>
+    </div>
+</body>
+
+</html>

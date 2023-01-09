@@ -69,6 +69,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "blog"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "chrono",
+ "hex",
+ "lazy_static",
+ "log",
+ "memmap2",
+ "pulldown-cmark",
+ "simple_logger",
+ "walkdir",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -297,20 +312,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "md2html"
-version = "0.1.0"
-dependencies = [
- "blake3",
- "chrono",
- "hex",
- "log",
- "memmap2",
- "pulldown-cmark",
- "simple_logger",
- "walkdir",
 ]
 
 [[package]]
