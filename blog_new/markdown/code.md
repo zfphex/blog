@@ -1,3 +1,7 @@
+~~~
+title: Test
+~~~
+
 ```html
 <!DOCTYPE html>
 <title>Title</title>

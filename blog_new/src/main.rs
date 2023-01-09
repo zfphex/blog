@@ -1,15 +1,14 @@
-mod post;
-mod post_list;
-
 use chrono::{DateTime, Datelike, Utc};
 use std::{
     collections::HashMap,
     error::Error,
+    ffi::OsStr,
     fs::{self, File},
     io::Cursor,
     path::{Path, PathBuf},
     time::Duration,
 };
+use walkdir::WalkDir;
 
 #[macro_export]
 macro_rules! info {
@@ -32,146 +31,205 @@ const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
 const POLL_DURATION: Duration = Duration::from_millis(500);
 
-fn update_files(files: &mut HashMap<PathBuf, String>) -> Vec<PathBuf> {
-    let mut outdated_files = Vec::new();
-
-    walkdir::WalkDir::new(MARKDOWN_PATH)
-        .into_iter()
-        .flatten()
-        .map(|dir_entry| dir_entry.path().to_path_buf())
-        .filter(|path| {
-            if let Some(ex) = path.extension() {
-                ex.to_ascii_lowercase() == "md"
-            } else {
-                false
-            }
-        })
-        .for_each(|path| {
-            let hash = hash(&path).unwrap_or_default();
-            if let Some(old_hash) = files.get(&path) {
-                if &hash != old_hash {
-                    outdated_files.push(path.clone());
-                }
-            }
-
-            if files.insert(path.clone(), hash).is_none() {
-                outdated_files.push(path);
-            };
-        });
-
-    outdated_files
+struct Watcher {
+    pub files: HashMap<PathBuf, String>,
+    pub new: bool,
 }
 
-fn update_templates(markdown_files: &mut HashMap<PathBuf, String>) -> bool {
-    let mut outdated_files = Vec::new();
-    walkdir::WalkDir::new(TEMPLATE_PATH)
-        .into_iter()
-        .flatten()
-        .map(|dir_entry| dir_entry.path().to_path_buf())
-        .filter(|path| {
-            if let Some(ex) = path.extension() {
-                ex.to_ascii_lowercase() == "html"
-            } else {
-                false
-            }
-        })
-        .for_each(|path| {
-            let hash = hash(&path).unwrap_or_default();
-            if let Some(old_hash) = markdown_files.get(&path) {
-                if &hash != old_hash {
-                    outdated_files.push(path.clone());
+impl Watcher {
+    pub fn new() -> Self {
+        Self {
+            files: HashMap::new(),
+            new: false,
+        }
+    }
+    pub fn update(&mut self) -> Vec<PathBuf> {
+        WalkDir::new(MARKDOWN_PATH)
+            .max_depth(1)
+            .into_iter()
+            .chain(WalkDir::new(TEMPLATE_PATH).into_iter())
+            .flatten()
+            .map(|dir_entry| dir_entry.path().to_path_buf())
+            .filter(|path| {
+                if let Some(ex) = path.extension() {
+                    let ex = ex.to_ascii_lowercase();
+                    ex == "md" || ex == "html"
+                } else {
+                    false
                 }
-            }
+            })
+            .filter_map(|path| {
+                //Generate a hash for the file.
+                let hash = hash(&path).unwrap_or_default();
 
-            if markdown_files.insert(path.clone(), hash).is_none() {
-                outdated_files.push(path);
-            };
-        });
+                //Check if the hashes match.
+                match self.files.insert(path.clone(), hash.clone()) {
+                    Some(old_hash) => {
+                        if hash != old_hash {
+                            return Some(path);
+                        }
+                    }
+                    None => {
+                        self.new = true;
+                        return Some(path);
+                    }
+                }
 
-    !outdated_files.is_empty()
+                None
+            })
+            .collect()
+    }
+    pub fn found_new(&mut self) -> bool {
+        let new = self.new;
+        self.new = false;
+        new
+    }
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
     info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
-    let mut files: HashMap<PathBuf, _> = HashMap::new();
-    let mut markdown_files = HashMap::new();
+    let mut watcher = Watcher::new();
+    let mut posts = Posts::new();
 
-    let mut list_template = fs::read_to_string("templates/post_list.html")?;
-    let mut list_item_template = fs::read_to_string("templates/post_list_item.html")?;
-    let mut post_template = fs::read_to_string("templates/post.html")?;
-
-    //TODO: Log which files where changed and update less wastefully.
     loop {
+        let outdated_files = watcher.update();
+        let mut updated = false;
+
+        for file in outdated_files {
+            match file.extension().and_then(OsStr::to_str) {
+                Some("md") => match Post::new(&posts.post_template, &file) {
+                    Ok(post) => {
+                        info!("Compiled: {file:?}");
+                        post.write()?;
+                        posts.insert(file, post);
+                    }
+                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                },
+                Some("html") if !updated => {
+                    updated = true;
+                    info!("Re-building templates.");
+                    posts.update_templates();
+                    posts.build();
+                    for post in posts.posts.values() {
+                        post.write()?;
+                    }
+                }
+                _ => (),
+            }
+        }
+
+        if watcher.found_new() {
+            posts.build();
+        }
+
         std::thread::sleep(POLL_DURATION);
-        let outdated_files = update_files(&mut files);
-
-        //Check if any templates are outdated.
-        if update_templates(&mut markdown_files) {
-            info!("Re-building templates.");
-
-            //Update templates
-            list_template = fs::read_to_string("templates/post_list.html")?;
-            list_item_template = fs::read_to_string("templates/post_list_item.html")?;
-            post_template = fs::read_to_string("templates/post.html")?;
-
-            //Build post list
-            let metadata: Vec<Metadata> = files
-                .keys()
-                .flat_map(|path| metadata(&fs::read_to_string(path)?, path))
-                .collect();
-            post_list::build(&list_template, &list_item_template, &metadata);
-
-            //Build all posts
-            for file in files.keys() {
-                match post::build(&post_template, file) {
-                    Ok(_) => info!("Compiled: {file:?}"),
-                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
-                }
-            }
-        }
-        //Update any outdated files.
-        else if !outdated_files.is_empty() {
-            //Build post list.
-            let metadata: Vec<Metadata> = files
-                .keys()
-                .flat_map(|path| metadata(&fs::read_to_string(path)?, path))
-                .collect();
-            post_list::build(&list_template, &list_item_template, &metadata);
-
-            //Build outdated posts.
-            for file in outdated_files {
-                match post::build(&post_template, &file) {
-                    Ok(_) => info!("Compiled: {file:?}"),
-                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
-                }
-            }
-        }
     }
 }
 
-//TODO: Swap to using posts?
-
-#[derive(Default, Debug)]
-pub struct Post {
-    pub content: String,
-    pub metadata: Metadata,
+struct Posts {
+    pub posts: HashMap<PathBuf, Post>,
+    pub list_template: String,
+    pub list_item_template: String,
+    pub post_template: String,
 }
 
-#[allow(unused)]
-fn new_post(path: &Path) -> Post {
-    todo!();
+impl Posts {
+    pub fn new() -> Self {
+        Self {
+            posts: HashMap::new(),
+            list_template: fs::read_to_string("templates/post_list.html").unwrap(),
+            list_item_template: fs::read_to_string("templates/post_list_item.html").unwrap(),
+            post_template: fs::read_to_string("templates/post.html").unwrap(),
+        }
+    }
+    pub fn insert(&mut self, path: PathBuf, post: Post) {
+        self.posts.insert(path, post);
+    }
+    pub fn update_templates(&mut self) {
+        self.list_template = fs::read_to_string("templates/post_list.html").unwrap();
+        self.list_item_template = fs::read_to_string("templates/post_list_item.html").unwrap();
+        self.post_template = fs::read_to_string("templates/post.html").unwrap();
+    }
+    ///Build the list of posts.
+    pub fn build(&mut self) {
+        let index = self.list_template.find("<!-- posts -->").unwrap();
+        let mut template = self.list_template.replace("<!-- posts -->", "");
+
+        for post in self.posts.values() {
+            let metadata = &post.metadata;
+            let (day, month, year) = metadata.date();
+            let list_item = self
+                .list_item_template
+                .replace("~link~", &metadata.link_path)
+                .replace("<!-- title -->", &metadata.title)
+                .replace("<!-- date -->", &format!("{day} {month} {year}"))
+                .replace("<!-- read_time -->", &metadata.read_time())
+                .replace("<!-- word_count -->", &metadata.word_count())
+                .replace("<!-- summary -->", &metadata.summary);
+
+            template.insert_str(index, &list_item);
+        }
+
+        fs::write("build/post_list.html", template).unwrap();
+    }
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Metadata {
     pub title: String,
     pub summary: String,
     pub date: DateTime<Utc>,
-    pub path: String,
+    pub link_path: String,
+    pub real_path: PathBuf,
     pub word_count: usize,
     pub read_time: f32,
+
+    pub end_position: usize,
 }
+
 impl Metadata {
+    pub fn new(file: &str, path: &Path) -> Self {
+        let config = file.get(3..).unwrap().trim_start();
+
+        let mut title = String::new();
+        let mut summary = String::new();
+        let mut end = 0;
+
+        if let Some(e) = config.find("~~~") {
+            for line in config.split('\n') {
+                if line.starts_with("~~~") {
+                    //NOTE: Config is offset by 4(zero index as 3)!
+                    end = 4 + e + line.len();
+                    break;
+                }
+
+                if let Some((k, v)) = line.split_once(':') {
+                    let v = v.trim();
+                    match k {
+                        "title" => title = v.to_string(),
+                        "summary" => summary = v.to_string(),
+                        _ => continue,
+                    }
+                }
+            }
+        }
+
+        let mut pathbuf = path.to_path_buf();
+        pathbuf.set_extension("html");
+
+        let word_count = count(config);
+
+        Metadata {
+            title,
+            summary,
+            date: fs::metadata(path).unwrap().created().unwrap().into(),
+            link_path: pathbuf.file_name().unwrap().to_str().unwrap().to_string(),
+            real_path: path.to_path_buf(),
+            read_time: word_count as f32 / 250.0,
+            word_count,
+            end_position: end,
+        }
+    }
     pub fn word_count(&self) -> String {
         if self.word_count != 1 {
             format!("{} words", self.word_count)
@@ -218,33 +276,51 @@ impl Metadata {
     }
 }
 
-fn metadata(file: &str, path: &Path) -> Result<Metadata, Box<dyn Error>> {
-    let end = file[2..].find("~~~").ok_or("Missing metadata")?;
-    let config = &file[2..end];
+#[derive(Debug)]
+pub struct Post {
+    pub html: String,
+    pub metadata: Metadata,
+    pub build_path: PathBuf,
+}
 
-    let mut metadata = Metadata::default();
+impl Post {
+    pub fn new(post_template: &str, path: &Path) -> Result<Self, Box<dyn Error>> {
+        use pulldown_cmark::*;
 
-    for line in config.split('\n') {
-        if let Some((k, v)) = line.split_once(':') {
-            let v = v.trim();
-            match k {
-                "title" => metadata.title = v.to_string(),
-                "summary" => metadata.summary = v.to_string(),
-                _ => continue,
-            }
-        }
+        //Read the markdown file.
+        let file = fs::read_to_string(path)?;
+
+        let metadata = Metadata::new(&file, path);
+        let file = &file[metadata.end_position..].trim_start();
+
+        //Convert the markdown to html.
+        let parser = Parser::new_ext(file, Options::all());
+        let mut html = String::new();
+        html::push_html(&mut html, parser);
+
+        //Generate the post using the metadata and html.
+        let (day, month, year) = metadata.date();
+        let post = post_template
+            .replace("<!-- title -->", &metadata.title)
+            .replace("<!-- date -->", &format!("{day} of {month}, {year}"))
+            .replace("<!-- content -->", &html);
+
+        //Convert "markdown/example.md" to "build/example.html"
+        let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
+        name.pop();
+        name.pop();
+        name.push_str("html");
+        let path = PathBuf::from(BUILD_PATH).join(name);
+
+        Ok(Self {
+            html: post,
+            metadata,
+            build_path: path,
+        })
     }
-
-    metadata.date = fs::metadata(path)?.created()?.into();
-
-    let mut pathbuf = path.to_path_buf();
-    pathbuf.set_extension("html");
-    metadata.path = pathbuf.file_name().unwrap().to_str().unwrap().to_string();
-
-    metadata.word_count = count(file);
-    metadata.read_time = metadata.word_count as f32 / 250.0;
-
-    Ok(metadata)
+    pub fn write(&self) -> std::io::Result<()> {
+        fs::write(&self.build_path, &self.html)
+    }
 }
 
 pub fn count<S: AsRef<str>>(s: S) -> usize {
@@ -293,18 +369,6 @@ pub fn count<S: AsRef<str>>(s: S) -> usize {
     }
 
     count
-}
-
-///Convert "markdown/example.md" to "build/example.html"
-fn build_path(path: &Path) -> PathBuf {
-    // let pathbuf = path.to_path_buf();
-    // pathbuf.set_extension("html");
-
-    let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
-    name.pop();
-    name.pop();
-    name.push_str("html");
-    PathBuf::from(BUILD_PATH).join(name)
 }
 
 fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
@@ -381,26 +445,6 @@ fn clean() {
     }
 }
 
-fn build_all() {
-    todo!();
-    // info!("Compliling files in {:?}", Path::new(MARKDOWN_PATH));
-    // walkdir::WalkDir::new(MARKDOWN_PATH)
-    //     .into_iter()
-    //     .flatten()
-    //     .map(|dir_entry| dir_entry.path().to_path_buf())
-    //     .filter(|path| {
-    //         if let Some(ex) = path.extension() {
-    //             ex.to_ascii_lowercase() == "md"
-    //         } else {
-    //             false
-    //         }
-    //     })
-    //     .for_each(|path| match post::build(&path) {
-    //         Ok(_) => info!("Sucessfully compiled: {path:?}"),
-    //         Err(_) => warn!("Failed to compile: {path:?}"),
-    //     });
-}
-
 fn help() {
     println!(
         r#"Usage
@@ -418,7 +462,7 @@ fn main() {
 
     if let Some(arg) = args.get(0) {
         match arg.as_str() {
-            "build" => build_all(),
+            "build" => todo!(),
             "clean" => clean(),
             "run" => run().unwrap(),
             _ => help(),
