@@ -15,4 +15,3 @@ hex = "0.4.3"
 log = "0.4"
 simple_logger = "*"
 chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
-lazy_static = "1.4.0"

@@ -13,6 +13,7 @@ use std::{
 };
 
 const MARKDOWN_PATH: &str = "markdown";
+const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
 const POLL_DURATION: Duration = Duration::from_millis(500);
 
@@ -46,20 +47,80 @@ fn update_files(files: &mut HashMap<PathBuf, String>) -> Vec<PathBuf> {
     outdated_files
 }
 
-fn run() {
+fn update_templates(markdown_files: &mut HashMap<PathBuf, String>) -> bool {
+    let mut outdated_files = Vec::new();
+    walkdir::WalkDir::new(TEMPLATE_PATH)
+        .into_iter()
+        .flatten()
+        .map(|dir_entry| dir_entry.path().to_path_buf())
+        .filter(|path| {
+            if let Some(ex) = path.extension() {
+                ex.to_ascii_lowercase() == "html"
+            } else {
+                false
+            }
+        })
+        .for_each(|path| {
+            let hash = hash(&path).unwrap_or_default();
+            if let Some(old_hash) = markdown_files.get(&path) {
+                if &hash != old_hash {
+                    outdated_files.push(path.clone());
+                }
+            }
+
+            if markdown_files.insert(path.clone(), hash).is_none() {
+                outdated_files.push(path);
+            };
+        });
+
+    !outdated_files.is_empty()
+}
+
+fn run() -> Result<(), Box<dyn Error>> {
     info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
-    let mut files = HashMap::new();
+    let mut files: HashMap<PathBuf, _> = HashMap::new();
+    let mut markdown_files = HashMap::new();
+
+    let mut list_template = fs::read_to_string("templates/post_list.html")?;
+    let mut list_item_template = fs::read_to_string("templates/post_list_item.html")?;
+    let mut post_template = fs::read_to_string("templates/post.html")?;
+
+    //TODO: Log which files where changed and update less wastefully.
     loop {
         std::thread::sleep(POLL_DURATION);
         let outdated_files = update_files(&mut files);
-        if !outdated_files.is_empty() {
-            //TODO: Build the posts page with all the post metadata.
-            let metadata: Vec<Metadata> = files.keys().flat_map(metadata).collect();
-            post_list::build(&metadata);
 
+        //Check if any templates are outdated.
+        if update_templates(&mut markdown_files) {
+            info!("Re-building templates.");
+
+            //Update templates
+            list_template = fs::read_to_string("templates/post_list.html")?;
+            list_item_template = fs::read_to_string("templates/post_list_item.html")?;
+            post_template = fs::read_to_string("templates/post.html")?;
+
+            //Build post list
+            let metadata: Vec<Metadata> = files.keys().flat_map(|path| metadata(path)).collect();
+            post_list::build(&list_template, &list_item_template, &metadata);
+
+            //Build all posts
+            for file in files.keys() {
+                match post::build(&post_template, file) {
+                    Ok(_) => info!("Compiled: {file:?}"),
+                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                }
+            }
+        }
+        //Update any outdated files.
+        else if !outdated_files.is_empty() {
+            //Build post list.
+            let metadata: Vec<Metadata> = files.keys().flat_map(|path| metadata(path)).collect();
+            post_list::build(&list_template, &list_item_template, &metadata);
+
+            //Build outdated posts.
             for file in outdated_files {
-                match post::build(&file) {
-                    Ok(_) => info!("Re-compiled: {file:?}"),
+                match post::build(&post_template, &file) {
+                    Ok(_) => info!("Compiled: {file:?}"),
                     Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
                 }
             }
@@ -72,10 +133,11 @@ pub struct Metadata {
     pub title: String,
     pub summary: String,
     pub date: String,
+    pub path: String,
 }
 
-fn metadata(path: impl AsRef<Path>) -> Result<Metadata, Box<dyn Error>> {
-    let file = fs::read_to_string(&path)?;
+fn metadata(path: &Path) -> Result<Metadata, Box<dyn Error>> {
+    let file = fs::read_to_string(path)?;
 
     let pattern = "~~~\n";
     let start = file.find(pattern).ok_or("")?;
@@ -115,7 +177,24 @@ fn metadata(path: impl AsRef<Path>) -> Result<Metadata, Box<dyn Error>> {
 
     metadata.date = format!("{} {} {}", now.day(), month, now.year());
 
+    //HACK
+    let mut pathbuf = path.to_path_buf();
+    pathbuf.set_extension("html");
+    metadata.path = pathbuf.file_name().unwrap().to_str().unwrap().to_string();
+
     Ok(metadata)
+}
+
+///Convert "markdown/example.md" to "build/example.html"
+fn build_path(path: &Path) -> PathBuf {
+    // let pathbuf = path.to_path_buf();
+    // pathbuf.set_extension("html");
+
+    let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
+    name.pop();
+    name.pop();
+    name.push_str("html");
+    PathBuf::from(BUILD_PATH).join(name)
 }
 
 fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
@@ -233,10 +312,10 @@ fn main() {
         match arg.as_str() {
             "build" => build_all(),
             "clean" => clean(),
-            "run" => run(),
+            "run" => run().unwrap(),
             _ => help(),
         }
     } else {
-        run();
+        run().unwrap();
     }
 }

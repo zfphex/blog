@@ -1,17 +1,12 @@
-use crate::{metadata, BUILD_PATH};
+use crate::{build_path, metadata};
 use pulldown_cmark::*;
 use std::{
     error::Error,
     fs::{self},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
-lazy_static::lazy_static! {
-    static ref TEMPLATE: String =
-        String::from_utf8_lossy(include_bytes!("../templates/post.html")).to_string();
-}
-
-pub fn build(markdown: &Path) -> Result<(), Box<dyn Error>> {
+pub fn build(post_template: &str, markdown: &Path) -> Result<(), Box<dyn Error>> {
     //Read the markdown file.
     let string = fs::read_to_string(markdown)?;
     let string = &string[3..];
@@ -26,17 +21,12 @@ pub fn build(markdown: &Path) -> Result<(), Box<dyn Error>> {
     //Get the metadata from the markdown file.
     let metadata = metadata(markdown)?;
     //Generate the post using the metadata and html.
-    let post = TEMPLATE
+    let post = post_template
         .replace("<!-- title -->", &metadata.title)
         .replace("<!-- date -->", &metadata.date)
         .replace("<!-- content -->", &html);
 
-    //Convert "markdown/example.md" to "build/example.html"
-    let mut name = markdown.file_name().unwrap().to_str().unwrap().to_string();
-    name.pop();
-    name.pop();
-    name.push_str("html");
-    let path = PathBuf::from(BUILD_PATH).join(name);
+    let path = build_path(markdown);
 
     //Write the post to disk.
     fs::write(path, post)?;

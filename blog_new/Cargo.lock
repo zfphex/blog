@@ -75,7 +75,6 @@ dependencies = [
  "blake3",
  "chrono",
  "hex",
- "lazy_static",
  "log",
  "memmap2",
  "pulldown-cmark",

@@ -9,3 +9,5 @@
 
 TODO:
 Maybe markdown files need a heading for the page and a title for the post list. IDK.
+
+Path's should all be set relative to the project, it's kind of all over the place right now. Just look at build/post_list.html
