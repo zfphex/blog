@@ -33,14 +33,12 @@ const POLL_DURATION: Duration = Duration::from_millis(500);
 
 struct Watcher {
     pub files: HashMap<PathBuf, String>,
-    pub new: bool,
 }
 
 impl Watcher {
     pub fn new() -> Self {
         Self {
             files: HashMap::new(),
-            new: false,
         }
     }
     pub fn update(&mut self) -> Vec<PathBuf> {
@@ -69,10 +67,7 @@ impl Watcher {
                             return Some(path);
                         }
                     }
-                    None => {
-                        self.new = true;
-                        return Some(path);
-                    }
+                    None => return Some(path),
                 }
 
                 None
@@ -85,11 +80,6 @@ impl Watcher {
             .filter(|key| key.extension().and_then(OsStr::to_str) == Some("md"))
             .collect()
     }
-    pub fn found_new(&mut self) -> bool {
-        let new = self.new;
-        self.new = false;
-        new
-    }
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
@@ -99,6 +89,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     loop {
         let outdated_files = watcher.update();
+        let empty = outdated_files.is_empty();
         let mut updated = false;
 
         for file in outdated_files {
@@ -113,7 +104,6 @@ fn run() -> Result<(), Box<dyn Error>> {
                 },
                 Some("html") if !updated => {
                     updated = true;
-                    info!("Re-building templates.");
                     posts.update_templates();
 
                     for path in watcher.md() {
@@ -126,14 +116,15 @@ fn run() -> Result<(), Box<dyn Error>> {
                             Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
                         }
                     }
-
-                    posts.build();
                 }
                 _ => (),
             }
         }
 
-        if watcher.found_new() & !updated {
+        //If a post is updated, the metadata could also be updated.
+        //So the list of posts will also need to be updated.
+        //Updating templates has the same requirement.
+        if !empty {
             posts.build();
         }
 
@@ -161,6 +152,7 @@ impl Posts {
         self.posts.insert(path, post);
     }
     pub fn update_templates(&mut self) {
+        info!("Re-building templates.");
         self.list_template = fs::read_to_string("templates/post_list.html").unwrap();
         self.list_item_template = fs::read_to_string("templates/post_list_item.html").unwrap();
         self.post_template = fs::read_to_string("templates/post.html").unwrap();
