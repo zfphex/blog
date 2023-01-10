@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Utc};
+use chrono::{DateTime, Datelike, FixedOffset, Utc};
 use std::{
     collections::HashMap,
     error::Error,
@@ -8,7 +8,11 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use walkdir::WalkDir;
+
+const MARKDOWN_PATH: &str = "markdown";
+const TEMPLATE_PATH: &str = "templates";
+const BUILD_PATH: &str = "build";
+const POLL_DURATION: Duration = Duration::from_millis(500);
 
 #[macro_export]
 macro_rules! info {
@@ -26,10 +30,37 @@ macro_rules! warn {
     }};
 }
 
-const MARKDOWN_PATH: &str = "markdown";
-const TEMPLATE_PATH: &str = "templates";
-const BUILD_PATH: &str = "build";
-const POLL_DURATION: Duration = Duration::from_millis(500);
+fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
+    use blake3::*;
+
+    let file = File::open(path)?;
+    let metadata = file.metadata()?;
+    let file_size = metadata.len();
+    let map = unsafe {
+        memmap2::MmapOptions::new()
+            .len(file_size as usize)
+            .map(&file)?
+    };
+
+    let cursor = Cursor::new(map);
+    let mut hasher = Hasher::new();
+    hasher.update(cursor.get_ref());
+
+    let mut output = hasher.finalize_xof();
+    let mut block = [0; blake3::guts::BLOCK_LEN];
+    let mut len = 32;
+    let mut hex = String::new();
+
+    while len > 0 {
+        output.fill(&mut block);
+        let hex_str = hex::encode(&block[..]);
+        let take_bytes = std::cmp::min(len, block.len() as u64);
+        hex.push_str(&hex_str[..2 * take_bytes as usize]);
+        len -= take_bytes;
+    }
+
+    Ok(hex)
+}
 
 struct Watcher {
     pub files: HashMap<PathBuf, String>,
@@ -41,94 +72,34 @@ impl Watcher {
             files: HashMap::new(),
         }
     }
-    pub fn update(&mut self) -> Vec<PathBuf> {
-        WalkDir::new(MARKDOWN_PATH)
-            .max_depth(1)
-            .into_iter()
-            .chain(WalkDir::new(TEMPLATE_PATH).into_iter())
+    pub fn update(&mut self) -> std::io::Result<Vec<PathBuf>> {
+        Ok(fs::read_dir(MARKDOWN_PATH)?
+            .chain(fs::read_dir(TEMPLATE_PATH)?)
             .flatten()
-            .map(|dir_entry| dir_entry.path().to_path_buf())
+            .map(|entry| entry.path())
             .filter(|path| {
-                if let Some(ex) = path.extension() {
-                    let ex = ex.to_ascii_lowercase();
-                    ex == "md" || ex == "html"
-                } else {
-                    false
-                }
+                matches!(
+                    path.extension().and_then(OsStr::to_str),
+                    Some("md") | Some("html")
+                )
             })
             .filter_map(|path| {
                 //Generate a hash for the file.
                 let hash = hash(&path).unwrap_or_default();
-
                 //Check if the hashes match.
                 match self.files.insert(path.clone(), hash.clone()) {
-                    Some(old_hash) => {
-                        if hash != old_hash {
-                            return Some(path);
-                        }
-                    }
-                    None => return Some(path),
+                    Some(old_hash) if hash != old_hash => Some(path),
+                    None => Some(path),
+                    _ => None,
                 }
-
-                None
             })
-            .collect()
+            .collect())
     }
     pub fn md(&self) -> Vec<&PathBuf> {
         self.files
             .keys()
             .filter(|key| key.extension().and_then(OsStr::to_str) == Some("md"))
             .collect()
-    }
-}
-
-fn run() -> Result<(), Box<dyn Error>> {
-    info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
-    let mut watcher = Watcher::new();
-    let mut posts = Posts::new();
-
-    loop {
-        let outdated_files = watcher.update();
-        let empty = outdated_files.is_empty();
-        let mut updated = false;
-
-        for file in outdated_files {
-            match file.extension().and_then(OsStr::to_str) {
-                Some("md") => match Post::new(&posts.post_template, &file) {
-                    Ok(post) => {
-                        info!("Compiled: {file:?}");
-                        post.write()?;
-                        posts.insert(file, post);
-                    }
-                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
-                },
-                Some("html") if !updated => {
-                    updated = true;
-                    posts.update_templates();
-
-                    for path in watcher.md() {
-                        match Post::new(&posts.post_template, path) {
-                            Ok(post) => {
-                                info!("Compiled: {path:?}");
-                                post.write()?;
-                                posts.insert(path.clone(), post);
-                            }
-                            Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
-                        }
-                    }
-                }
-                _ => (),
-            }
-        }
-
-        //If a post is updated, the metadata could also be updated.
-        //So the list of posts will also need to be updated.
-        //Updating templates has the same requirement.
-        if !empty {
-            posts.build();
-        }
-
-        std::thread::sleep(POLL_DURATION);
     }
 }
 
@@ -186,21 +157,24 @@ impl Posts {
 pub struct Metadata {
     pub title: String,
     pub summary: String,
-    pub date: DateTime<Utc>,
+    pub date: DateTime<FixedOffset>,
     pub link_path: String,
     pub real_path: PathBuf,
     pub word_count: usize,
     pub read_time: f32,
-
     pub end_position: usize,
 }
 
 impl Metadata {
-    pub fn new(file: &str, path: &Path) -> Self {
-        let config = file.get(3..).unwrap().trim_start();
+    pub fn new(file: &str, path: &Path) -> Result<Self, Box<dyn Error>> {
+        let config = file.get(3..).ok_or("Invalid metadata")?.trim_start();
 
         let mut title = String::new();
         let mut summary = String::new();
+
+        let creation_date: DateTime<Utc> = fs::metadata(path)?.created()?.into();
+        let mut date = creation_date.into();
+
         let mut end = 0;
 
         if let Some(e) = config.find("~~~") {
@@ -216,6 +190,12 @@ impl Metadata {
                     match k {
                         "title" => title = v.to_string(),
                         "summary" => summary = v.to_string(),
+                        "date" => {
+                            date = DateTime::parse_from_str(
+                                &format!("{v} 00:00"),
+                                "%d/%m/%Y %z %H:%M",
+                            )?;
+                        }
                         _ => continue,
                     }
                 }
@@ -228,16 +208,21 @@ impl Metadata {
         //Rough estimate of the word count. Doesn't actually count alphanumerically.
         let word_count = file[end..].split(|c: char| c.is_whitespace()).count();
 
-        Metadata {
+        Ok(Metadata {
             title,
             summary,
-            date: fs::metadata(path).unwrap().created().unwrap().into(),
-            link_path: pathbuf.file_name().unwrap().to_str().unwrap().to_string(),
+            date,
+            link_path: pathbuf
+                .file_name()
+                .ok_or("file_name")?
+                .to_str()
+                .ok_or("to_str")?
+                .to_string(),
             real_path: path.to_path_buf(),
             read_time: word_count as f32 / 250.0,
             word_count,
             end_position: end,
-        }
+        })
     }
     pub fn word_count(&self) -> String {
         if self.word_count != 1 {
@@ -299,7 +284,7 @@ impl Post {
         //Read the markdown file.
         let file = fs::read_to_string(path)?;
 
-        let metadata = Metadata::new(&file, path);
+        let metadata = Metadata::new(&file, path)?;
         let file = &file[metadata.end_position..].trim_start();
 
         //Convert the markdown to html.
@@ -332,103 +317,52 @@ impl Post {
     }
 }
 
-fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
-    use blake3::*;
+fn main() -> Result<(), Box<dyn Error>> {
+    info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
+    let mut watcher = Watcher::new();
+    let mut posts = Posts::new();
 
-    let file = File::open(path)?;
-    let metadata = file.metadata()?;
-    let file_size = metadata.len();
-    let map = unsafe {
-        memmap2::MmapOptions::new()
-            .len(file_size as usize)
-            .map(&file)?
-    };
+    loop {
+        let outdated_files = watcher.update()?;
+        let empty = outdated_files.is_empty();
+        let mut updated = false;
 
-    let cursor = Cursor::new(map);
-    let mut hasher = Hasher::new();
-    hasher.update(cursor.get_ref());
+        for file in outdated_files {
+            match file.extension().and_then(OsStr::to_str) {
+                Some("md") => match Post::new(&posts.post_template, &file) {
+                    Ok(post) => {
+                        info!("Compiled: {file:?}");
+                        post.write()?;
+                        posts.insert(file, post);
+                    }
+                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                },
+                Some("html") if !updated => {
+                    updated = true;
+                    posts.update_templates();
 
-    let mut output = hasher.finalize_xof();
-    let mut block = [0; blake3::guts::BLOCK_LEN];
-    let mut len = 32;
-    let mut hex = String::new();
-
-    while len > 0 {
-        output.fill(&mut block);
-        let hex_str = hex::encode(&block[..]);
-        let take_bytes = std::cmp::min(len, block.len() as u64);
-        hex.push_str(&hex_str[..2 * take_bytes as usize]);
-        len -= take_bytes;
-    }
-
-    Ok(hex)
-}
-
-fn clean() {
-    let markdown_files: Vec<PathBuf> = walkdir::WalkDir::new(MARKDOWN_PATH)
-        .into_iter()
-        .flatten()
-        .map(|dir_entry| dir_entry.path().to_path_buf())
-        .filter(|path| {
-            if let Some(ex) = path.extension() {
-                ex.to_ascii_lowercase() == "md"
-            } else {
-                false
-            }
-        })
-        .collect();
-
-    let build_files: Vec<PathBuf> = walkdir::WalkDir::new(BUILD_PATH)
-        .into_iter()
-        .flatten()
-        .map(|dir_entry| dir_entry.path().to_path_buf())
-        .filter(|path| path.is_file())
-        .collect();
-
-    let expected_files: Vec<PathBuf> = markdown_files
-        .into_iter()
-        .map(|file| {
-            let mut name = file.file_name().unwrap().to_str().unwrap().to_string();
-            name.pop();
-            name.pop();
-            name.push_str("html");
-            PathBuf::from(BUILD_PATH).join(name)
-        })
-        .collect();
-
-    for file in build_files {
-        if !expected_files.contains(&file) {
-            match fs::remove_file(&file) {
-                Ok(_) => info!("Removed unexpected file: {file:?}"),
-                Err(_) => warn!("Failed to remove unexpected file: {file:?}"),
+                    for path in watcher.md() {
+                        match Post::new(&posts.post_template, path) {
+                            Ok(post) => {
+                                info!("Compiled: {path:?}");
+                                post.write()?;
+                                posts.insert(path.clone(), post);
+                            }
+                            Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
+                        }
+                    }
+                }
+                _ => (),
             }
         }
-    }
-}
 
-fn help() {
-    println!(
-        r#"Usage
-   md2html [<command> <args>]
-
-Options
-   run           Watch for file changes and compile.
-   build         Compile all markdown files.
-   clean         Remove unused files."#
-    );
-}
-
-fn main() {
-    let args: Vec<String> = std::env::args().skip(1).collect();
-
-    if let Some(arg) = args.get(0) {
-        match arg.as_str() {
-            "build" => todo!(),
-            "clean" => clean(),
-            "run" => run().unwrap(),
-            _ => help(),
+        //If a post is updated, the metadata could also be updated.
+        //So the list of posts will also need to be updated.
+        //Updating templates has the same requirement.
+        if !empty {
+            posts.build();
         }
-    } else {
-        run().unwrap();
+
+        std::thread::sleep(POLL_DURATION);
     }
 }
