@@ -62,47 +62,6 @@ fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
     Ok(hex)
 }
 
-struct Watcher {
-    pub files: HashMap<PathBuf, String>,
-}
-
-impl Watcher {
-    pub fn new() -> Self {
-        Self {
-            files: HashMap::new(),
-        }
-    }
-    pub fn update(&mut self) -> std::io::Result<Vec<PathBuf>> {
-        Ok(fs::read_dir(MARKDOWN_PATH)?
-            .chain(fs::read_dir(TEMPLATE_PATH)?)
-            .flatten()
-            .map(|entry| entry.path())
-            .filter(|path| {
-                matches!(
-                    path.extension().and_then(OsStr::to_str),
-                    Some("md") | Some("html")
-                )
-            })
-            .filter_map(|path| {
-                //Generate a hash for the file.
-                let hash = hash(&path).unwrap_or_default();
-                //Check if the hashes match.
-                match self.files.insert(path.clone(), hash.clone()) {
-                    Some(old_hash) if hash != old_hash => Some(path),
-                    None => Some(path),
-                    _ => None,
-                }
-            })
-            .collect())
-    }
-    pub fn md(&self) -> Vec<&PathBuf> {
-        self.files
-            .keys()
-            .filter(|key| key.extension().and_then(OsStr::to_str) == Some("md"))
-            .collect()
-    }
-}
-
 struct Posts {
     pub posts: HashMap<PathBuf, Post>,
     pub list_template: String,
@@ -134,7 +93,10 @@ impl Posts {
         let index = self.list_template.find("<!-- posts -->").unwrap();
         let mut template = self.list_template.replace("<!-- posts -->", "");
 
-        for post in self.posts.values() {
+        let mut posts: Vec<&Post> = self.posts.values().collect();
+        posts.sort_by_key(|post| post.metadata.date);
+
+        for post in posts {
             let metadata = &post.metadata;
             let (day, month, year) = metadata.date();
             let list_item = self
@@ -319,11 +281,31 @@ impl Post {
 
 fn main() -> Result<(), Box<dyn Error>> {
     info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
-    let mut watcher = Watcher::new();
     let mut posts = Posts::new();
+    let mut files: HashMap<PathBuf, String> = HashMap::new();
 
     loop {
-        let outdated_files = watcher.update()?;
+        let outdated_files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
+            .chain(fs::read_dir(TEMPLATE_PATH)?)
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| {
+                matches!(
+                    path.extension().and_then(OsStr::to_str),
+                    Some("md") | Some("html")
+                )
+            })
+            .filter_map(|path| {
+                //Generate a hash for the file.
+                let hash = hash(&path).unwrap_or_default();
+                //Check if the hashes match.
+                match files.insert(path.clone(), hash.clone()) {
+                    Some(old_hash) if hash != old_hash => Some(path),
+                    None => Some(path),
+                    _ => None,
+                }
+            })
+            .collect();
         let empty = outdated_files.is_empty();
         let mut updated = false;
 
@@ -341,15 +323,20 @@ fn main() -> Result<(), Box<dyn Error>> {
                     updated = true;
                     posts.update_templates();
 
-                    for path in watcher.md() {
+                    let md: Vec<&PathBuf> = files
+                        .keys()
+                        .filter(|key| key.extension().and_then(OsStr::to_str) == Some("md"))
+                        .collect();
+
+                    for path in md {
                         match Post::new(&posts.post_template, path) {
                             Ok(post) => {
                                 info!("Compiled: {path:?}");
                                 post.write()?;
-                                posts.insert(path.clone(), post);
+                                posts.insert(path.to_path_buf(), post);
                             }
                             Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
-                        }
+                        };
                     }
                 }
                 _ => (),

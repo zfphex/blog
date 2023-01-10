@@ -13,10 +13,13 @@ Path's should all be set relative to the project, it's kind of all over the plac
 
 - [x] Better logging
 - [x] Allow empty metadata
-- [ ] Sort posts by date.
-- [ ] Date posted metadata.
-- [ ] Summary text is too small.
+- [x] Sort posts by date.
+- [x] Date posted metadata.
+- [ ] Summary text is too small and doesn't stand out.
 - [ ] Syntax highlighting https://github.com/trishume/syntect
+- [ ] Deleted files are left in memory.
+- [ ] Hyperlink colors are weird.
+- [ ] Re-work the color scheme.
 
 
 Nice syntax highting with diffing

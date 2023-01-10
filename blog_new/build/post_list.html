@@ -13,18 +13,6 @@
         box-shadow: none;
     }
 
-    img {
-        display: inline;
-        filter: invert(85%);
-        width: 18px;
-        height: 18px;
-    }
-
-    #post h2::before {
-        color: var(--primary);
-        content: "#";
-    }
-
     #post {
         display: block;
 
@@ -42,22 +30,41 @@
         transform: scale(1.02, 1.02);
     }
 
-    #post:hover span {
-        background-color: var(--primary);
+    /* Title  */
+
+    #post #title {
+        margin-bottom: 0.75em;
+        font-weight: bold;
+        font-size: 26px;
     }
 
-    #post span {
+    #post #title #text {
         border-bottom: 3px solid var(--primary);
     }
 
-    #post h2 {
-        display: inline-block;
-        margin: 0;
-        margin-bottom: 10px;
-        font-weight: bold;
+    #post:hover #title #text {
+        background-color: var(--primary);
     }
 
-    #post p {
+    /* Name & Date */
+    #post #metadata {
+        display: flex;
+        font-size: 18px;
+        padding-bottom: 18px;
+    }
+
+    img {
+        display: inline;
+        filter: invert(85%);
+        width: 18px;
+        height: 18px;
+
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    #post summary {
         font-size: 18px;
     }
 </style>
@@ -84,67 +91,64 @@
             <h1 style="text-align: center;">Posts</h1>
             <ul>
                 <a id="post" href="code.html">
-    <h2>
-        <span>Example code</span>
-    </h2>
-    <div class="sub-heading">
-        <p>
+    <div id="title">
+        <span style="color: var(--primary);">#</span>
+        <span id="text">Example code</span>
+    </div>
+    <div id="metadata">
+        <div style="margin-right: auto;">
             <img src="../assets/user.svg" />
             Bay
             <img src="../assets/calendar.svg" />
             10th January 2023
-        </p>
-        <p>
+        </div>
+        <div>
             <img src="../assets/clock.svg" />
             &lt;1 minute read
-            <img src="../assets/pencil.svg" />
-            57 words
-        </p>
+        </div>
     </div>
     <summary>
         this is a summary for the example code <br> it can also include newlines apparantly <br> wowweweeeeeeeeeeeeeeeee
     </summary>
-</a><a id="post" href="README.html">
-    <h2>
-        <span>Markdown Cheatsheet</span>
-    </h2>
-    <div class="sub-heading">
-        <p>
-            <img src="../assets/user.svg" />
-            Bay
-            <img src="../assets/calendar.svg" />
-            9th January 2023
-        </p>
-        <p>
-            <img src="../assets/clock.svg" />
-            5 minute read
-            <img src="../assets/pencil.svg" />
-            1317 words
-        </p>
-    </div>
-    <summary>
-        A quick reference for the markdown template language.
-    </summary>
 </a><a id="post" href="Post Processing Sucks.html">
-    <h2>
-        <span>I wish my eyes didn't have motion blur and I hope your game doesn't either</span>
-    </h2>
-    <div class="sub-heading">
-        <p>
+    <div id="title">
+        <span style="color: var(--primary);">#</span>
+        <span id="text">I wish my eyes didn't have motion blur</span>
+    </div>
+    <div id="metadata">
+        <div style="margin-right: auto;">
             <img src="../assets/user.svg" />
             Bay
             <img src="../assets/calendar.svg" />
             9th January 2023
-        </p>
-        <p>
+        </div>
+        <div>
             <img src="../assets/clock.svg" />
             8 minute read
-            <img src="../assets/pencil.svg" />
-            2006 words
-        </p>
+        </div>
     </div>
     <summary>
         I guess lmao 🙄.
+    </summary>
+</a><a id="post" href="README.html">
+    <div id="title">
+        <span style="color: var(--primary);">#</span>
+        <span id="text">Markdown Cheatsheet</span>
+    </div>
+    <div id="metadata">
+        <div style="margin-right: auto;">
+            <img src="../assets/user.svg" />
+            Bay
+            <img src="../assets/calendar.svg" />
+            9th January 2023
+        </div>
+        <div>
+            <img src="../assets/clock.svg" />
+            5 minute read
+        </div>
+    </div>
+    <summary>
+        A quick reference for the markdown template language.
     </summary>
 </a>
             </ul>
