@@ -20,6 +20,7 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Deleted files are left in memory.
 - [ ] Hyperlink colors are weird.
 - [ ] Re-work the color scheme.
+- [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
 
 
 Nice syntax highting with diffing

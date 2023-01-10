@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="preload" href="../assets/style.css" as="style" />
     <link rel="stylesheet" href="../assets/style.css" />
+
+    <link rel="stylesheet" href="../assets/tailwind.css" />
 </head>
 
 <style>
@@ -19,7 +21,7 @@
         margin: 0.75em;
         padding: 1em;
 
-        border: 2px solid var(--bg-1);
+        border: 2px solid var(--border);
         border-radius: 5px;
 
         transform-origin: center;
@@ -39,11 +41,11 @@
     }
 
     #post #title #text {
-        border-bottom: 3px solid var(--primary);
+        border-bottom: 3px solid var(--accent);
     }
 
     #post:hover #title #text {
-        background-color: var(--primary);
+        background-color: var(--accent);
     }
 
     /* Name & Date */
@@ -54,6 +56,7 @@
     }
 
     img {
+        fill: currentColor;
         display: inline;
         filter: invert(85%);
         width: 18px;
@@ -92,7 +95,7 @@
             <ul>
                 <a id="post" href="code.html">
     <div id="title">
-        <span style="color: var(--primary);">#</span>
+        <span style="color: var(--accent);">#</span>
         <span id="text">Example code</span>
     </div>
     <div id="metadata">
@@ -112,7 +115,7 @@
     </summary>
 </a><a id="post" href="Post Processing Sucks.html">
     <div id="title">
-        <span style="color: var(--primary);">#</span>
+        <span style="color: var(--accent);">#</span>
         <span id="text">I wish my eyes didn't have motion blur</span>
     </div>
     <div id="metadata">
@@ -132,7 +135,7 @@
     </summary>
 </a><a id="post" href="README.html">
     <div id="title">
-        <span style="color: var(--primary);">#</span>
+        <span style="color: var(--accent);">#</span>
         <span id="text">Markdown Cheatsheet</span>
     </div>
     <div id="metadata">
