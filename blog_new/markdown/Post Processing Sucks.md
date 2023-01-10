@@ -1,5 +1,5 @@
 ~~~
-title: I wish my eyes didn't have motion blur and I hope your game doesn't either.
+title: I wish my eyes didn't have motion blur and I hope your game doesn't either
 summary: I guess lmao 🙄.
 ~~~
 When I say *all post-processing Sucks* what I mean is *I hate how you've used post-processing*.

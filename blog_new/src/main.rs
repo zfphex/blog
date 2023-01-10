@@ -225,7 +225,8 @@ impl Metadata {
         let mut pathbuf = path.to_path_buf();
         pathbuf.set_extension("html");
 
-        let word_count = count(config);
+        //Rough estimate of the word count. Doesn't actually count alphanumerically.
+        let word_count = file[end..].split(|c: char| c.is_whitespace()).count();
 
         Metadata {
             title,
@@ -329,54 +330,6 @@ impl Post {
     pub fn write(&self) -> std::io::Result<()> {
         fs::write(&self.build_path, &self.html)
     }
-}
-
-pub fn count<S: AsRef<str>>(s: S) -> usize {
-    let mut in_word = false;
-    let mut consecutive_dashes = 0;
-
-    let mut count = 0;
-
-    for c in s.as_ref().chars() {
-        if c.is_whitespace() {
-            consecutive_dashes = 0;
-
-            if in_word {
-                count += 1;
-
-                in_word = false;
-            }
-        } else {
-            match c {
-                '-' => {
-                    consecutive_dashes += 1;
-
-                    if consecutive_dashes > 1 && in_word {
-                        if consecutive_dashes == 2 {
-                            count += 1;
-                        }
-
-                        in_word = false;
-
-                        continue;
-                    }
-                }
-                _ => {
-                    consecutive_dashes = 0;
-                }
-            }
-
-            if !in_word {
-                in_word = true;
-            }
-        }
-    }
-
-    if in_word {
-        count += 1;
-    }
-
-    count
 }
 
 fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {

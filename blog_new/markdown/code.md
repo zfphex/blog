@@ -1,4 +1,6 @@
 ~~~
+title: Example code
+summary: this is a summary for the example code <br> it can also include newlines apparantly <br> wowweweeeeeeeeeeeeeeeee
 ~~~
 
 ```html
