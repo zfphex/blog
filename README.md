@@ -1,158 +1,28 @@
-#### Tasks:
-
-- [ ] Create basic template for website
-- [ ] Move all css into single file. The styling should be consistant across the website. Use h1/h2 over changing the font size.
-- [ ] Markdown to html compiler
-- [ ] Custom HTML to html compiler
-- [ ] Hide header when page is too small
-- [ ] Hide sidebar when page is too small
-
-#### Compiler
-
-Imagine the following:
-
-```html
- #header
-
- <h1 style="text-align: center;">Posts</h1>
-
- <main class="list">
-        <ul>
-            {{ posts }}
-        </ul>
- </main>
+```
+/markdown - stores markdown files that will be compiled
+/build - stores the compiled parts of the website
+/site - the website which will link to files in /build
+/templates - stores the templates to be compiled
+/assets - fonts, styles, images, etc.
+/src - the compiler
 ```
 
-Posts would be defined as some schema:
-```html
- <a class="test" href="#link">
- <h2>
-     <span>{{ title }}</span>
- </h2>
- <div class="sub-heading">
-    <p>
-        <i class="fa fa-user"></i>
-        {{ user }}
-        <i class="fa fa-calendar"></i>
-        {{ date }}
-    </p>
+TODO:
+Maybe markdown files need a heading for the page and a title for the post list. IDK.
+Path's should all be set relative to the project, it's kind of all over the place right now. Just look at build/post_list.html
 
-    <p>
-        <i class="fa fa-clock-o"></i>
-        {{ duration }}
-        <i class="fa fa-pencil"></i>
-        {{ words }}
-    </p>
-</div>
+- [x] Better logging
+- [x] Allow empty metadata
+- [x] Sort posts by date.
+- [x] Date posted metadata.
+- [ ] Summary text is too small and doesn't stand out.
+- [ ] Syntax highlighting https://github.com/trishume/syntect
+- [ ] Deleted files are left in memory.
+- [ ] Hyperlink colors are weird.
+- [ ] Re-work the color scheme.
+- [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
 
- <p>
-    {{ overview }}
- </p>
 
-</a>
-```
+Nice syntax highting with diffing
 
-Post in markdown:
-
-```
-+++
-title = Example Post
-user = Bay
-+++
-
-# Heading 8-)
-
-> Use math as the language to enable KaTeX parsing.
-```math
-  c = \pm\sqrt{a^2 + b^2}
-.```
-
-```
-
-Alternative syntax:
-
-```
----
-title: Example Post
-user: Bay
----
-```
-
-Updated template:
-
-```rust
-#[derive(Template)]
-struct Post {
-    path: PathBuf,
-    title: String,
-    user: String,
-    words: usize,
-    date: SystemTime,
-    last_edited: u64,
-    read_duration: Duration,
-}
-
-html!("templates/posts.html", posts: Vec<Post>);
-//^ Something like this?
-
-```
-
-```html
-<header>
-    <div class="header-bar"></div>
-    <div ><a href="index.html">zX3no</a></div>
-    <nav>
-        <a href="index.html">/home</a>
-        <a href="posts.html">/posts</a>
-        <a href="projects.html">/projects</a>
-        <a href="about.html">/about</a>
-    </nav>
-</header>
-
-<h1 style="text-align: center;">Posts</h1>
-
-<main class="list">
-    <ul>
-        {% for post in posts %}
-        <a class="test" href="{{ post.name }}">
-            <h2>
-                <span>{{ post.title }}</span>
-            </h2>
-            <div class="sub-heading">
-                <p>
-                    <i class="fa fa-user"></i>
-                    {{ post.user }}
-                    <i class="fa fa-calendar"></i>
-                    {{ post.date }}
-                </p>
-                <p>
-                    <i class="fa fa-clock-o"></i>
-                    {{ post.duration }}
-                    <i class="fa fa-pencil"></i>
-                    {{ post.words }}
-                </p>
-            </div>
-            <p>
-                {{ post.overview }}
-            </p>
-        </a>
-        {% endfor %}
-    </ul>
-</main>
-```
-
-```
-|
-|- src
-|   |- index.html
-|   |- about.html
-|   |- posts.html
-|   |- projects.html
-|- build
-|   |- posts.html //posts are compiled into a list with word count, date modified etc.
-|- templates
-|   |-
-|- posts
-     |- post processing.md
-```
-
+https://www.11ty.dev/docs/plugins/syntaxhighlight/
