@@ -7,7 +7,20 @@
     <link rel="preload" href="../assets/style.css" as="style" />
     <link rel="stylesheet" href="../assets/style.css" />
 
-    <link rel="stylesheet" href="../assets/tailwind.css" />
+    <svg display="none">
+        <symbol viewBox="0 0 448 512" id="calender">
+            <path
+                d="M96 32V64H48C21.5 64 0 85.5 0 112v48H448V112c0-26.5-21.5-48-48-48H352V32c0-17.7-14.3-32-32-32s-32 14.3-32 32V64H160V32c0-17.7-14.3-32-32-32S96 14.3 96 32zM448 192H0V464c0 26.5 21.5 48 48 48H400c26.5 0 48-21.5 48-48V192z" />
+        </symbol>
+        <symbol viewBox="0 0 512 512" id="clock">
+            <path
+                d="M256 512C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256s-114.6 256-256 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z" />
+        </symbol>
+        <symbol viewBox="0 0 448 512" id="user">
+            <path
+                d="M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0S96 57.3 96 128s57.3 128 128 128zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512H418.3c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304H178.3z" />
+        </symbol>
+    </svg>
 </head>
 
 <style>
@@ -34,13 +47,13 @@
 
     /* Title  */
 
-    #post #title {
-        margin-bottom: 0.75em;
+    #title {
+        margin-bottom: 12px;
         font-weight: bold;
         font-size: 26px;
     }
 
-    #post #title #text {
+    #title #text {
         border-bottom: 3px solid var(--accent);
     }
 
@@ -50,22 +63,24 @@
     }
 
     /* Name & Date */
-    #post #metadata {
+    #metadata {
+        color: var(--neutral-400);
         display: flex;
         font-size: 18px;
-        padding-bottom: 18px;
+        padding-bottom: 12px;
     }
 
-    img {
-        fill: currentColor;
+    #metadata svg {
         display: inline;
-        filter: invert(85%);
+
         width: 18px;
         height: 18px;
 
-        position: relative;
+        fill: var(--neutral-400);
+
+        /* position: relative;
         top: 50%;
-        transform: translateY(-50%);
+        transform: translateY(-50%); */
     }
 
     #post summary {
@@ -101,13 +116,19 @@
     </div>
     <div id="metadata">
         <div style="margin-right: auto;">
-            <img src="../assets/user.svg" />
+            <svg>
+                <use xlink:href="#user" />
+            </svg>
             Bay
-            <img src="../assets/calendar.svg" />
+            <svg>
+                <use xlink:href="#calender" />
+            </svg>
             10th January 2023
         </div>
         <div>
-            <img src="../assets/clock.svg" />
+            <svg>
+                <use xlink:href="#clock" />
+            </svg>
             &lt;1 minute read
         </div>
     </div>
@@ -121,13 +142,19 @@
     </div>
     <div id="metadata">
         <div style="margin-right: auto;">
-            <img src="../assets/user.svg" />
+            <svg>
+                <use xlink:href="#user" />
+            </svg>
             Bay
-            <img src="../assets/calendar.svg" />
+            <svg>
+                <use xlink:href="#calender" />
+            </svg>
             9th January 2023
         </div>
         <div>
-            <img src="../assets/clock.svg" />
+            <svg>
+                <use xlink:href="#clock" />
+            </svg>
             8 minute read
         </div>
     </div>
@@ -141,13 +168,19 @@
     </div>
     <div id="metadata">
         <div style="margin-right: auto;">
-            <img src="../assets/user.svg" />
+            <svg>
+                <use xlink:href="#user" />
+            </svg>
             Bay
-            <img src="../assets/calendar.svg" />
+            <svg>
+                <use xlink:href="#calender" />
+            </svg>
             9th January 2023
         </div>
         <div>
-            <img src="../assets/clock.svg" />
+            <svg>
+                <use xlink:href="#clock" />
+            </svg>
             5 minute read
         </div>
     </div>
