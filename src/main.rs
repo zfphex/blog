@@ -88,9 +88,12 @@ impl Posts {
         self.post_template = fs::read_to_string("templates/post.html").unwrap();
     }
     ///Build the list of posts.
-    pub fn build(&mut self) {
+    pub fn build(&mut self) -> Result<(), Box<dyn Error>> {
         info!("Compiled: \"build\\\\post_list.html\"");
-        let index = self.list_template.find("<!-- posts -->").unwrap();
+        let index = self
+            .list_template
+            .find("<!-- posts -->")
+            .ok_or("Couldn't find <!-- posts -->")?;
         let mut template = self.list_template.replace("<!-- posts -->", "");
 
         let mut posts: Vec<&Post> = self.posts.values().collect();
@@ -111,7 +114,9 @@ impl Posts {
             template.insert_str(index, &list_item);
         }
 
-        fs::write("build/post_list.html", template).unwrap();
+        fs::write("build/post_list.html", template)?;
+
+        Ok(())
     }
 }
 
@@ -347,7 +352,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         //So the list of posts will also need to be updated.
         //Updating templates has the same requirement.
         if !empty {
-            posts.build();
+            match posts.build() {
+                Ok(_) => info!("Sucessfully built posts."),
+                Err(err) => warn!("Failed to compile posts\n{err}"),
+            };
         }
 
         std::thread::sleep(POLL_DURATION);

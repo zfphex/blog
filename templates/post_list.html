@@ -35,17 +35,18 @@
         padding: 1em;
 
         border: 2px solid var(--border);
-        border-radius: 5px;
+        border-radius: 6px;
 
-        transform-origin: center;
         transition: transform 120ms;
+
+        /* Stops the text from wobbling around. */
+        backface-visibility: hidden;
     }
 
     #post:hover {
-        transform: scale(1.02, 1.02);
+        transform: scale(1.05) perspective(1px);
     }
 
-    /* Title  */
 
     #title {
         margin-bottom: 12px;
@@ -65,22 +66,32 @@
     /* Name & Date */
     #metadata {
         color: var(--neutral-400);
-        display: flex;
         font-size: 18px;
         padding-bottom: 12px;
+        display: flex;
+    }
+
+    #metadata-left {
+
+        margin-right: auto;
+    }
+
+    #metadata-left,
+    #metadata-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
     #metadata svg {
         display: inline;
 
-        width: 18px;
-        height: 18px;
+        width: 19px;
+        height: 19px;
+        /* width: 10%; */
+        /* height: 10%; */
 
         fill: var(--neutral-400);
-
-        /* position: relative;
-        top: 50%;
-        transform: translateY(-50%); */
     }
 
     #post summary {
@@ -93,26 +104,15 @@
 
     <div id="grid">
         <div id="left"></div>
-
-        <div id="center" style="font-size: 21px">
-            <!-- <a style="font-size: 36px" href="index.html">zX3no</a>
-            <nav style="padding-bottom: 4px">
-                <a href="../site/index.html">/home</a>
-                <a href="../build/post_list.html">/posts</a>
-                <a href="projects.html">/projects</a>
-            </nav> -->
-        </div>
-
+        <div id="center"></div>
         <div id="right"></div>
         <div id="bottom-left"></div>
-
         <div id="bottom-middle">
             <h1 style="text-align: center;">Posts</h1>
             <ul>
                 <!-- posts -->
             </ul>
         </div>
-
         <div id="bottom-right"></div>
     </div>
 </body>
