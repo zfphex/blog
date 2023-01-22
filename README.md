@@ -17,7 +17,7 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [x] Date posted metadata.
 - [x] Summary text is too small and doesn't stand out.
 - [ ] Syntax highlighting https://github.com/trishume/syntect
-- [ ] Deleted files are left in memory.
+- [x] Deleted files are left in memory.
 - [x] Hyperlink colors are weird.
 - [x] Re-work the color scheme.
 - [ ] Write a package command that combines all files for shipping. Will need to fix paths too!

@@ -1,3 +1,4 @@
+#![feature(hash_drain_filter)]
 use chrono::{DateTime, Datelike, FixedOffset, Utc};
 use std::{
     collections::HashMap,
@@ -290,7 +291,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut files: HashMap<PathBuf, String> = HashMap::new();
 
     loop {
-        let outdated_files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
+        let new_files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
             .chain(fs::read_dir(TEMPLATE_PATH)?)
             .flatten()
             .map(|entry| entry.path())
@@ -300,17 +301,37 @@ fn main() -> Result<(), Box<dyn Error>> {
                     Some("md") | Some("html")
                 )
             })
+            .collect();
+
+        //Make sure 'physically' deleted files are removed from memory.
+        if new_files.len() != files.len() {
+            files.drain_filter(|k, _| {
+                if !new_files.contains(k) {
+                    info!("Removed: {:?}", k);
+                    true
+                } else {
+                    false
+                }
+            });
+        }
+
+        let outdated_files: Vec<PathBuf> = new_files
+            .into_iter()
             .filter_map(|path| {
                 //Generate a hash for the file.
                 let hash = hash(&path).unwrap_or_default();
-                //Check if the hashes match.
+
                 match files.insert(path.clone(), hash.clone()) {
+                    //File is out of date.
                     Some(old_hash) if hash != old_hash => Some(path),
+                    //File is new.
                     None => Some(path),
+                    //File is up to date.
                     _ => None,
                 }
             })
             .collect();
+
         let empty = outdated_files.is_empty();
         let mut updated = false;
 
