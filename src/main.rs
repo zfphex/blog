@@ -1,5 +1,5 @@
 #![feature(hash_drain_filter)]
-use chrono::{DateTime, Datelike, FixedOffset, Utc};
+use chrono::{DateTime, Datelike, FixedOffset, Local, Utc};
 use std::{
     collections::HashMap,
     error::Error,
@@ -15,10 +15,14 @@ const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
 const POLL_DURATION: Duration = Duration::from_millis(500);
 
+fn now() -> String {
+    Local::now().time().format("%H:%M:%S").to_string()
+}
+
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {{
-        print!("\x1b[94mINFO\x1b[0m ");
+        print!("\x1b[90m{} \x1b[94mINFO\x1b[0m ", now());
         println!($($arg)*);
     }};
 }
@@ -26,7 +30,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {{
-        print!("\x1b[93mWARN\x1b[0m '{}:{}:{}' ", file!(), line!(), column!());
+        print!("\x1b[90m{} \x1b[93mWARN\x1b[0m '{}:{}:{}' ", now(), file!(), line!(), column!());
         println!($($arg)*);
     }};
 }

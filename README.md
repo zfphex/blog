@@ -22,7 +22,7 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [x] Re-work the color scheme.
 - [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
 - [ ] Blurry transform scaling.
-- [ ] Add time to logging.
+- [x] Add time to logging.
 
 
 Nice syntax highting with diffing
