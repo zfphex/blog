@@ -13,7 +13,7 @@ use std::{
 const MARKDOWN_PATH: &str = "markdown";
 const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
-const POLL_DURATION: Duration = Duration::from_millis(500);
+const POLL_DURATION: Duration = Duration::from_millis(250);
 
 fn now() -> String {
     Local::now().time().format("%H:%M:%S").to_string()
