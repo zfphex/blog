@@ -7,6 +7,7 @@ use std::{
     fs::{self, File},
     io::Cursor,
     path::{Path, PathBuf},
+    process::exit,
     time::Duration,
 };
 
@@ -21,6 +22,7 @@ fn now() -> String {
 
 fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
+    cfg.keep_html_and_head_opening_tags = true;
     cfg.minify_css = true;
     cfg.minify_js = true;
     minify_html::minify(html.as_bytes(), &cfg)
@@ -299,7 +301,80 @@ impl Post {
     }
 }
 
+///https://github.com/getzola/zola/blob/master/components/markdown/src/codeblock/highlight.rs
+fn test() {
+    use syntect::highlighting::ThemeSet;
+    use syntect::html::*;
+    use syntect::parsing::*;
+    use syntect::util::*;
+
+    let code = r#"
+fn test() {
+    use syntect::highlighting::ThemeSet;
+    use syntect::html::*;
+    use syntect::parsing::SyntaxSet;
+    use syntect::util::LinesWithEndings;
+
+    let syntax_set = SyntaxSet::load_defaults_newlines();
+    let syntax = syntax_set.find_syntax_by_extension("rs").unwrap();
+    let mut html_generator =
+        ClassedHTMLGenerator::new_with_class_style(syntax, &syntax_set, ClassStyle::Spaced);
+
+    for line in LinesWithEndings::from(code) {
+        html_generator
+            .parse_html_for_line_which_includes_newline(line)
+            .unwrap();
+    }
+    let output_html = html_generator.finalize();
+    let default = ThemeSet::load_defaults();
+    let theme = default.themes.get("base16-ocean.dark").unwrap();
+    let css = css_for_theme_with_class_style(theme, ClassStyle::Spaced).unwrap();
+    println!("{}", css);
+    println!();
+    println!("{}", output_html);
+    println!();
+}"#;
+
+    let syntax_set = SyntaxSet::load_defaults_newlines();
+    let syntax = syntax_set.find_syntax_by_extension("rs").unwrap();
+
+    let mut scope_stack = ScopeStack::new();
+    let mut parse_state = ParseState::new(syntax);
+    let mut open_spans = 0;
+
+    let mut html = String::new();
+    for line in LinesWithEndings::from(code) {
+        let parse_line = parse_state.parse_line(line, &syntax_set).unwrap();
+        if line.starts_with("    ") {
+            println!("{}", line);
+            dbg!(&parse_line);
+        }
+
+        let (formatted_line, delta) =
+            line_tokens_to_classed_spans(line, &parse_line, ClassStyle::Spaced, &mut scope_stack)
+                .unwrap();
+        open_spans += delta;
+
+        html.push_str(&formatted_line);
+
+        if line.ends_with("\n") {
+            html.push_str("<br>");
+        }
+    }
+
+    for _ in 0..open_spans {
+        html.push_str("</span>");
+    }
+
+    let default = ThemeSet::load_defaults();
+    let theme = default.themes.get("base16-ocean.dark").unwrap();
+    let css = css_for_theme_with_class_style(theme, ClassStyle::Spaced).unwrap();
+    fs::write("test.css", css).unwrap();
+    fs::write("test.html", html).unwrap();
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
+    test();
     //Make sure the build folder exists.
     let _ = fs::create_dir(BUILD_PATH);
 

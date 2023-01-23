@@ -16,15 +16,16 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [x] Sort posts by date.
 - [x] Date posted metadata.
 - [x] Summary text is too small and doesn't stand out.
-- [ ] Syntax highlighting https://github.com/trishume/syntect
 - [x] Deleted files are left in memory.
 - [x] Hyperlink colors are weird.
 - [x] Re-work the color scheme.
-- [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
-- [ ] Blurry transform scaling.
 - [x] Add time to logging.
 - [x] HTML, CSS & JS minification.
+- [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
+- [ ] Blurry transform scaling.
+- [ ] Syntax highlighting https://github.com/trishume/syntect
 - [ ] Add a github logo in the bottom left or right. Mabye a 'Made by Bay ❤' or something.
+- [ ] Table of contents on right-side of post.
 
 
 Nice syntax highting with diffing

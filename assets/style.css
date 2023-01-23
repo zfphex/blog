@@ -238,7 +238,7 @@
  }
 
  @font-face {
-     font-family: "jetbrains";
+     font-family: jetbrains;
      src: url('JetBrainsMono.ttf');
      /* Ensure text remains visible during webfont load */
      /* font-display: swap; */
@@ -278,6 +278,10 @@
      border: solid var(--border) 2px;
      border-radius: 8px;
      padding: 8px
+ }
+
+ code {
+     font-family: jetbrains;
  }
 
  #top-bar {
