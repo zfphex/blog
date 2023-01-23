@@ -23,10 +23,7 @@ fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
     cfg.minify_css = true;
     cfg.minify_js = true;
-    let min = minify_html::minify(html.as_bytes(), &cfg);
-    println!("html: {}", html.as_bytes().len());
-    println!("min: {}", min.len());
-    min
+    minify_html::minify(html.as_bytes(), &cfg)
 }
 
 #[macro_export]
