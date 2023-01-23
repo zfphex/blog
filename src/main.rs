@@ -19,6 +19,16 @@ fn now() -> String {
     Local::now().time().format("%H:%M:%S").to_string()
 }
 
+fn minify(html: &str) -> Vec<u8> {
+    let mut cfg = minify_html::Cfg::spec_compliant();
+    cfg.minify_css = true;
+    cfg.minify_js = true;
+    let min = minify_html::minify(html.as_bytes(), &cfg);
+    println!("html: {}", html.as_bytes().len());
+    println!("min: {}", min.len());
+    min
+}
+
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {{
@@ -118,6 +128,8 @@ impl Posts {
 
             template.insert_str(index, &list_item);
         }
+
+        let template = minify(&template);
 
         fs::write("build/post_list.html", template)?;
 
@@ -285,12 +297,17 @@ impl Post {
         })
     }
     pub fn write(&self) -> std::io::Result<()> {
-        fs::write(&self.build_path, &self.html)
+        let html = minify(&self.html);
+        fs::write(&self.build_path, html)
     }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    //Make sure the build folder exists.
+    let _ = fs::create_dir(BUILD_PATH);
+
     info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
+
     let mut posts = Posts::new();
     let mut files: HashMap<PathBuf, String> = HashMap::new();
 

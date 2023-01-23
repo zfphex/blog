@@ -385,6 +385,13 @@
      content: "# ";
  }
 
+ b,
+ strong {
+     color: var(--neutral-50);
+     font-weight: 800;
+
+ }
+
  blockquote {
      border-left: 2px solid var(--border);
      margin: 16px 0 16px 0;

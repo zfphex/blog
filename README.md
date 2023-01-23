@@ -23,6 +23,8 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
 - [ ] Blurry transform scaling.
 - [x] Add time to logging.
+- [x] HTML, CSS & JS minification.
+- [ ] Add a github logo in the bottom left or right. Mabye a 'Made by Bay ❤' or something.
 
 
 Nice syntax highting with diffing

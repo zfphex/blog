@@ -11,3 +11,5 @@ blake3 = { version = "1.3.1", git = "https://github.com/BLAKE3-team/BLAKE3" }
 memmap2 = "0.5.8"
 hex = "0.4.3"
 chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
+minify-html = "0.10.7"
+
