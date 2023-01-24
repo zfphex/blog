@@ -1,205 +1,465 @@
-<!doctype html>
-<html lang=en>
-<title>Layout - bayd.xyz</title>
-<meta content="width=device-width,initial-scale=1" name=viewport>
-<link as=style href=assets/style.css rel=preload>
-<link href=assets/style.css rel=stylesheet>
-<link href=test.css rel=stylesheet>
-</head>
-
-<style>
-  #title {
-    font-size: 44px;
-    line-height: 100%;
-    margin-top: 16px;
-    margin-bottom: 0
-  }
-
-  #title:before {
-    content: ""
-  }
-
-  #metadata {
-    font-size: 18px;
-    color: var(--neutral-400);
-    letter-spacing: -0.5px
-  }
-
-  img {
-    max-width: 100%;
-    object-fit: contain
-  }
-
-  .center {
-    display: block;
-    margin-left: auto;
-    margin-right: auto
-  }
-
-  a {
-    color: var(--sky-300);
-    border-bottom: 0;
-    padding-bottom: 0
-  }
-
-  a:hover {
-    color: var(--neutral-400)
-  }
-</style>
-
-<body>
-  <div id=top-bar></div>
-  <div id=grid>
-    <div id=left></div>
-    <div id=center style=padding:0></div>
-    <div id=right></div>
-    <div id=bottom-left></div>
-    <div id=bottom-middle>
-      <div id=post>
-        <h1 id=title>Example code. <div id=metadata>Posted <time>10th of January, 2023</time></div>
-        </h1>
-        <!--  -->
-        <span class="source rust">
-          <br><span class="meta function rust"><span class="meta function rust"><span
-                class="storage type function rust">fn</span> </span><span
-              class="entity name function rust">test</span></span><span class="meta function rust"><span
-              class="meta function parameters rust"><span
-                class="punctuation section parameters begin rust">(</span></span><span class="meta function rust"><span
-                class="meta function parameters rust"><span
-                  class="punctuation section parameters end rust">)</span></span></span></span><span
-            class="meta function rust">
-          </span><span class="meta function rust"><span class="meta block rust"><span
-                class="punctuation section block begin rust">{</span>
-              <br>
-              <span class="keyword other rust">use</span> <span class="meta path rust">syntect<span
-                  class="punctuation accessor rust">::</span></span><span class="meta path rust">highlighting<span
-                  class="punctuation accessor rust">::</span></span>ThemeSet<span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="keyword other rust">use</span> <span class="meta path rust">syntect<span
-                  class="punctuation accessor rust">::</span></span><span class="meta path rust">html<span
-                  class="punctuation accessor rust">::</span></span><span class="keyword operator rust">*</span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="keyword other rust">use</span> <span class="meta path rust">syntect<span
-                  class="punctuation accessor rust">::</span></span><span class="meta path rust">parsing<span
-                  class="punctuation accessor rust">::</span></span>SyntaxSet<span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="keyword other rust">use</span> <span class="meta path rust">syntect<span
-                  class="punctuation accessor rust">::</span></span><span class="meta path rust">util<span
-                  class="punctuation accessor rust">::</span></span>LinesWithEndings<span
-                class="punctuation terminator rust">;</span>
-              <br>
-              <br> <span class="storage type rust">let</span> syntax_set <span class="keyword operator rust">=</span>
-              <span class="meta path rust">SyntaxSet<span
-                  class="punctuation accessor rust">::</span></span>load_defaults_newlines<span
-                class="meta group rust"><span class="punctuation section group begin rust">(</span></span><span
-                class="meta group rust"><span class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="storage type rust">let</span> syntax <span class="keyword operator rust">=</span>
-              syntax_set.<span class="support function rust">find_syntax_by_extension</span><span
-                class="meta group rust"><span class="punctuation section group begin rust">(</span><span
-                  class="string quoted double rust"><span
-                    class="punctuation definition string begin rust">&quot;</span>rs<span
-                    class="punctuation definition string end rust">&quot;</span></span></span><span
-                class="meta group rust"><span class="punctuation section group end rust">)</span></span>.<span
-                class="support function rust">unwrap</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="storage type rust">let</span> <span class="storage modifier rust">mut</span>
-              html_generator
-              <span class="keyword operator rust">=</span>
-              <br> <span class="meta path rust">ClassedHTMLGenerator<span
-                  class="punctuation accessor rust">::</span></span>new_with_class_style<span
-                class="meta group rust"><span class="punctuation section group begin rust">(</span>syntax<span
-                  class="punctuation separator rust">,</span>
-                <span class="keyword operator rust">&amp;</span>syntax_set<span
-                  class="punctuation separator rust">,</span>
-                <span class="meta path rust">ClassStyle<span
-                    class="punctuation accessor rust">::</span></span>Spaced</span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br>
-              <br> <span class="keyword control rust">for</span> line <span class="keyword operator rust">in</span>
-              <span class="meta path rust">LinesWithEndings<span
-                  class="punctuation accessor rust">::</span></span>from<span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span>code</span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span> <span class="meta block rust"><span
-                  class="punctuation section block begin rust">{</span>
-                <br> html_generator
-                <br> .<span class="support function rust">parse_html_for_line_which_includes_newline</span><span
-                  class="meta group rust"><span class="punctuation section group begin rust">(</span>line</span><span
-                  class="meta group rust"><span class="punctuation section group end rust">)</span></span>
-                <br> .<span class="support function rust">unwrap</span><span class="meta group rust"><span
-                    class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                    class="punctuation section group end rust">)</span></span><span
-                  class="punctuation terminator rust">;</span>
-                <br> </span><span class="meta block rust"><span
-                  class="punctuation section block end rust">}</span></span>
-              <br> <span class="storage type rust">let</span> output_html <span class="keyword operator rust">=</span>
-              html_generator.<span class="support function rust">finalize</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="storage type rust">let</span> default <span class="keyword operator rust">=</span> <span
-                class="meta path rust">ThemeSet<span
-                  class="punctuation accessor rust">::</span></span>load_defaults<span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="storage type rust">let</span> theme <span class="keyword operator rust">=</span>
-              default.themes.<span class="support function rust">get</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span><span class="string quoted double rust"><span
-                    class="punctuation definition string begin rust">&quot;</span>base16-ocean.dark<span
-                    class="punctuation definition string end rust">&quot;</span></span></span><span
-                class="meta group rust"><span class="punctuation section group end rust">)</span></span>.<span
-                class="support function rust">unwrap</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="storage type rust">let</span> css <span class="keyword operator rust">=</span> <span
-                class="support function rust">css_for_theme_with_class_style</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span>theme<span
-                  class="punctuation separator rust">,</span>
-                <span class="meta path rust">ClassStyle<span
-                    class="punctuation accessor rust">::</span></span>Spaced</span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span>.<span
-                class="support function rust">unwrap</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="support macro rust">println!</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="string quoted double rust"><span
-                    class="punctuation definition string begin rust">&quot;</span><span
-                    class="constant other placeholder rust">{}</span><span
-                    class="punctuation definition string end rust">&quot;</span></span></span><span
-                class="meta group rust"><span class="punctuation separator rust">,</span> css<span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="support macro rust">println!</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"></span><span
-                class="meta group rust"><span class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="support macro rust">println!</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"><span
-                  class="string quoted double rust"><span
-                    class="punctuation definition string begin rust">&quot;</span><span
-                    class="constant other placeholder rust">{}</span><span
-                    class="punctuation definition string end rust">&quot;</span></span></span><span
-                class="meta group rust"><span class="punctuation separator rust">,</span> output_html<span
-                  class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br> <span class="support macro rust">println!</span><span class="meta group rust"><span
-                  class="punctuation section group begin rust">(</span></span><span class="meta group rust"></span><span
-                class="meta group rust"><span class="punctuation section group end rust">)</span></span><span
-                class="punctuation terminator rust">;</span>
-              <br>
-            </span><span class="meta block rust"><span
-                class="punctuation section block end rust">}</span></span></span></span>
-        <!--  -->
-      </div>
-    </div>
-    <div id=bottom-right></div>
-  </div>
-
+<head><title>test</title><style> pre {
+            font-size:13px;
+            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }</style></head><body style="background-color:#2b303b;">
+<pre style="background-color:#2b303b;">
+<span style="color:#c0c5ce;">#![</span><span style="color:#bf616a;">feature</span><span style="color:#c0c5ce;">(hash_drain_filter)]
+</span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">chrono::{DateTime, Datelike, FixedOffset, Local, Utc};
+</span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">std::{
+</span><span style="color:#c0c5ce;">    collections::HashMap,
+</span><span style="color:#c0c5ce;">    error::Error,
+</span><span style="color:#c0c5ce;">    ffi::OsStr,
+</span><span style="color:#c0c5ce;">    fs::{</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, File},
+</span><span style="color:#c0c5ce;">    io::Cursor,
+</span><span style="color:#c0c5ce;">    path::{Path, PathBuf},
+</span><span style="color:#c0c5ce;">    time::Duration,
+</span><span style="color:#c0c5ce;">};
+</span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">syntect::{
+</span><span style="color:#c0c5ce;">    easy::HighlightLines,
+</span><span style="color:#c0c5ce;">    highlighting::{Color, ThemeSet},
+</span><span style="color:#c0c5ce;">    html::{
+</span><span style="color:#c0c5ce;">        append_highlighted_html_for_styled_line, start_highlighted_html_snippet, IncludeBackground,
+</span><span style="color:#c0c5ce;">    },
+</span><span style="color:#c0c5ce;">    parsing::SyntaxSet,
+</span><span style="color:#c0c5ce;">    util::LinesWithEndings,
+</span><span style="color:#c0c5ce;">};
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">const </span><span style="color:#d08770;">MARKDOWN_PATH</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str </span><span style="color:#c0c5ce;">= &quot;</span><span style="color:#a3be8c;">markdown</span><span style="color:#c0c5ce;">&quot;;
+</span><span style="color:#b48ead;">const </span><span style="color:#d08770;">TEMPLATE_PATH</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str </span><span style="color:#c0c5ce;">= &quot;</span><span style="color:#a3be8c;">templates</span><span style="color:#c0c5ce;">&quot;;
+</span><span style="color:#b48ead;">const </span><span style="color:#d08770;">BUILD_PATH</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str </span><span style="color:#c0c5ce;">= &quot;</span><span style="color:#a3be8c;">build</span><span style="color:#c0c5ce;">&quot;;
+</span><span style="color:#b48ead;">const </span><span style="color:#d08770;">POLL_DURATION</span><span style="color:#c0c5ce;">: Duration = Duration::from_millis(</span><span style="color:#d08770;">250</span><span style="color:#c0c5ce;">);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">now</span><span style="color:#c0c5ce;">() -&gt; String {
+</span><span style="color:#c0c5ce;">    Local::now().</span><span style="color:#96b5b4;">time</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">format</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">%H:%M:%S</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">()
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">minify</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">html</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str</span><span style="color:#c0c5ce;">) -&gt; Vec&lt;</span><span style="color:#b48ead;">u8</span><span style="color:#c0c5ce;">&gt; {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> cfg = minify_html::Cfg::spec_compliant();
+</span><span style="color:#c0c5ce;">    cfg.keep_html_and_head_opening_tags = </span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">    cfg.minify_css = </span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">    cfg.minify_js = </span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">    minify_html::minify(html.</span><span style="color:#96b5b4;">as_bytes</span><span style="color:#c0c5ce;">(), &amp;cfg)
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">macro_export</span><span style="color:#c0c5ce;">]
+</span><span style="color:#96b5b4;">macro_rules! </span><span style="color:#c0c5ce;">info {
+</span><span style="color:#c0c5ce;">    ($(</span><span style="color:#bf616a;">$arg</span><span style="color:#c0c5ce;">:tt)*) =&gt; {{
+</span><span style="color:#c0c5ce;">        print!(&quot;</span><span style="color:#96b5b4;">\x1b</span><span style="color:#a3be8c;">[90m</span><span style="color:#d08770;">{} </span><span style="color:#96b5b4;">\x1b</span><span style="color:#a3be8c;">[94mINFO</span><span style="color:#96b5b4;">\x1b</span><span style="color:#a3be8c;">[0m </span><span style="color:#c0c5ce;">&quot;, </span><span style="color:#96b5b4;">now</span><span style="color:#c0c5ce;">());
+</span><span style="color:#c0c5ce;">        println!($(</span><span style="color:#bf616a;">$arg</span><span style="color:#c0c5ce;">)*);
+</span><span style="color:#c0c5ce;">    }};
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">macro_export</span><span style="color:#c0c5ce;">]
+</span><span style="color:#96b5b4;">macro_rules! </span><span style="color:#c0c5ce;">warn {
+</span><span style="color:#c0c5ce;">    ($(</span><span style="color:#bf616a;">$arg</span><span style="color:#c0c5ce;">:tt)*) =&gt; {{
+</span><span style="color:#c0c5ce;">        print!(&quot;</span><span style="color:#96b5b4;">\x1b</span><span style="color:#a3be8c;">[90m</span><span style="color:#d08770;">{} </span><span style="color:#96b5b4;">\x1b</span><span style="color:#a3be8c;">[93mWARN</span><span style="color:#96b5b4;">\x1b</span><span style="color:#a3be8c;">[0m &#39;</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">:</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">:</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">&#39; </span><span style="color:#c0c5ce;">&quot;, </span><span style="color:#96b5b4;">now</span><span style="color:#c0c5ce;">(), file!(), line!(), column!());
+</span><span style="color:#c0c5ce;">        println!($(</span><span style="color:#bf616a;">$arg</span><span style="color:#c0c5ce;">)*);
+</span><span style="color:#c0c5ce;">    }};
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">hash</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">: impl AsRef&lt;Path&gt;) -&gt; Result&lt;String, Box&lt;dyn Error&gt;&gt; {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">blake3::*;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> file = File::open(path)?;
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> metadata = file.</span><span style="color:#96b5b4;">metadata</span><span style="color:#c0c5ce;">()?;
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> file_size = metadata.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> map = </span><span style="color:#b48ead;">unsafe </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">        memmap2::MmapOptions::new()
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">(file_size as </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">)
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">map</span><span style="color:#c0c5ce;">(&amp;file)?
+</span><span style="color:#c0c5ce;">    };
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> cursor = Cursor::new(map);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> hasher = Hasher::new();
+</span><span style="color:#c0c5ce;">    hasher.</span><span style="color:#96b5b4;">update</span><span style="color:#c0c5ce;">(cursor.</span><span style="color:#96b5b4;">get_ref</span><span style="color:#c0c5ce;">());
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> output = hasher.</span><span style="color:#96b5b4;">finalize_xof</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> block = [</span><span style="color:#d08770;">0</span><span style="color:#c0c5ce;">; blake3::guts::</span><span style="color:#d08770;">BLOCK_LEN</span><span style="color:#c0c5ce;">];
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> len = </span><span style="color:#d08770;">32</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> hex = String::new();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">while</span><span style="color:#c0c5ce;"> len &gt; </span><span style="color:#d08770;">0 </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">        output.</span><span style="color:#96b5b4;">fill</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> block);
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> hex_str = hex::encode(&amp;block[..]);
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> take_bytes = std::cmp::min(len, block.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() as </span><span style="color:#b48ead;">u64</span><span style="color:#c0c5ce;">);
+</span><span style="color:#c0c5ce;">        hex.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&amp;hex_str[..</span><span style="color:#d08770;">2 </span><span style="color:#c0c5ce;">* take_bytes as </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">]);
+</span><span style="color:#c0c5ce;">        len -= take_bytes;
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    Ok(hex)
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">struct </span><span style="color:#c0c5ce;">Posts {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">posts</span><span style="color:#c0c5ce;">: HashMap&lt;PathBuf, Post&gt;,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">list_template</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">list_item_template</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">post_template</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">impl </span><span style="color:#c0c5ce;">Posts {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span style="color:#c0c5ce;">() -&gt; </span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            posts: HashMap::new(),
+</span><span style="color:#c0c5ce;">            list_template: fs::read_to_string(&quot;</span><span style="color:#a3be8c;">templates/post_list.html</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">            list_item_template: fs::read_to_string(&quot;</span><span style="color:#a3be8c;">templates/post_list_item.html</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">            post_template: fs::read_to_string(&quot;</span><span style="color:#a3be8c;">templates/post.html</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">insert</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">: PathBuf, </span><span style="color:#bf616a;">post</span><span style="color:#c0c5ce;">: Post) {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.posts.</span><span style="color:#96b5b4;">insert</span><span style="color:#c0c5ce;">(path, post);
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">update_templates</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) {
+</span><span style="color:#c0c5ce;">        info!(&quot;</span><span style="color:#a3be8c;">Re-building templates.</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">        </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.list_template = fs::read_to_string(&quot;</span><span style="color:#a3be8c;">templates/post_list.html</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.list_item_template = fs::read_to_string(&quot;</span><span style="color:#a3be8c;">templates/post_list_item.html</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.post_template = fs::read_to_string(&quot;</span><span style="color:#a3be8c;">templates/post.html</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">///Build the list of posts.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">build</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#b48ead;">mut </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+</span><span style="color:#c0c5ce;">        info!(&quot;</span><span style="color:#a3be8c;">Compiled: </span><span style="color:#96b5b4;">\&quot;</span><span style="color:#a3be8c;">build</span><span style="color:#96b5b4;">\\\\</span><span style="color:#a3be8c;">post_list.html</span><span style="color:#96b5b4;">\&quot;</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> index = </span><span style="color:#bf616a;">self
+</span><span style="color:#c0c5ce;">            .list_template
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">find</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- posts --&gt;</span><span style="color:#c0c5ce;">&quot;)
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">ok_or</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">Couldn&#39;t find &lt;!-- posts --&gt;</span><span style="color:#c0c5ce;">&quot;)?;
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> template = </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.list_template.</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- posts --&gt;</span><span style="color:#c0c5ce;">&quot;, &quot;&quot;);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> posts: Vec&lt;&amp;Post&gt; = </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.posts.</span><span style="color:#96b5b4;">values</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">collect</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        posts.</span><span style="color:#96b5b4;">sort_by_key</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">post</span><span style="color:#c0c5ce;">| post.metadata.date);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> post in posts {
+</span><span style="color:#c0c5ce;">            </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> metadata = &amp;post.metadata;
+</span><span style="color:#c0c5ce;">            </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">(day, month, year) = metadata.</span><span style="color:#96b5b4;">date</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">            </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> list_item = </span><span style="color:#bf616a;">self
+</span><span style="color:#c0c5ce;">                .list_item_template
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">~link~</span><span style="color:#c0c5ce;">&quot;, &amp;metadata.link_path)
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- title --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;metadata.title)
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- date --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;format!(&quot;</span><span style="color:#d08770;">{day} {month} {year}</span><span style="color:#c0c5ce;">&quot;))
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- read_time --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;metadata.</span><span style="color:#96b5b4;">read_time</span><span style="color:#c0c5ce;">())
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- word_count --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;metadata.</span><span style="color:#96b5b4;">word_count</span><span style="color:#c0c5ce;">())
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- summary --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;metadata.summary);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">            template.</span><span style="color:#96b5b4;">insert_str</span><span style="color:#c0c5ce;">(index, &amp;list_item);
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> template = </span><span style="color:#96b5b4;">minify</span><span style="color:#c0c5ce;">(&amp;template);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        fs::write(&quot;</span><span style="color:#a3be8c;">build/post_list.html</span><span style="color:#c0c5ce;">&quot;, template)?;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        Ok(())
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug)]
+</span><span style="color:#b48ead;">pub struct </span><span style="color:#c0c5ce;">Metadata {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">title</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">summary</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">date</span><span style="color:#c0c5ce;">: DateTime&lt;FixedOffset&gt;,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">link_path</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">real_path</span><span style="color:#c0c5ce;">: PathBuf,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">word_count</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">read_time</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">f32</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">end_position</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">impl </span><span style="color:#c0c5ce;">Metadata {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">file</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">: &amp;Path) -&gt; Result&lt;</span><span style="color:#b48ead;">Self</span><span style="color:#c0c5ce;">, Box&lt;dyn Error&gt;&gt; {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> config = file.</span><span style="color:#96b5b4;">get</span><span style="color:#c0c5ce;">(</span><span style="color:#d08770;">3</span><span style="color:#c0c5ce;">..).</span><span style="color:#96b5b4;">ok_or</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">Invalid metadata</span><span style="color:#c0c5ce;">&quot;)?.</span><span style="color:#96b5b4;">trim_start</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> title = String::new();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> summary = String::new();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> creation_date: DateTime&lt;Utc&gt; = fs::metadata(path)?.</span><span style="color:#96b5b4;">created</span><span style="color:#c0c5ce;">()?.</span><span style="color:#96b5b4;">into</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> date = creation_date.</span><span style="color:#96b5b4;">into</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> end = </span><span style="color:#d08770;">0</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">if let </span><span style="color:#c0c5ce;">Some(e) = config.</span><span style="color:#96b5b4;">find</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">~~~</span><span style="color:#c0c5ce;">&quot;) {
+</span><span style="color:#c0c5ce;">            </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> line in config.</span><span style="color:#96b5b4;">split</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#96b5b4;">\n</span><span style="color:#c0c5ce;">&#39;) {
+</span><span style="color:#c0c5ce;">                </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> line.</span><span style="color:#96b5b4;">starts_with</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">~~~</span><span style="color:#c0c5ce;">&quot;) {
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#65737e;">//NOTE: Config is offset by 4(zero index as 3)!
+</span><span style="color:#c0c5ce;">                    end = </span><span style="color:#d08770;">4 </span><span style="color:#c0c5ce;">+ e + line.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#b48ead;">break</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">                }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">                </span><span style="color:#b48ead;">if let </span><span style="color:#c0c5ce;">Some((k, v)) = line.</span><span style="color:#96b5b4;">split_once</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">:</span><span style="color:#c0c5ce;">&#39;) {
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> v = v.</span><span style="color:#96b5b4;">trim</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> k {
+</span><span style="color:#c0c5ce;">                        &quot;</span><span style="color:#a3be8c;">title</span><span style="color:#c0c5ce;">&quot; =&gt; title = v.</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">                        &quot;</span><span style="color:#a3be8c;">summary</span><span style="color:#c0c5ce;">&quot; =&gt; summary = v.</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">                        &quot;</span><span style="color:#a3be8c;">date</span><span style="color:#c0c5ce;">&quot; =&gt; {
+</span><span style="color:#c0c5ce;">                            date = DateTime::parse_from_str(
+</span><span style="color:#c0c5ce;">                                &amp;format!(&quot;</span><span style="color:#d08770;">{v}</span><span style="color:#a3be8c;"> 00:00</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">                                &quot;</span><span style="color:#a3be8c;">%d/%m/%Y %z %H:%M</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">                            )?;
+</span><span style="color:#c0c5ce;">                        }
+</span><span style="color:#c0c5ce;">                        _ =&gt; </span><span style="color:#b48ead;">continue</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">                    }
+</span><span style="color:#c0c5ce;">                }
+</span><span style="color:#c0c5ce;">            }
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> pathbuf = path.</span><span style="color:#96b5b4;">to_path_buf</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        pathbuf.</span><span style="color:#96b5b4;">set_extension</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">html</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Rough estimate of the word count. Doesn&#39;t actually count alphanumerically.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> word_count = file[end..].</span><span style="color:#96b5b4;">split</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">c</span><span style="color:#c0c5ce;">: </span><span style="color:#b48ead;">char</span><span style="color:#c0c5ce;">| c.</span><span style="color:#96b5b4;">is_whitespace</span><span style="color:#c0c5ce;">()).</span><span style="color:#96b5b4;">count</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        Ok(Metadata {
+</span><span style="color:#c0c5ce;">            title,
+</span><span style="color:#c0c5ce;">            summary,
+</span><span style="color:#c0c5ce;">            date,
+</span><span style="color:#c0c5ce;">            link_path: pathbuf
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">file_name</span><span style="color:#c0c5ce;">()
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">ok_or</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">file_name</span><span style="color:#c0c5ce;">&quot;)?
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">to_str</span><span style="color:#c0c5ce;">()
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">ok_or</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">to_str</span><span style="color:#c0c5ce;">&quot;)?
+</span><span style="color:#c0c5ce;">                .</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">            real_path: path.</span><span style="color:#96b5b4;">to_path_buf</span><span style="color:#c0c5ce;">(),
+</span><span style="color:#c0c5ce;">            read_time: word_count as </span><span style="color:#b48ead;">f32 </span><span style="color:#c0c5ce;">/ </span><span style="color:#d08770;">250.0</span><span style="color:#c0c5ce;">,
+</span><span style="color:#c0c5ce;">            word_count,
+</span><span style="color:#c0c5ce;">            end_position: end,
+</span><span style="color:#c0c5ce;">        })
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">word_count</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; String {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.word_count != </span><span style="color:#d08770;">1 </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            format!(&quot;</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;"> words</span><span style="color:#c0c5ce;">&quot;, </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.word_count)
+</span><span style="color:#c0c5ce;">        } </span><span style="color:#b48ead;">else </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            String::from(&quot;</span><span style="color:#a3be8c;">1 word</span><span style="color:#c0c5ce;">&quot;)
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">read_time</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; String {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">if </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.read_time &lt; </span><span style="color:#d08770;">1.0 </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            String::from(&quot;</span><span style="color:#a3be8c;">&amp;lt;1 minute read</span><span style="color:#c0c5ce;">&quot;)
+</span><span style="color:#c0c5ce;">        } </span><span style="color:#b48ead;">else </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            format!(&quot;</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;"> minute read</span><span style="color:#c0c5ce;">&quot;, </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.read_time as </span><span style="color:#b48ead;">usize</span><span style="color:#c0c5ce;">)
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">date</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; (String, String, </span><span style="color:#b48ead;">i32</span><span style="color:#c0c5ce;">) {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> month = </span><span style="color:#b48ead;">match </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.date.</span><span style="color:#96b5b4;">month</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">1 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">January</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">2 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">February</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">3 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">March</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">4 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">April</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">5 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">May</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">6 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">June</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">7 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">July</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">8 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">August</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">9 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">September</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">10 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">October</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">11 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">November</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">12 </span><span style="color:#c0c5ce;">=&gt; &quot;</span><span style="color:#a3be8c;">December</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">            _ =&gt; unreachable!(),
+</span><span style="color:#c0c5ce;">        };
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Ordinal suffix.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> day = </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.date.</span><span style="color:#96b5b4;">day</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> i = day % </span><span style="color:#d08770;">10</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> j = day % </span><span style="color:#d08770;">100</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> day = </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> i {
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">1 </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> j != </span><span style="color:#d08770;">11 </span><span style="color:#c0c5ce;">=&gt; format!(&quot;</span><span style="color:#d08770;">{day}</span><span style="color:#a3be8c;">st</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">2 </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> j != </span><span style="color:#d08770;">12 </span><span style="color:#c0c5ce;">=&gt; format!(&quot;</span><span style="color:#d08770;">{day}</span><span style="color:#a3be8c;">nd</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">            </span><span style="color:#d08770;">3 </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> j != </span><span style="color:#d08770;">13 </span><span style="color:#c0c5ce;">=&gt; format!(&quot;</span><span style="color:#d08770;">{day}</span><span style="color:#a3be8c;">rd</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">            _ =&gt; format!(&quot;</span><span style="color:#d08770;">{day}</span><span style="color:#a3be8c;">th</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">        };
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        (day, month.</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">(), </span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.date.</span><span style="color:#96b5b4;">year</span><span style="color:#c0c5ce;">())
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">#[</span><span style="color:#bf616a;">derive</span><span style="color:#c0c5ce;">(Debug)]
+</span><span style="color:#b48ead;">pub struct </span><span style="color:#c0c5ce;">Post {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">html</span><span style="color:#c0c5ce;">: String,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">metadata</span><span style="color:#c0c5ce;">: Metadata,
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">build_path</span><span style="color:#c0c5ce;">: PathBuf,
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">impl </span><span style="color:#c0c5ce;">Post {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">new</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">post_template</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str</span><span style="color:#c0c5ce;">, </span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">: &amp;Path) -&gt; Result&lt;</span><span style="color:#b48ead;">Self</span><span style="color:#c0c5ce;">, Box&lt;dyn Error&gt;&gt; {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">pulldown_cmark::*;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Read the markdown file.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> file = fs::read_to_string(path)?;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> metadata = Metadata::new(&amp;file, path)?;
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> file = &amp;file[metadata.end_position..].</span><span style="color:#96b5b4;">trim_start</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Convert the markdown to html.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> parser = Parser::new_ext(file, Options::all());
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> item in parser {
+</span><span style="color:#c0c5ce;">            dbg!(item);
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> html = String::new();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">// html::push_html(&amp;mut html, parser);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Generate the post using the metadata and html.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">(day, month, year) = metadata.</span><span style="color:#96b5b4;">date</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> post = post_template
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- title --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;metadata.title)
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- date --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;format!(&quot;</span><span style="color:#d08770;">{day}</span><span style="color:#a3be8c;"> of </span><span style="color:#d08770;">{month}</span><span style="color:#a3be8c;">, </span><span style="color:#d08770;">{year}</span><span style="color:#c0c5ce;">&quot;))
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">replace</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;!-- content --&gt;</span><span style="color:#c0c5ce;">&quot;, &amp;html);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Convert &quot;markdown/example.md&quot; to &quot;build/example.html&quot;
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> name = path.</span><span style="color:#96b5b4;">file_name</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">to_str</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        name.</span><span style="color:#96b5b4;">pop</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        name.</span><span style="color:#96b5b4;">pop</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        name.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">html</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> path = PathBuf::from(</span><span style="color:#d08770;">BUILD_PATH</span><span style="color:#c0c5ce;">).</span><span style="color:#96b5b4;">join</span><span style="color:#c0c5ce;">(name);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        Ok(</span><span style="color:#b48ead;">Self </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">            html: post,
+</span><span style="color:#c0c5ce;">            metadata,
+</span><span style="color:#c0c5ce;">            build_path: path,
+</span><span style="color:#c0c5ce;">        })
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">write</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">) -&gt; std::io::Result&lt;()&gt; {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> html = </span><span style="color:#96b5b4;">minify</span><span style="color:#c0c5ce;">(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.html);
+</span><span style="color:#c0c5ce;">        fs::write(&amp;</span><span style="color:#bf616a;">self</span><span style="color:#c0c5ce;">.build_path, html)
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">test</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> out = String::new();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> ss = SyntaxSet::load_defaults_newlines();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> ts = ThemeSet::load_defaults();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> theme = &amp;ts.themes[&quot;</span><span style="color:#a3be8c;">base16-ocean.dark</span><span style="color:#c0c5ce;">&quot;];
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> c = theme.settings.background.</span><span style="color:#96b5b4;">unwrap_or</span><span style="color:#c0c5ce;">(Color::</span><span style="color:#d08770;">WHITE</span><span style="color:#c0c5ce;">);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> code = fs::read_to_string(&quot;</span><span style="color:#a3be8c;">src/main.rs</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> syntax = ss
+</span><span style="color:#c0c5ce;">        .</span><span style="color:#96b5b4;">find_syntax_by_token</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">rs</span><span style="color:#c0c5ce;">&quot;)
+</span><span style="color:#c0c5ce;">        .</span><span style="color:#96b5b4;">unwrap_or_else</span><span style="color:#c0c5ce;">(|| ss.</span><span style="color:#96b5b4;">find_syntax_plain_text</span><span style="color:#c0c5ce;">());
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> highlighter = HighlightLines::new(syntax, theme);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">(</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> html, bg) = </span><span style="color:#96b5b4;">start_highlighted_html_snippet</span><span style="color:#c0c5ce;">(theme);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> head = </span><span style="color:#b48ead;">r</span><span style="color:#c0c5ce;">#</span><span style="color:#a3be8c;">&quot;&lt;head&gt;&lt;title&gt;test&lt;/title&gt;&lt;style&gt; pre {
+</span><span style="color:#a3be8c;">            font-size:13px;
+</span><span style="color:#a3be8c;">            font-family: Consolas, &quot;Liberation Mono&quot;, Menlo, Courier, monospace;
+</span><span style="color:#a3be8c;">        }&lt;/style&gt;&lt;/head&gt;</span><span style="color:#c0c5ce;">&quot;#;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    out.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(head);
+</span><span style="color:#c0c5ce;">    out.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&amp;format!(
+</span><span style="color:#c0c5ce;">        &quot;</span><span style="color:#a3be8c;">&lt;body style=</span><span style="color:#96b5b4;">\&quot;</span><span style="color:#a3be8c;">background-color:#</span><span style="color:#d08770;">{:02x}{:02x}{:02x}</span><span style="color:#a3be8c;">;</span><span style="color:#96b5b4;">\&quot;</span><span style="color:#a3be8c;">&gt;</span><span style="color:#96b5b4;">\n</span><span style="color:#c0c5ce;">&quot;,
+</span><span style="color:#c0c5ce;">        c.r, c.g, c.b
+</span><span style="color:#c0c5ce;">    ));
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> line in LinesWithEndings::from(&amp;code) {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> regions = highlighter.</span><span style="color:#96b5b4;">highlight_line</span><span style="color:#c0c5ce;">(line, &amp;ss).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#96b5b4;">append_highlighted_html_for_styled_line</span><span style="color:#c0c5ce;">(
+</span><span style="color:#c0c5ce;">            &amp;regions[..],
+</span><span style="color:#c0c5ce;">            IncludeBackground::IfDifferent(bg),
+</span><span style="color:#c0c5ce;">            &amp;</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> html,
+</span><span style="color:#c0c5ce;">        )
+</span><span style="color:#c0c5ce;">        .</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    html.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;/pre&gt;</span><span style="color:#96b5b4;">\n</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">    out.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&amp;html);
+</span><span style="color:#c0c5ce;">    out.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;/body&gt;</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    fs::write(&quot;</span><span style="color:#a3be8c;">code.html</span><span style="color:#c0c5ce;">&quot;, out).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span style="color:#c0c5ce;">() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#96b5b4;">test</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">//Make sure the build folder exists.
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">_ = fs::create_dir(</span><span style="color:#d08770;">BUILD_PATH</span><span style="color:#c0c5ce;">);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    info!(&quot;</span><span style="color:#a3be8c;">Watching files in {:?}</span><span style="color:#c0c5ce;">&quot;, Path::new(</span><span style="color:#d08770;">MARKDOWN_PATH</span><span style="color:#c0c5ce;">));
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> posts = Posts::new();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> files: HashMap&lt;PathBuf, String&gt; = HashMap::new();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">loop </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> new_files: Vec&lt;PathBuf&gt; = fs::read_dir(</span><span style="color:#d08770;">MARKDOWN_PATH</span><span style="color:#c0c5ce;">)?
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">chain</span><span style="color:#c0c5ce;">(fs::read_dir(</span><span style="color:#d08770;">TEMPLATE_PATH</span><span style="color:#c0c5ce;">)?)
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">flatten</span><span style="color:#c0c5ce;">()
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">map</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">entry</span><span style="color:#c0c5ce;">| entry.</span><span style="color:#96b5b4;">path</span><span style="color:#c0c5ce;">())
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">filter</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">| {
+</span><span style="color:#c0c5ce;">                matches!(
+</span><span style="color:#c0c5ce;">                    path.</span><span style="color:#96b5b4;">extension</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">and_then</span><span style="color:#c0c5ce;">(OsStr::to_str),
+</span><span style="color:#c0c5ce;">                    Some(&quot;</span><span style="color:#a3be8c;">md</span><span style="color:#c0c5ce;">&quot;) | Some(&quot;</span><span style="color:#a3be8c;">html</span><span style="color:#c0c5ce;">&quot;)
+</span><span style="color:#c0c5ce;">                )
+</span><span style="color:#c0c5ce;">            })
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">collect</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Make sure &#39;physically&#39; deleted files are removed from memory.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> new_files.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() != files.</span><span style="color:#96b5b4;">len</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">            files.</span><span style="color:#96b5b4;">drain_filter</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">k</span><span style="color:#c0c5ce;">, _| {
+</span><span style="color:#c0c5ce;">                </span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">!new_files.</span><span style="color:#96b5b4;">contains</span><span style="color:#c0c5ce;">(k) {
+</span><span style="color:#c0c5ce;">                    info!(&quot;</span><span style="color:#a3be8c;">Removed: {:?}</span><span style="color:#c0c5ce;">&quot;, k);
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#d08770;">true
+</span><span style="color:#c0c5ce;">                } </span><span style="color:#b48ead;">else </span><span style="color:#c0c5ce;">{
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#d08770;">false
+</span><span style="color:#c0c5ce;">                }
+</span><span style="color:#c0c5ce;">            });
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> outdated_files: Vec&lt;PathBuf&gt; = new_files
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">into_iter</span><span style="color:#c0c5ce;">()
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">filter_map</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">path</span><span style="color:#c0c5ce;">| {
+</span><span style="color:#c0c5ce;">                </span><span style="color:#65737e;">//Generate a hash for the file.
+</span><span style="color:#c0c5ce;">                </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> hash = </span><span style="color:#96b5b4;">hash</span><span style="color:#c0c5ce;">(&amp;path).</span><span style="color:#96b5b4;">unwrap_or_default</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">                </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> files.</span><span style="color:#96b5b4;">insert</span><span style="color:#c0c5ce;">(path.</span><span style="color:#96b5b4;">clone</span><span style="color:#c0c5ce;">(), hash.</span><span style="color:#96b5b4;">clone</span><span style="color:#c0c5ce;">()) {
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#65737e;">//File is out of date.
+</span><span style="color:#c0c5ce;">                    Some(old_hash) </span><span style="color:#b48ead;">if</span><span style="color:#c0c5ce;"> hash != old_hash =&gt; Some(path),
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#65737e;">//File is new.
+</span><span style="color:#c0c5ce;">                    None =&gt; Some(path),
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#65737e;">//File is up to date.
+</span><span style="color:#c0c5ce;">                    _ =&gt; None,
+</span><span style="color:#c0c5ce;">                }
+</span><span style="color:#c0c5ce;">            })
+</span><span style="color:#c0c5ce;">            .</span><span style="color:#96b5b4;">collect</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> empty = outdated_files.</span><span style="color:#96b5b4;">is_empty</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> updated = </span><span style="color:#d08770;">false</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> file in outdated_files {
+</span><span style="color:#c0c5ce;">            </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> file.</span><span style="color:#96b5b4;">extension</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">and_then</span><span style="color:#c0c5ce;">(OsStr::to_str) {
+</span><span style="color:#c0c5ce;">                Some(&quot;</span><span style="color:#a3be8c;">md</span><span style="color:#c0c5ce;">&quot;) =&gt; </span><span style="color:#b48ead;">match </span><span style="color:#c0c5ce;">Post::new(&amp;posts.post_template, &amp;file) {
+</span><span style="color:#c0c5ce;">                    Ok(post) =&gt; {
+</span><span style="color:#c0c5ce;">                        info!(&quot;</span><span style="color:#a3be8c;">Compiled: {file:?}</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">                        post.</span><span style="color:#96b5b4;">write</span><span style="color:#c0c5ce;">()?;
+</span><span style="color:#c0c5ce;">                        posts.</span><span style="color:#96b5b4;">insert</span><span style="color:#c0c5ce;">(file, post);
+</span><span style="color:#c0c5ce;">                    }
+</span><span style="color:#c0c5ce;">                    Err(err) =&gt; warn!(&quot;</span><span style="color:#a3be8c;">Failed to compile: {file:?}</span><span style="color:#96b5b4;">\n</span><span style="color:#a3be8c;">{err}</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">                },
+</span><span style="color:#c0c5ce;">                Some(&quot;</span><span style="color:#a3be8c;">html</span><span style="color:#c0c5ce;">&quot;) </span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">!updated =&gt; {
+</span><span style="color:#c0c5ce;">                    updated = </span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">;
+</span><span style="color:#c0c5ce;">                    posts.</span><span style="color:#96b5b4;">update_templates</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> md: Vec&lt;&amp;PathBuf&gt; = files
+</span><span style="color:#c0c5ce;">                        .</span><span style="color:#96b5b4;">keys</span><span style="color:#c0c5ce;">()
+</span><span style="color:#c0c5ce;">                        .</span><span style="color:#96b5b4;">filter</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">key</span><span style="color:#c0c5ce;">| key.</span><span style="color:#96b5b4;">extension</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">and_then</span><span style="color:#c0c5ce;">(OsStr::to_str) == Some(&quot;</span><span style="color:#a3be8c;">md</span><span style="color:#c0c5ce;">&quot;))
+</span><span style="color:#c0c5ce;">                        .</span><span style="color:#96b5b4;">collect</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">                    </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> path in md {
+</span><span style="color:#c0c5ce;">                        </span><span style="color:#b48ead;">match </span><span style="color:#c0c5ce;">Post::new(&amp;posts.post_template, path) {
+</span><span style="color:#c0c5ce;">                            Ok(post) =&gt; {
+</span><span style="color:#c0c5ce;">                                info!(&quot;</span><span style="color:#a3be8c;">Compiled: {path:?}</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">                                post.</span><span style="color:#96b5b4;">write</span><span style="color:#c0c5ce;">()?;
+</span><span style="color:#c0c5ce;">                                posts.</span><span style="color:#96b5b4;">insert</span><span style="color:#c0c5ce;">(path.</span><span style="color:#96b5b4;">to_path_buf</span><span style="color:#c0c5ce;">(), post);
+</span><span style="color:#c0c5ce;">                            }
+</span><span style="color:#c0c5ce;">                            Err(err) =&gt; warn!(&quot;</span><span style="color:#a3be8c;">Failed to compile: {path:?}</span><span style="color:#96b5b4;">\n</span><span style="color:#a3be8c;">{err}</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">                        };
+</span><span style="color:#c0c5ce;">                    }
+</span><span style="color:#c0c5ce;">                }
+</span><span style="color:#c0c5ce;">                _ =&gt; (),
+</span><span style="color:#c0c5ce;">            }
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//If a post is updated, the metadata could also be updated.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//So the list of posts will also need to be updated.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Updating templates has the same requirement.
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">!empty {
+</span><span style="color:#c0c5ce;">            </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> posts.</span><span style="color:#96b5b4;">build</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">                Ok(_) =&gt; info!(&quot;</span><span style="color:#a3be8c;">Sucessfully built posts.</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">                Err(err) =&gt; warn!(&quot;</span><span style="color:#a3be8c;">Failed to compile posts</span><span style="color:#96b5b4;">\n</span><span style="color:#a3be8c;">{err}</span><span style="color:#c0c5ce;">&quot;),
+</span><span style="color:#c0c5ce;">            };
+</span><span style="color:#c0c5ce;">        }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">        std::thread::sleep(</span><span style="color:#d08770;">POLL_DURATION</span><span style="color:#c0c5ce;">);
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">}
+</span></pre>
 </body>

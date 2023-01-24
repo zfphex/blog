@@ -7,8 +7,16 @@ use std::{
     fs::{self, File},
     io::Cursor,
     path::{Path, PathBuf},
-    process::exit,
     time::Duration,
+};
+use syntect::{
+    easy::HighlightLines,
+    highlighting::{Color, ThemeSet},
+    html::{
+        append_highlighted_html_for_styled_line, start_highlighted_html_snippet, IncludeBackground,
+    },
+    parsing::SyntaxSet,
+    util::LinesWithEndings,
 };
 
 const MARKDOWN_PATH: &str = "markdown";
@@ -270,6 +278,8 @@ impl Post {
         let metadata = Metadata::new(&file, path)?;
         let file = &file[metadata.end_position..].trim_start();
 
+        //TODO: Add syntax highlighting to the code blocks.
+
         //Convert the markdown to html.
         let parser = Parser::new_ext(file, Options::all());
         let mut html = String::new();
@@ -301,76 +311,44 @@ impl Post {
     }
 }
 
-///https://github.com/getzola/zola/blob/master/components/markdown/src/codeblock/highlight.rs
 fn test() {
-    use syntect::highlighting::ThemeSet;
-    use syntect::html::*;
-    use syntect::parsing::*;
-    use syntect::util::*;
+    let mut out = String::new();
+    let ss = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+    let theme = &ts.themes["base16-ocean.dark"];
+    let c = theme.settings.background.unwrap_or(Color::WHITE);
+    let code = fs::read_to_string("src/main.rs").unwrap();
+    let syntax = ss
+        .find_syntax_by_token("rs")
+        .unwrap_or_else(|| ss.find_syntax_plain_text());
+    let mut highlighter = HighlightLines::new(syntax, theme);
+    let (mut html, bg) = start_highlighted_html_snippet(theme);
+    let head = r#"<head><title>test</title><style> pre {
+            font-size:13px;
+            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+        }</style></head>"#;
 
-    let code = r#"
-fn test() {
-    use syntect::highlighting::ThemeSet;
-    use syntect::html::*;
-    use syntect::parsing::SyntaxSet;
-    use syntect::util::LinesWithEndings;
+    out.push_str(head);
+    out.push_str(&format!(
+        "<body style=\"background-color:#{:02x}{:02x}{:02x};\">\n",
+        c.r, c.g, c.b
+    ));
 
-    let syntax_set = SyntaxSet::load_defaults_newlines();
-    let syntax = syntax_set.find_syntax_by_extension("rs").unwrap();
-    let mut html_generator =
-        ClassedHTMLGenerator::new_with_class_style(syntax, &syntax_set, ClassStyle::Spaced);
-
-    for line in LinesWithEndings::from(code) {
-        html_generator
-            .parse_html_for_line_which_includes_newline(line)
-            .unwrap();
-    }
-    let output_html = html_generator.finalize();
-    let default = ThemeSet::load_defaults();
-    let theme = default.themes.get("base16-ocean.dark").unwrap();
-    let css = css_for_theme_with_class_style(theme, ClassStyle::Spaced).unwrap();
-    println!("{}", css);
-    println!();
-    println!("{}", output_html);
-    println!();
-}"#;
-
-    let syntax_set = SyntaxSet::load_defaults_newlines();
-    let syntax = syntax_set.find_syntax_by_extension("rs").unwrap();
-
-    let mut scope_stack = ScopeStack::new();
-    let mut parse_state = ParseState::new(syntax);
-    let mut open_spans = 0;
-
-    let mut html = String::new();
-    for line in LinesWithEndings::from(code) {
-        let parse_line = parse_state.parse_line(line, &syntax_set).unwrap();
-        if line.starts_with("    ") {
-            println!("{}", line);
-            dbg!(&parse_line);
-        }
-
-        let (formatted_line, delta) =
-            line_tokens_to_classed_spans(line, &parse_line, ClassStyle::Spaced, &mut scope_stack)
-                .unwrap();
-        open_spans += delta;
-
-        html.push_str(&formatted_line);
-
-        if line.ends_with("\n") {
-            html.push_str("<br>");
-        }
+    for line in LinesWithEndings::from(&code) {
+        let regions = highlighter.highlight_line(line, &ss).unwrap();
+        append_highlighted_html_for_styled_line(
+            &regions[..],
+            IncludeBackground::IfDifferent(bg),
+            &mut html,
+        )
+        .unwrap();
     }
 
-    for _ in 0..open_spans {
-        html.push_str("</span>");
-    }
+    html.push_str("</pre>\n");
+    out.push_str(&html);
+    out.push_str("</body>");
 
-    let default = ThemeSet::load_defaults();
-    let theme = default.themes.get("base16-ocean.dark").unwrap();
-    let css = css_for_theme_with_class_style(theme, ClassStyle::Spaced).unwrap();
-    fs::write("test.css", css).unwrap();
-    fs::write("test.html", html).unwrap();
+    fs::write("code.html", out).unwrap();
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
