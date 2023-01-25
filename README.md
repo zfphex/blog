@@ -21,12 +21,13 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [x] Re-work the color scheme.
 - [x] Add time to logging.
 - [x] HTML, CSS & JS minification.
+- [x] Syntax highlighting https://github.com/trishume/syntect
 - [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
 - [ ] Blurry transform scaling.
-- [x] Syntax highlighting https://github.com/trishume/syntect
 - [ ] Add a github logo in the bottom left or right. Mabye a 'Made by Bay ❤' or something.
 - [ ] Table of contents on right-side of post.
 - [ ] Cleanup margins, there are different ones for paragraphs, tables, code, heading etc..
+- [ ] I didn't realize that `~~~` is used for code blocks. Maybe handle that with pulldown_cmark or change it? Not sure.
 
 
 Nice syntax highting with diffing
