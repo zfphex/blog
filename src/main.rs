@@ -9,7 +9,6 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use syntect::{highlighting::Color, html::start_highlighted_html_snippet};
 
 const MARKDOWN_PATH: &str = "markdown";
 const TEMPLATE_PATH: &str = "templates";
@@ -305,87 +304,57 @@ impl Post {
     }
 }
 
-pub fn highlight_line(code: &str) -> String {
-    use syntect::{
-        easy::HighlightLines,
-        highlighting::ThemeSet,
-        html::{append_highlighted_html_for_styled_line, IncludeBackground},
-        parsing::SyntaxSet,
-        util::LinesWithEndings,
-    };
+use syntect::{
+    easy::HighlightLines,
+    highlighting::{Theme, ThemeSet},
+    html::{append_highlighted_html_for_styled_line, IncludeBackground},
+    parsing::SyntaxSet,
+    util::LinesWithEndings,
+};
 
-    let ss = SyntaxSet::load_defaults_newlines();
-    let syntax = ss
-        .find_syntax_by_token("rs")
-        .unwrap_or_else(|| ss.find_syntax_plain_text());
-
-    //TODO: Make custom theme.
-    let ts = ThemeSet::load_defaults();
-    let theme = &ts.themes["base16-ocean.dark"];
-
-    let mut highlighter = HighlightLines::new(syntax, theme);
-    let mut html = String::new();
-
-    for line in LinesWithEndings::from(code) {
-        let regions = highlighter.highlight_line(line, &ss).unwrap();
-        append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
-            .unwrap();
-    }
-
-    // html.push_str("</pre>\n");
-
-    html
+pub struct Highlighter {
+    ss: SyntaxSet,
+    buffer: String,
+    theme: Theme,
+    language: String,
 }
 
-fn test() {
-    use syntect::{
-        easy::HighlightLines,
-        highlighting::{Color, ThemeSet},
-        html::{
-            append_highlighted_html_for_styled_line, start_highlighted_html_snippet,
-            IncludeBackground,
-        },
-        parsing::SyntaxSet,
-        util::LinesWithEndings,
-    };
+impl Highlighter {
+    pub(crate) fn new() -> Self {
+        let ss = SyntaxSet::load_defaults_newlines();
 
-    let mut out = String::new();
-    let ss = SyntaxSet::load_defaults_newlines();
-    let ts = ThemeSet::load_defaults();
-    let theme = &ts.themes["base16-ocean.dark"];
-    let c = theme.settings.background.unwrap_or(Color::WHITE);
-    let code = fs::read_to_string("src/main.rs").unwrap();
-    let syntax = ss
-        .find_syntax_by_token("rs")
-        .unwrap_or_else(|| ss.find_syntax_plain_text());
-    let mut highlighter = HighlightLines::new(syntax, theme);
-    let (mut html, bg) = start_highlighted_html_snippet(theme);
-    let head = r#"<head><title>test</title><style> pre {
-            font-size:13px;
-            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-        }</style></head>"#;
+        //TODO: Make custom theme.
+        let ts = ThemeSet::load_defaults();
+        let theme = ts.themes["base16-ocean.dark"].clone();
 
-    out.push_str(head);
-    out.push_str(&format!(
-        "<body style=\"background-color:#{:02x}{:02x}{:02x};\">\n",
-        c.r, c.g, c.b
-    ));
-
-    for line in LinesWithEndings::from(&code) {
-        let regions = highlighter.highlight_line(line, &ss).unwrap();
-        append_highlighted_html_for_styled_line(
-            &regions[..],
-            IncludeBackground::IfDifferent(bg),
-            &mut html,
-        )
-        .unwrap();
+        Self {
+            ss,
+            theme,
+            buffer: String::new(),
+            language: String::new(),
+        }
     }
+    pub fn push_str(&mut self, str: &str) {
+        self.buffer.push_str(str);
+    }
+    pub fn highlight(&mut self) -> String {
+        let syntax = self
+            .ss
+            .find_syntax_by_token(&self.language)
+            .unwrap_or_else(|| self.ss.find_syntax_plain_text());
+        let mut highlighter = HighlightLines::new(syntax, &self.theme);
+        let mut html = String::new();
 
-    html.push_str("</pre>\n");
-    out.push_str(&html);
-    out.push_str("</body>");
+        for line in LinesWithEndings::from(&self.buffer) {
+            let regions = highlighter.highlight_line(line, &self.ss).unwrap();
+            append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
+                .unwrap();
+        }
 
-    fs::write("code.html", out).unwrap();
+        self.buffer.clear();
+
+        html
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

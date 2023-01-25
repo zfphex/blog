@@ -43,3 +43,17 @@ pub fn highlight_line(code: &str) -> String {
     html
 }
 ```
+
+```html
+<a id="post" href="~link~">
+    <div id="title">
+        <span id="hash">#</span>
+        <span id="text"><!-- title --></span>
+    </div>
+    <div id="metadata">
+    </div>
+    <summary>
+        <!-- summary -->
+    </summary>
+</a>
+```

@@ -30,7 +30,7 @@ use pulldown_cmark::{
 };
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, LinkType, Tag};
 
-use crate::highlight_line;
+use crate::Highlighter;
 
 enum TableState {
     Head,
@@ -54,7 +54,7 @@ struct HtmlWriter<'a, I, W> {
 
     /// Modify text when inside a code block.
     code: bool,
-    highlighter: String,
+    highlighter: Highlighter,
 }
 
 impl<'a, I, W> HtmlWriter<'a, I, W>
@@ -72,7 +72,7 @@ where
             table_cell_index: 0,
             numbers: HashMap::new(),
             code: false,
-            highlighter: String::new(),
+            highlighter: Highlighter::new(),
         }
     }
 
@@ -231,6 +231,8 @@ where
                 match info {
                     CodeBlockKind::Fenced(info) => {
                         let lang = info.split(' ').next().unwrap();
+                        self.highlighter.language = lang.to_string();
+
                         if lang.is_empty() {
                             self.write("<pre><code>")
                         } else {
@@ -356,9 +358,9 @@ where
             }
             Tag::CodeBlock(_) => {
                 self.code = false;
-                self.write(&highlight_line(&self.highlighter))?;
+                let code = self.highlighter.highlight();
+                self.write(&code)?;
                 self.write("</code></pre>\n")?;
-                self.highlighter = String::new();
             }
             Tag::List(Some(_)) => {
                 self.write("</ol>\n")?;

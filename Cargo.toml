@@ -13,4 +13,5 @@ hex = "0.4.3"
 chrono = { version = "0.4.23", default-features = false, features = ["clock"] }
 minify-html = "0.10.7"
 syntect = "5.0.0"
+lazy_static = "1.4.0"
 
