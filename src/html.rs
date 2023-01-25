@@ -20,8 +20,8 @@
 
 //! HTML renderer that takes an iterator of events as input.
 
-use std::collections::HashMap;
 use std::io::{self, Write};
+use std::{collections::HashMap};
 
 use pulldown_cmark::Event::*;
 use pulldown_cmark::{
@@ -104,8 +104,8 @@ where
                 }
                 Text(text) if self.code => {
                     self.highlighter.push_str(&text);
+                    self.end_newline = text.ends_with('\n');
                     // escape_html(&mut self.writer, &text)?;
-                    // self.end_newline = text.ends_with('\n');
                 }
                 Text(text) => {
                     escape_html(&mut self.writer, &text)?;

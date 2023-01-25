@@ -93,17 +93,23 @@ impl Posts {
             post_template: fs::read_to_string("templates/post.html").unwrap(),
         }
     }
-    pub fn insert(&mut self, path: PathBuf, post: Post) {
-        self.posts.insert(path, post);
-    }
     pub fn update_templates(&mut self) {
-        info!("Re-building templates.");
         self.list_template = fs::read_to_string("templates/post_list.html").unwrap();
         self.list_item_template = fs::read_to_string("templates/post_list_item.html").unwrap();
         self.post_template = fs::read_to_string("templates/post.html").unwrap();
     }
-    ///Build the list of posts.
-    pub fn build(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn build_post(&mut self, path: &Path) -> Result<(), Box<dyn Error>> {
+        match Post::new(&self.post_template, path) {
+            Ok(post) => {
+                info!("Compiled: {path:?}");
+                post.write()?;
+                self.posts.insert(path.to_path_buf(), post);
+            }
+            Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
+        };
+        Ok(())
+    }
+    pub fn build_list(&mut self) -> Result<(), Box<dyn Error>> {
         info!("Compiled: \"build\\\\post_list.html\"");
         let index = self
             .list_template
@@ -276,6 +282,7 @@ impl Post {
         //Convert the markdown to html.
         let parser = Parser::new_ext(file, Options::all());
         let mut html = String::new();
+        // html::push_html(&mut html, parser);
         crate::html::push_html(&mut html, parser);
 
         //Generate the post using the metadata and html.
@@ -391,7 +398,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             });
         }
 
-        let outdated_files: Vec<PathBuf> = new_files
+        let mut outdated_files: Vec<PathBuf> = new_files
             .into_iter()
             .filter_map(|path| {
                 //Generate a hash for the file.
@@ -408,21 +415,13 @@ fn main() -> Result<(), Box<dyn Error>> {
             })
             .collect();
 
-        let empty = outdated_files.is_empty();
-        let mut updated = false;
+        //Sorts "html" files first. If a template needs updating, it's wasteful to rebuild everything twice.
+        outdated_files.sort_by(|a, b| a.extension().cmp(&b.extension()));
 
-        for file in outdated_files {
+        for file in &outdated_files {
             match file.extension().and_then(OsStr::to_str) {
-                Some("md") => match Post::new(&posts.post_template, &file) {
-                    Ok(post) => {
-                        info!("Compiled: {file:?}");
-                        post.write()?;
-                        posts.insert(file, post);
-                    }
-                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
-                },
-                Some("html") if !updated => {
-                    updated = true;
+                Some("html") => {
+                    info!("Re-building templates.");
                     posts.update_templates();
 
                     let md: Vec<&PathBuf> = files
@@ -431,16 +430,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                         .collect();
 
                     for path in md {
-                        match Post::new(&posts.post_template, path) {
-                            Ok(post) => {
-                                info!("Compiled: {path:?}");
-                                post.write()?;
-                                posts.insert(path.to_path_buf(), post);
-                            }
-                            Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
-                        };
+                        posts.build_post(path)?;
                     }
+                    break;
                 }
+                Some("md") => posts.build_post(file)?,
                 _ => (),
             }
         }
@@ -448,8 +442,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         //If a post is updated, the metadata could also be updated.
         //So the list of posts will also need to be updated.
         //Updating templates has the same requirement.
-        if !empty {
-            match posts.build() {
+        if !outdated_files.is_empty() {
+            match posts.build_list() {
                 Ok(_) => info!("Sucessfully built posts."),
                 Err(err) => warn!("Failed to compile posts\n{err}"),
             };
