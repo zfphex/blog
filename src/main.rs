@@ -9,20 +9,14 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use syntect::{
-    easy::HighlightLines,
-    highlighting::{Color, ThemeSet},
-    html::{
-        append_highlighted_html_for_styled_line, start_highlighted_html_snippet, IncludeBackground,
-    },
-    parsing::SyntaxSet,
-    util::LinesWithEndings,
-};
+use syntect::{highlighting::Color, html::start_highlighted_html_snippet};
 
 const MARKDOWN_PATH: &str = "markdown";
 const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
 const POLL_DURATION: Duration = Duration::from_millis(250);
+
+mod html;
 
 fn now() -> String {
     Local::now().time().format("%H:%M:%S").to_string()
@@ -283,7 +277,7 @@ impl Post {
         //Convert the markdown to html.
         let parser = Parser::new_ext(file, Options::all());
         let mut html = String::new();
-        html::push_html(&mut html, parser);
+        crate::html::push_html(&mut html, parser);
 
         //Generate the post using the metadata and html.
         let (day, month, year) = metadata.date();
@@ -311,7 +305,50 @@ impl Post {
     }
 }
 
+pub fn highlight_line(code: &str) -> String {
+    use syntect::{
+        easy::HighlightLines,
+        highlighting::ThemeSet,
+        html::{append_highlighted_html_for_styled_line, IncludeBackground},
+        parsing::SyntaxSet,
+        util::LinesWithEndings,
+    };
+
+    let ss = SyntaxSet::load_defaults_newlines();
+    let syntax = ss
+        .find_syntax_by_token("rs")
+        .unwrap_or_else(|| ss.find_syntax_plain_text());
+
+    //TODO: Make custom theme.
+    let ts = ThemeSet::load_defaults();
+    let theme = &ts.themes["base16-ocean.dark"];
+
+    let mut highlighter = HighlightLines::new(syntax, theme);
+    let mut html = String::new();
+
+    for line in LinesWithEndings::from(code) {
+        let regions = highlighter.highlight_line(line, &ss).unwrap();
+        append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
+            .unwrap();
+    }
+
+    // html.push_str("</pre>\n");
+
+    html
+}
+
 fn test() {
+    use syntect::{
+        easy::HighlightLines,
+        highlighting::{Color, ThemeSet},
+        html::{
+            append_highlighted_html_for_styled_line, start_highlighted_html_snippet,
+            IncludeBackground,
+        },
+        parsing::SyntaxSet,
+        util::LinesWithEndings,
+    };
+
     let mut out = String::new();
     let ss = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
@@ -352,7 +389,6 @@ fn test() {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    test();
     //Make sure the build folder exists.
     let _ = fs::create_dir(BUILD_PATH);
 

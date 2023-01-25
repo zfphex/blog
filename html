@@ -1,7 +1,3 @@
-<head><title>test</title><style> pre {
-            font-size:13px;
-            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-        }</style></head><body style="background-color:#2b303b;">
 <pre style="background-color:#2b303b;">
 <span style="color:#c0c5ce;">#![</span><span style="color:#bf616a;">feature</span><span style="color:#c0c5ce;">(hash_drain_filter)]
 </span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">chrono::{DateTime, Datelike, FixedOffset, Local, Utc};
@@ -14,20 +10,13 @@
 </span><span style="color:#c0c5ce;">    path::{Path, PathBuf},
 </span><span style="color:#c0c5ce;">    time::Duration,
 </span><span style="color:#c0c5ce;">};
-</span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">syntect::{
-</span><span style="color:#c0c5ce;">    easy::HighlightLines,
-</span><span style="color:#c0c5ce;">    highlighting::{Color, ThemeSet},
-</span><span style="color:#c0c5ce;">    html::{
-</span><span style="color:#c0c5ce;">        append_highlighted_html_for_styled_line, start_highlighted_html_snippet, IncludeBackground,
-</span><span style="color:#c0c5ce;">    },
-</span><span style="color:#c0c5ce;">    parsing::SyntaxSet,
-</span><span style="color:#c0c5ce;">    util::LinesWithEndings,
-</span><span style="color:#c0c5ce;">};
 </span><span style="color:#c0c5ce;">
 </span><span style="color:#b48ead;">const </span><span style="color:#d08770;">MARKDOWN_PATH</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str </span><span style="color:#c0c5ce;">= &quot;</span><span style="color:#a3be8c;">markdown</span><span style="color:#c0c5ce;">&quot;;
 </span><span style="color:#b48ead;">const </span><span style="color:#d08770;">TEMPLATE_PATH</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str </span><span style="color:#c0c5ce;">= &quot;</span><span style="color:#a3be8c;">templates</span><span style="color:#c0c5ce;">&quot;;
 </span><span style="color:#b48ead;">const </span><span style="color:#d08770;">BUILD_PATH</span><span style="color:#c0c5ce;">: &amp;</span><span style="color:#b48ead;">str </span><span style="color:#c0c5ce;">= &quot;</span><span style="color:#a3be8c;">build</span><span style="color:#c0c5ce;">&quot;;
 </span><span style="color:#b48ead;">const </span><span style="color:#d08770;">POLL_DURATION</span><span style="color:#c0c5ce;">: Duration = Duration::from_millis(</span><span style="color:#d08770;">250</span><span style="color:#c0c5ce;">);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">mod </span><span style="color:#c0c5ce;">html;
 </span><span style="color:#c0c5ce;">
 </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">now</span><span style="color:#c0c5ce;">() -&gt; String {
 </span><span style="color:#c0c5ce;">    Local::now().</span><span style="color:#96b5b4;">time</span><span style="color:#c0c5ce;">().</span><span style="color:#96b5b4;">format</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">%H:%M:%S</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">to_string</span><span style="color:#c0c5ce;">()
@@ -285,22 +274,10 @@
 </span><span style="color:#c0c5ce;">
 </span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//TODO: Add syntax highlighting to the code blocks.
 </span><span style="color:#c0c5ce;">
-</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> parser = Parser::new_ext(file, Options::all()).</span><span style="color:#96b5b4;">map</span><span style="color:#c0c5ce;">(|</span><span style="color:#bf616a;">event</span><span style="color:#c0c5ce;">| </span><span style="color:#b48ead;">match</span><span style="color:#c0c5ce;"> event {
-</span><span style="color:#c0c5ce;">            Event::Start(Tag::CodeBlock(..)) | Event::End(Tag::CodeBlock(..)) =&gt; {
-</span><span style="color:#c0c5ce;">                println!(&quot;</span><span style="color:#d08770;">{:?}</span><span style="color:#c0c5ce;">&quot;, event);
-</span><span style="color:#c0c5ce;">                event
-</span><span style="color:#c0c5ce;">            }
-</span><span style="color:#c0c5ce;">            Event::Code(</span><span style="color:#b48ead;">ref</span><span style="color:#c0c5ce;"> code) =&gt; {
-</span><span style="color:#c0c5ce;">                println!(&quot;</span><span style="color:#d08770;">{code}</span><span style="color:#c0c5ce;">&quot;);
-</span><span style="color:#c0c5ce;">                event
-</span><span style="color:#c0c5ce;">            }
-</span><span style="color:#c0c5ce;">            _ =&gt; event,
-</span><span style="color:#c0c5ce;">        });
-</span><span style="color:#c0c5ce;">
 </span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Convert the markdown to html.
-</span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">// let parser = Parser::new_ext(file, Options::all());
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> parser = Parser::new_ext(file, Options::all());
 </span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> html = String::new();
-</span><span style="color:#c0c5ce;">        html::push_html(&amp;</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> html, parser);
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">crate</span><span style="color:#c0c5ce;">::html::push_html(&amp;</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> html, parser);
 </span><span style="color:#c0c5ce;">
 </span><span style="color:#c0c5ce;">        </span><span style="color:#65737e;">//Generate the post using the metadata and html.
 </span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">(day, month, year) = metadata.</span><span style="color:#96b5b4;">date</span><span style="color:#c0c5ce;">();
@@ -328,7 +305,55 @@
 </span><span style="color:#c0c5ce;">    }
 </span><span style="color:#c0c5ce;">}
 </span><span style="color:#c0c5ce;">
+</span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">highlight_line</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">syntect::{
+</span><span style="color:#c0c5ce;">        easy::HighlightLines,
+</span><span style="color:#c0c5ce;">        highlighting::{Color, ThemeSet},
+</span><span style="color:#c0c5ce;">        html::{
+</span><span style="color:#c0c5ce;">            append_highlighted_html_for_styled_line, start_highlighted_html_snippet,
+</span><span style="color:#c0c5ce;">            IncludeBackground,
+</span><span style="color:#c0c5ce;">        },
+</span><span style="color:#c0c5ce;">        parsing::SyntaxSet,
+</span><span style="color:#c0c5ce;">        util::LinesWithEndings,
+</span><span style="color:#c0c5ce;">    };
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> ss = SyntaxSet::load_defaults_newlines();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> ts = ThemeSet::load_defaults();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> theme = &amp;ts.themes[&quot;</span><span style="color:#a3be8c;">base16-ocean.dark</span><span style="color:#c0c5ce;">&quot;];
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> code = fs::read_to_string(&quot;</span><span style="color:#a3be8c;">src/main.rs</span><span style="color:#c0c5ce;">&quot;).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> syntax = ss
+</span><span style="color:#c0c5ce;">        .</span><span style="color:#96b5b4;">find_syntax_by_token</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">rs</span><span style="color:#c0c5ce;">&quot;)
+</span><span style="color:#c0c5ce;">        .</span><span style="color:#96b5b4;">unwrap_or_else</span><span style="color:#c0c5ce;">(|| ss.</span><span style="color:#96b5b4;">find_syntax_plain_text</span><span style="color:#c0c5ce;">());
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> highlighter = HighlightLines::new(syntax, theme);
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">(</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> html, bg) = </span><span style="color:#96b5b4;">start_highlighted_html_snippet</span><span style="color:#c0c5ce;">(theme);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">for</span><span style="color:#c0c5ce;"> line in LinesWithEndings::from(&amp;code) {
+</span><span style="color:#c0c5ce;">        </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> regions = highlighter.</span><span style="color:#96b5b4;">highlight_line</span><span style="color:#c0c5ce;">(line, &amp;ss).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">        </span><span style="color:#96b5b4;">append_highlighted_html_for_styled_line</span><span style="color:#c0c5ce;">(
+</span><span style="color:#c0c5ce;">            &amp;regions[..],
+</span><span style="color:#c0c5ce;">            IncludeBackground::IfDifferent(bg),
+</span><span style="color:#c0c5ce;">            &amp;</span><span style="color:#b48ead;">mut</span><span style="color:#c0c5ce;"> html,
+</span><span style="color:#c0c5ce;">        )
+</span><span style="color:#c0c5ce;">        .</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    }
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    html.</span><span style="color:#96b5b4;">push_str</span><span style="color:#c0c5ce;">(&quot;</span><span style="color:#a3be8c;">&lt;/pre&gt;</span><span style="color:#96b5b4;">\n</span><span style="color:#c0c5ce;">&quot;);
+</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">    fs::write(&quot;</span><span style="color:#a3be8c;">html</span><span style="color:#c0c5ce;">&quot;, html).</span><span style="color:#96b5b4;">unwrap</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">}
+</span><span style="color:#c0c5ce;">
 </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">test</span><span style="color:#c0c5ce;">() {
+</span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">use </span><span style="color:#c0c5ce;">syntect::{
+</span><span style="color:#c0c5ce;">        easy::HighlightLines,
+</span><span style="color:#c0c5ce;">        highlighting::{Color, ThemeSet},
+</span><span style="color:#c0c5ce;">        html::{
+</span><span style="color:#c0c5ce;">            append_highlighted_html_for_styled_line, start_highlighted_html_snippet,
+</span><span style="color:#c0c5ce;">            IncludeBackground,
+</span><span style="color:#c0c5ce;">        },
+</span><span style="color:#c0c5ce;">        parsing::SyntaxSet,
+</span><span style="color:#c0c5ce;">        util::LinesWithEndings,
+</span><span style="color:#c0c5ce;">    };
+</span><span style="color:#c0c5ce;">
 </span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let mut</span><span style="color:#c0c5ce;"> out = String::new();
 </span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> ss = SyntaxSet::load_defaults_newlines();
 </span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let</span><span style="color:#c0c5ce;"> ts = ThemeSet::load_defaults();
@@ -369,7 +394,8 @@
 </span><span style="color:#c0c5ce;">}
 </span><span style="color:#c0c5ce;">
 </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span style="color:#c0c5ce;">() -&gt; Result&lt;(), Box&lt;dyn Error&gt;&gt; {
-</span><span style="color:#c0c5ce;">    </span><span style="color:#96b5b4;">test</span><span style="color:#c0c5ce;">();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">// test();
+</span><span style="color:#c0c5ce;">    </span><span style="color:#96b5b4;">highlight_line</span><span style="color:#c0c5ce;">();
 </span><span style="color:#c0c5ce;">    </span><span style="color:#65737e;">//Make sure the build folder exists.
 </span><span style="color:#c0c5ce;">    </span><span style="color:#b48ead;">let </span><span style="color:#c0c5ce;">_ = fs::create_dir(</span><span style="color:#d08770;">BUILD_PATH</span><span style="color:#c0c5ce;">);
 </span><span style="color:#c0c5ce;">
@@ -471,4 +497,3 @@
 </span><span style="color:#c0c5ce;">    }
 </span><span style="color:#c0c5ce;">}
 </span></pre>
-</body>

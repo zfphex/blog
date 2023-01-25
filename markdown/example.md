@@ -20,3 +20,9 @@ This is a list of things
 > This is more epic quotes
 >
 > WoW
+
+x<sup>2</sup> = y
+
+log<sub>b</sub>x
+
+source<sup>[1]</sup>

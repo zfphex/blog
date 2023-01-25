@@ -274,14 +274,17 @@
      overflow-wrap: anywhere;
  }
 
+ code,
+ pre {
+     font-family: jetbrains;
+     font-size: 14px;
+     margin: 0;
+ }
+
  pre:has(code) {
      border: solid var(--border) 2px;
      border-radius: 8px;
      padding: 8px
- }
-
- code {
-     font-family: jetbrains;
  }
 
  #top-bar {

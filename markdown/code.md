@@ -4,18 +4,42 @@ summary: this is a summary for the example code <br> it can also include newline
 date: 10/01/2023 +0930
 ~~~
 
-```html
-<!DOCTYPE html>
-<title>Title</title>
+```rs
+pub fn highlight_line(code: &str) -> String {
+    use syntect::{
+        easy::HighlightLines,
+        highlighting::ThemeSet,
+        html::{
+            append_highlighted_html_for_styled_line, start_highlighted_html_snippet,
+            IncludeBackground,
+        },
+        parsing::SyntaxSet,
+        util::LinesWithEndings,
+    };
 
-<style>body {width: 500px;}</style>
+    let ss = SyntaxSet::load_defaults_newlines();
+    let syntax = ss
+        .find_syntax_by_token("rs")
+        .unwrap_or_else(|| ss.find_syntax_plain_text());
 
-<script type="application/javascript">
-  function $init() {return true;}
-</script>
+    let ts = ThemeSet::load_defaults();
+    let theme = &ts.themes["base16-ocean.dark"];
 
-<body>
-  <p checked class="title" id='title'>Title</p>
-  <!-- here goes the rest of the page -->
-</body>
+    let mut highlighter = HighlightLines::new(syntax, theme);
+    let (mut html, bg) = start_highlighted_html_snippet(theme);
+
+    for line in LinesWithEndings::from(code) {
+        let regions = highlighter.highlight_line(line, &ss).unwrap();
+        append_highlighted_html_for_styled_line(
+            &regions[..],
+            IncludeBackground::IfDifferent(bg),
+            &mut html,
+        )
+        .unwrap();
+    }
+
+    html.push_str("</pre>\n");
+
+    html
+}
 ```
