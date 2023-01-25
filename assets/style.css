@@ -278,7 +278,14 @@
  pre {
      font-family: jetbrains;
      font-size: 14px;
+ }
+
+ code {
      margin: 0;
+ }
+
+ pre {
+     margin: 8px;
  }
 
  pre:has(code) {
