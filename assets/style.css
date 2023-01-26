@@ -241,7 +241,6 @@
      font-family: jetbrains;
      src: url('JetBrainsMono.ttf');
      /* Ensure text remains visible during webfont load */
-     /* font-display: swap; */
      font-display: block;
  }
 
@@ -256,7 +255,7 @@
      /* Hide horizontal scrollbar */
      overflow-x: hidden;
 
-     font-family: "jetbrains", monospace;
+     font-family: jetbrains, monospace;
      font-weight: 400;
  }
 

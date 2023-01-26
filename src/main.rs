@@ -15,6 +15,7 @@ const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
 const POLL_DURATION: Duration = Duration::from_millis(250);
 
+mod hex;
 mod html;
 
 fn now() -> String {
@@ -327,10 +328,9 @@ pub struct Highlighter {
 }
 
 impl Highlighter {
+    //TODO: Create custom theme.
     pub(crate) fn new() -> Self {
         let ss = SyntaxSet::load_defaults_newlines();
-
-        //TODO: Make custom theme.
         let ts = ThemeSet::load_defaults();
         let theme = ts.themes["base16-ocean.dark"].clone();
 
@@ -352,13 +352,12 @@ impl Highlighter {
         let mut highlighter = HighlightLines::new(syntax, &self.theme);
         let mut html = String::new();
 
-        for line in LinesWithEndings::from(&self.buffer) {
+        let lines = std::mem::take(&mut self.buffer);
+        for line in LinesWithEndings::from(&lines) {
             let regions = highlighter.highlight_line(line, &self.ss).unwrap();
             append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
                 .unwrap();
         }
-
-        self.buffer.clear();
 
         html
     }
@@ -415,7 +414,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             })
             .collect();
 
-        //Sorts "html" files first. If a template needs updating, it's wasteful to rebuild everything twice.
+        //Sort "html" files first. If a template needs updating, it's wasteful to rebuild everything twice.
         outdated_files.sort_by(|a, b| a.extension().cmp(&b.extension()));
 
         for file in &outdated_files {
