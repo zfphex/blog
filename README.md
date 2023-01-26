@@ -1,7 +1,6 @@
 ```
 /markdown - stores markdown files that will be compiled
 /build - stores the compiled parts of the website
-/site - the website which will link to files in /build
 /templates - stores the templates to be compiled
 /assets - fonts, styles, images, etc.
 /src - the compiler
