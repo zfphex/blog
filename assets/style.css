@@ -295,13 +295,12 @@
 
  #top-bar {
      border-top: 4px solid;
-     border-image-source: linear-gradient(90deg, var(--bg), var(--accent), var(--bg));
+     border-image-source: linear-gradient(90deg, var(--fuchsia-900), var(--fuchsia-400), var(--fuchsia-900));
      border-image-slice: 1;
      position: fixed;
      top: 0;
      right: 0;
      left: 0;
-     animation: 20s infinite alternate example;
  }
 
  #grid {
@@ -309,52 +308,6 @@
      display: grid;
      grid-template-columns: 1fr minmax(0px, 950px) 1fr;
      grid-template-rows: 1fr auto;
- }
-
- #center {
-     display: flex;
-     justify-content: space-between;
-     align-items: flex-end;
-     padding-bottom: 16px;
-     padding-top: 8px;
- }
-
- #center nav {
-     display: flex;
-     flex-direction: row;
- }
-
- #center a {
-     position: relative;
-     /* margin: 8px 24px 8px 0; */
-     margin-left: 16px;
-     height: calc(1.3em + 3px);
-     cursor: pointer;
-     transition: color 0.2s ease-out;
-     z-index: 1;
-     border-bottom: 0;
- }
-
- #center a:hover {
-     color: var(--bg);
- }
-
- #center a::after {
-     content: "";
-     position: absolute;
-     left: 0;
-     top: 1.3em;
-     width: 100%;
-     height: 3px;
-     background-color: var(--accent);
-     transition: height 0.2s ease-out, top 0.2s ease-out;
-     z-index: -1;
- }
-
- #center a:hover::after {
-     transition: height 0.05s ease-out, top 0.05s ease-out;
-     height: 100%;
-     top: 0;
  }
 
  #bottom-middle {
