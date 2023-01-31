@@ -20,8 +20,8 @@
 
 //! HTML renderer that takes an iterator of events as input.
 
+use std::collections::HashMap;
 use std::io::{self, Write};
-use std::{collections::HashMap};
 
 use pulldown_cmark::Event::*;
 use pulldown_cmark::{

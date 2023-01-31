@@ -244,6 +244,10 @@
      font-display: block;
  }
 
+ html {
+     font-family: jetbrains, monospace;
+ }
+
  body {
      margin: 6px 24px 0px 24px;
 
@@ -254,9 +258,6 @@
      overflow-y: scroll;
      /* Hide horizontal scrollbar */
      overflow-x: hidden;
-
-     font-family: jetbrains, monospace;
-     font-weight: 400;
  }
 
  a {
@@ -361,13 +362,12 @@
  blockquote {
      border-left: 2px solid var(--border);
      margin: 16px 0 16px 0;
-     /* margin: 0; */
-     padding-left: 1rem;
+     padding-left: 16px;
      color: var(--neutral-400)
  }
 
  blockquote p {
-     margin: 0.25rem 0 0 0;
+     margin: 4px 0 0 0;
  }
 
  /* Table */
@@ -396,7 +396,7 @@
 
  ul,
  ol {
-     padding-left: 2rem;
+     padding-left: 32px;
  }
 
  ul,
@@ -407,5 +407,12 @@
 
 
  li+li {
-     margin-top: 0.25rem;
+     margin-top: 4px;
+ }
+
+
+ /* */
+ sup,
+ sub {
+     font-size: 14px;
  }
