@@ -27,6 +27,15 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Table of contents on right-side of post.
 - [x] Cleanup margins, there are different ones for paragraphs, tables, code, heading etc..
 
-Nice syntax highting with diffing
+h1 = 24 pixels
+h2 = 22 pixels
+h3 = 20 pixels
+h4 = 18 pixels
+h5 = 16 pixels
+h6 = 16 pixels
 
+https://stackoverflow.com/questions/55696808/why-do-h5-and-h6-have-smaller-font-sizes-than-p-in-most-user-agent-default
+
+
+Nice syntax highting with diffing
 https://www.11ty.dev/docs/plugins/syntaxhighlight/

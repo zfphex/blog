@@ -322,34 +322,49 @@
      width: fit-content;
  }
 
- h1::before {
-     color: var(--accent);
-     content: "# ";
- }
-
- h2::before {
-     color: var(--accent);
-     content: "# ";
- }
-
- h3::before {
-     color: var(--accent);
-     content: "# ";
- }
-
- h4::before {
-     color: var(--accent);
-     content: "# ";
- }
-
- h5::before {
-     color: var(--accent);
-     content: "# ";
- }
-
+ h1::before,
+ h2::before,
+ h3::before,
+ h4::before,
+ h5::before,
  h6::before {
      color: var(--accent);
      content: "# ";
+ }
+
+ h1,
+ h2,
+ h3,
+ h4,
+ h5,
+ h6 {
+     padding: 0;
+     margin: 24px 0 16px 0;
+ }
+
+
+ h1 {
+     font-size: 28px;
+ }
+
+ h2 {
+     font-size: 26px;
+ }
+
+ h3 {
+     font-size: 24px;
+ }
+
+ h4 {
+     font-size: 22px;
+ }
+
+ h5 {
+     font-size: 20px;
+ }
+
+ h6 {
+     font-size: 18px;
  }
 
  b,
