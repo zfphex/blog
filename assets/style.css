@@ -339,7 +339,7 @@
  h5,
  h6 {
      padding: 0;
-     margin: 24px 0 16px 0;
+     margin: 24px 0 24px 0;
  }
 
 
@@ -365,6 +365,12 @@
 
  h6 {
      font-size: 18px;
+ }
+
+ hr {
+     margin: 24px 0 24px 0;
+     border: 0;
+     border-top: 2px solid var(--border);
  }
 
  b,
