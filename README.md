@@ -37,6 +37,8 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Add `target="_blank"` to all `hrefs`.
 - [ ] Inline code is broken I think? \`inline code\`
 - [ ] Automatically inject head into templates. Maybe unnecessary.
+- [ ] Wrap words in <code>.
+- [ ] Mobile support.
 
 h1 = 24 pixels
 h2 = 22 pixels
