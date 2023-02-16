@@ -12,9 +12,9 @@ use std::{
 
 const MARKDOWN_PATH: &str = "markdown";
 const TEMPLATE_PATH: &str = "templates";
-const BUILD_PATH: &str = "build";
+const BUILD_PATH: &str = "site";
 const POLL_DURATION: Duration = Duration::from_millis(250);
-const INDEX: &str = "build/index.html";
+const INDEX: &str = "site/index.html";
 
 mod hex;
 mod html;

@@ -1,6 +1,5 @@
 ~~~
-title: Example code
-summary: this is a summary for the example code <br> it can also include newlines apparantly <br> wowweweeeeeeeeeeeeeeeee
+title: Code Example
 date: 10/01/2023 +0930
 ~~~
 

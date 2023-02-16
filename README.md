@@ -1,9 +1,10 @@
 ```
-/markdown - stores markdown files that will be compiled
-/build - stores the compiled parts of the website
-/templates - stores the templates to be compiled
-/assets - fonts, styles, images, etc.
 /src - the compiler
+/markdown - stores markdown files that will be compiled
+/templates - stores the templates to be compiled
+/site - stores the compiled parts of the website
+/site/assets - fonts, styles, images, etc.
+/site/img - images.
 ```
 
 TODO:
@@ -24,7 +25,7 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [x] ~~Blurry transform scaling.~~
 - [x] Add a github logo in the bottom left or right. Mabye a 'Made by Bay ❤' or something.
 - [x] Cleanup margins, there are different ones for paragraphs, tables, code, heading etc..
-- [ ] Write a package command that combines all files for shipping. Will need to fix paths too!
+- [x] Write a package command that combines all files for shipping. Will need to fix paths too!
 - [ ] Table of contents on right-side of post.
 - [ ] LaTex support.
 - [ ] Diagrams.
@@ -35,6 +36,7 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Fix syntax highlighting theme.
 - [ ] Add `target="_blank"` to all `hrefs`.
 - [ ] Inline code is broken I think? \`inline code\`
+- [ ] Automatically inject head into templates. Maybe unnecessary.
 
 h1 = 24 pixels
 h2 = 22 pixels

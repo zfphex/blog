@@ -1,5 +1,5 @@
 ~~~
-title: Example
+title: Markdown Example
 ~~~
 
 | Heading | Item |
