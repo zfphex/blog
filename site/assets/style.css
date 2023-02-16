@@ -284,11 +284,9 @@
      margin: 0;
  }
 
- pre {
-     margin: 8px;
- }
-
  pre:has(code) {
+     box-sizing: border-box;
+     margin-bottom: 16px;
      border: solid var(--border) 2px;
      border-radius: 8px;
      padding: 8px
@@ -390,6 +388,14 @@
  blockquote p {
      margin: 4px 0 0 0;
  }
+
+ /* iframe {
+     box-sizing: border-box;
+     border: solid var(--border) 2px;
+     border-radius: 8px;
+     width: 100%;
+     max-height: 500px;
+ } */
 
  /* Table */
 
