@@ -1,1 +1,1 @@
-D:/Git/writing/stop-using-the-artist-tag.md
+../../../Git/writing/stop-using-the-artist-tag.md
