@@ -33,6 +33,8 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Multiline summaries in post metadata.
 - [ ] Cleanup iframe styling.
 - [ ] Fix syntax highlighting theme.
+- [ ] Add `target="_blank"` to all `hrefs`.
+- [ ] Inline code is broken I think? \`inline code\`
 
 h1 = 24 pixels
 h2 = 22 pixels
