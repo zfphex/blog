@@ -14,6 +14,7 @@ const MARKDOWN_PATH: &str = "markdown";
 const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "build";
 const POLL_DURATION: Duration = Duration::from_millis(250);
+const INDEX: &str = "build/index.html";
 
 mod hex;
 mod html;
@@ -111,7 +112,7 @@ impl Posts {
         Ok(())
     }
     pub fn build_list(&mut self) -> Result<(), Box<dyn Error>> {
-        info!("Compiled: \"build\\\\post_list.html\"");
+        info!("Compiled: {}", INDEX);
         let index = self
             .list_template
             .find("<!-- posts -->")
@@ -138,7 +139,7 @@ impl Posts {
 
         let template = minify(&template);
 
-        fs::write("build/post_list.html", template)?;
+        fs::write(INDEX, template)?;
 
         Ok(())
     }
