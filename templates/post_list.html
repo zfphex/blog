@@ -4,7 +4,11 @@
 <head>
     <title>Posts - bayd.xyz</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="preload" href="assets/JetBrainsMono.ttf" as="font" type="font/ttf" crossorigin />
+    <!-- <link rel="preload" href="assets/JetBrainsMono.ttf" as="font" type="font/ttf" crossorigin="anonymous" />
+    <link rel="preload" href="assets/style.css" as="style" crossorigin="anonymous" />
+    <link rel="stylesheet" href="assets/style.css" crossorigin="anonymous" /> -->
+
+    <link rel="preload" href="assets/JetBrainsMono.ttf" as="font" type="font/ttf" />
     <link rel="preload" href="assets/style.css" as="style" />
     <link rel="stylesheet" href="assets/style.css" />
 
@@ -30,33 +34,6 @@
 </head>
 
 <style>
-    .post {
-        overflow-wrap: break-word;
-
-        display: block;
-
-        margin: 12px;
-        padding: 16px;
-
-        border: 2px solid var(--border);
-        border-radius: 6px;
-
-        transition: transform 120ms;
-
-        /* Stops the text from wobbling around. */
-        backface-visibility: hidden;
-        -webkit-font-smoothing: subpixel-antialiased;
-    }
-
-    .post:hover {
-        transform: scale(1.05) perspective(1px) translateZ(0);
-    }
-
-    .post:hover #text {
-        background-color: var(--accent);
-        color: var(--neutral-50);
-    }
-
     #title {
         margin-bottom: 12px;
         font-weight: bold;
@@ -76,6 +53,33 @@
         font-size: 20px;
     }
 
+    .post {
+        display: block;
+
+        margin: 12px;
+        padding: 16px;
+
+        border: 2px solid var(--border);
+        border-radius: 6px;
+
+        transition: transform 120ms;
+
+        /* Stops the text from wobbling around. */
+        backface-visibility: hidden;
+        -webkit-font-smoothing: subpixel-antialiased;
+
+        overflow: hidden;
+    }
+
+    .post:hover {
+        transform: scale(1.05) perspective(1px) translateZ(0);
+    }
+
+    .post:hover #text {
+        background-color: var(--accent);
+        color: var(--neutral-50);
+    }
+
     /* Name & Date */
     #metadata {
         font-size: 20px;
@@ -86,6 +90,7 @@
 
     #metadata-left {
         margin-right: auto;
+        flex-shrink: 0;
     }
 
     #metadata-left,
