@@ -8,6 +8,26 @@
     <link rel="preload" href="assets/style.css" as="style" />
     <link rel="stylesheet" href="assets/style.css" />
     <script type="module" src="assets/lite-youtube.js"></script>
+
+    <link rel="stylesheet" href="assets/katex/katex.min.css">
+    <script defer src="assets/katex/katex.min.js"></script>
+    <script defer src="assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                // customised options
+                // • auto-render specific keys, e.g.:
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                // • rendering keys, e.g.:
+                throwOnError: false
+            });
+        });
+    </script>
 </head>
 
 <style>

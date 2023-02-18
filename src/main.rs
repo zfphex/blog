@@ -25,6 +25,7 @@ fn now() -> String {
 
 fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
+    cfg.keep_closing_tags = true;
     cfg.keep_html_and_head_opening_tags = true;
     cfg.minify_css = true;
     cfg.minify_js = true;
