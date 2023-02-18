@@ -23,6 +23,7 @@ fn now() -> String {
     Local::now().time().format("%H:%M:%S").to_string()
 }
 
+//TODO: Profile
 fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
     cfg.keep_closing_tags = true;

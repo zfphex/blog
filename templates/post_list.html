@@ -31,6 +31,8 @@
 
 <style>
     .post {
+        overflow-wrap: break-word;
+
         display: block;
 
         margin: 12px;
@@ -70,16 +72,13 @@
         color: var(--accent);
     }
 
-    #metadata {
-        font-size: 20px;
-    }
-
     summary {
         font-size: 20px;
     }
 
     /* Name & Date */
     #metadata {
+        font-size: 20px;
         color: var(--neutral-400);
         padding-bottom: 12px;
         display: flex;
@@ -96,6 +95,23 @@
         gap: 8px;
     }
 
+    @media screen and (max-width: 700px) {
+        #metadata-right {
+            display: none;
+        }
+    }
+
+    @media screen and (max-width: 320px) {
+        #metadata {
+            display: flex;
+        }
+
+        #metadata-left,
+        #metadata-right {
+            display: none;
+        }
+    }
+
     svg {
         width: 19px;
         height: 19px;
@@ -109,22 +125,35 @@
     }
 
     #footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        margin-bottom: 8px;
+        margin-left: 8px;
+    }
+
+    #github-footer {
         font-size: 16px;
         border-bottom: 0;
         display: flex;
         align-items: center;
-        position: absolute;
-        bottom: 16px;
-        left: 16px;
         gap: 8px;
         padding: 0;
         margin: 0;
     }
 
-    #footer:hover {
+    #github-footer:hover {
         color: var(--sky-300)
     }
+
+    /* TODO: Display a github link at the bottom of the post list */
+    @media screen and (max-width: 1100px) {
+        #github-footer {
+            display: none;
+        }
+    }
 </style>
+
 
 <body>
     <div id="top-bar"></div>
@@ -143,12 +172,14 @@
         <div id="bottom-right"></div>
     </div>
 
-    <a href="https://github.com/zX3no" id="footer">
-        <svg>
-            <use xlink:href="#github" />
-        </svg>
-        zX3no
-    </a>
+    <div id="footer">
+        <a href="https://github.com/zX3no" id="github-footer">
+            <svg>
+                <use xlink:href="#github" />
+            </svg>
+            zX3no
+        </a>
+    </div>
 </body>
 
 </html>
