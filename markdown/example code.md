@@ -3,6 +3,8 @@ title: Code Example
 date: 10/01/2023 +0930
 ~~~
 
+`inline codeblock`
+
 ```rs
 pub fn highlight_line(code: &str) -> String {
     use syntect::{

@@ -28,17 +28,18 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [x] Write a package command that combines all files for shipping. Will need to fix paths too!
 - [x] LaTex support.
 - [x] Mobile support.
+- [x] `<sup>` should be styled a different color.
+- [x] Inline code is broken I think? \`inline code\`
+- [x] Cleanup iframe styling.
 - [ ] Table of contents on right-side of post.
 - [ ] Diagrams.
-- [ ] `<sup>` should be styled a different color.
 - [ ] Since ID's are used a lot, they should be prefixed with something. When creating citations and in post links like [](#blog). There might be some overlap. So change, #post to #zx-post or something. Maybe id's can be localized or something?
 - [ ] Multiline summaries in post metadata.
-- [ ] Cleanup iframe styling.
 - [ ] Fix syntax highlighting theme.
 - [ ] Add `target="_blank"` to all `hrefs`.
-- [ ] Inline code is broken I think? \`inline code\`
 - [ ] Automatically inject head into templates. Maybe unnecessary.
-- [ ] Wrap words in <code>.
+- [ ] Wrap words in <code>. IDK WTF THIS MEANS????
+- [ ] Delete compiled posts that aren't in the markdown list anymore.
 
 h1 = 24 pixels
 h2 = 22 pixels
