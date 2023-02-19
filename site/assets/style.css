@@ -274,6 +274,7 @@
      overflow-wrap: anywhere;
  }
 
+ /* Code & Inline Code */
 
  code,
  pre {
@@ -282,25 +283,30 @@
  }
 
  code {
-     margin: 0;
-     padding: 4px 8px;
      background-color: var(--neutral-700);
      border-radius: 6px;
+     padding: 4px 6px;
+     margin: 0;
  }
-
 
  pre>code {
      background-color: transparent;
+     border-radius: 0;
      padding: 0;
  }
 
- pre:has(code) {
-     box-sizing: border-box;
-     margin-bottom: 16px;
-     border: solid var(--border) 2px;
+ pre {
+     margin: 16px 0px 16px 0px;
+     padding: 8px;
+
      border-radius: 8px;
-     padding: 8px
+     border: solid var(--border) 2px;
+
+     white-space: pre-wrap;
+     overflow: hidden;
  }
+
+ /* Footnotes */
 
  .footnote-definition {
      display: flex;
