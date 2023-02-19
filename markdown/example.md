@@ -1,7 +1,11 @@
 ~~~
-title: Code Example
+title: Example
 date: 10/01/2023 +0930
 ~~~
+
+$x + y{a \over b} \times 300$
+
+$x={-b \pm \sqrt {b^2 - 4ac}\over2a}$
 
 `inline codeblock`
 
@@ -58,3 +62,22 @@ pub fn highlight_line(code: &str) -> String {
     </summary>
 </a>
 ```
+
+| Heading | Item |
+|---------|------|
+| Item    | Item |
+| Item    | Item |
+| Item    | Item |
+| Item    | Item |
+
+This is a list of things
+- Item 1
+- Item 2
+- Item 3
+
+
+> This is an epic quote
+>
+> This is more epic quotes
+>
+> WoW

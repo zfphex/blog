@@ -302,6 +302,21 @@
      padding: 8px
  }
 
+ .footnote-definition {
+     display: flex;
+     align-items: baseline;
+ }
+
+ .footnote-definition-label {
+     line-height: 1.5;
+     margin: 16px 0 16px 0;
+     font-size: 18px;
+ }
+
+ .footnote-definition-label::after {
+     content: '\00a0';
+ }
+
  #top-bar {
      border-top: 4px solid;
      border-image-source: linear-gradient(90deg, var(--fuchsia-900), var(--fuchsia-400), var(--fuchsia-900));
