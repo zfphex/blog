@@ -293,7 +293,7 @@ where
                     self.write("\" title=\"")?;
                     escape_html(&mut self.writer, &title)?;
                 }
-                self.write("\">")
+                self.write("\" target=\"blank\">")
             }
             Tag::Image(_link_type, dest, title) => {
                 self.write("<img src=\"")?;
