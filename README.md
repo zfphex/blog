@@ -41,6 +41,7 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] Fix syntax highlighting theme.
 - [ ] Delete compiled posts that aren't in the markdown list anymore.
 - [ ] All the margins are wrong especially around the footnotes.
+- [ ] Back button. Currently there is no way to get to the home screen from a post.
 
 h1 = 24 pixels
 h2 = 22 pixels
