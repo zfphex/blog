@@ -311,16 +311,21 @@
  .footnote-definition {
      display: flex;
      align-items: baseline;
+     margin: 16px 0 16px 0;
  }
 
  .footnote-definition-label {
+     color: var(--text);
      line-height: 1.5;
-     margin: 16px 0 16px 0;
      font-size: 18px;
  }
 
  .footnote-definition-label::after {
-     content: '\00a0';
+     content: '.\00a0';
+ }
+
+ .footnote-definition>p {
+     margin: 0;
  }
 
  #top-bar {
