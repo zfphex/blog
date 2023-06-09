@@ -324,7 +324,6 @@ impl Post {
             .replace("<!-- title -->", &metadata.title)
             .replace("<!-- date -->", &format!("{day} of {month}, {year}"))
             .replace("<!-- content -->", &html);
-        println!("{}", post);
 
         //Convert "markdown/example.md" to "build/example.html"
         let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
