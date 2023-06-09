@@ -144,37 +144,42 @@ impl List {
         }
 
         if rebuild_list {
-            let (list_template, _) = &templates.list;
-            let (list_item_template, _) = &templates.list_item;
-
-            let index = list_template
-                .find("<!-- posts -->")
-                .ok_or("Couldn't find <!-- posts -->")?;
-
-            let mut template = list_template.replace("<!-- posts -->", "");
-
-            let mut posts: Vec<&Post> = self.posts.values().collect();
-            posts.sort_by_key(|post| post.metadata.date);
-
-            for post in posts {
-                let metadata = &post.metadata;
-                let (day, month, year) = metadata.date();
-                let list_item = list_item_template
-                    .replace("~link~", &metadata.link_path)
-                    .replace("<!-- title -->", &metadata.title)
-                    .replace("<!-- date -->", &format!("{day} {month} {year}"))
-                    .replace("<!-- read_time -->", &metadata.read_time())
-                    .replace("<!-- word_count -->", &metadata.word_count())
-                    .replace("<!-- summary -->", &metadata.summary);
-
-                template.insert_str(index, &list_item);
-            }
-
-            let template = minify(&template);
-
-            fs::write(INDEX, template)?;
-            info!("Compiled: {}", INDEX);
+            self.build_list(templates)?;
         }
+
+        Ok(())
+    }
+    pub fn build_list(&self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
+        let (list_template, _) = &templates.list;
+        let (list_item_template, _) = &templates.list_item;
+
+        let index = list_template
+            .find("<!-- posts -->")
+            .ok_or("Couldn't find <!-- posts -->")?;
+
+        let mut template = list_template.replace("<!-- posts -->", "");
+
+        let mut posts: Vec<&Post> = self.posts.values().collect();
+        posts.sort_by_key(|post| post.metadata.date);
+
+        for post in posts {
+            let metadata = &post.metadata;
+            let (day, month, year) = metadata.date();
+            let list_item = list_item_template
+                .replace("~link~", &metadata.link_path)
+                .replace("<!-- title -->", &metadata.title)
+                .replace("<!-- date -->", &format!("{day} {month} {year}"))
+                .replace("<!-- read_time -->", &metadata.read_time())
+                .replace("<!-- word_count -->", &metadata.word_count())
+                .replace("<!-- summary -->", &metadata.summary);
+
+            template.insert_str(index, &list_item);
+        }
+
+        let template = minify(&template);
+
+        fs::write(INDEX, template)?;
+        info!("Compiled: {}", INDEX);
 
         Ok(())
     }
@@ -359,39 +364,6 @@ impl Templates {
             list_item: (fs::read_to_string(LIST_ITEM)?, hash(LIST_ITEM)?),
         })
     }
-    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
-        {
-            let new_hash = hash(POST)?;
-            let (file, old_hash) = &mut self.post;
-
-            if *old_hash != new_hash {
-                *file = fs::read_to_string(POST)?;
-                *old_hash = new_hash;
-            }
-        }
-
-        {
-            let new_hash = hash(LIST)?;
-            let (file, old_hash) = &mut self.list;
-
-            if *old_hash != new_hash {
-                *file = fs::read_to_string(LIST)?;
-                *old_hash = new_hash;
-            }
-        }
-
-        {
-            let new_hash = hash(LIST_ITEM)?;
-            let (file, old_hash) = &mut self.list_item;
-
-            if *old_hash != new_hash {
-                *file = fs::read_to_string(LIST_ITEM)?;
-                *old_hash = new_hash;
-            }
-        }
-
-        Ok(())
-    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -400,13 +372,46 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
 
-    //TODO: Rework the file and post system.
-    let mut templates = Templates::new()?;
+    let mut t = Templates::new()?;
     let mut posts = List::new();
 
     loop {
-        templates.update()?;
-        posts.update(&mut templates)?;
+        let new_hash = hash(POST)?;
+        if new_hash != t.post.1 {
+            info!("Compiled: {:?}", POST);
+            t.post.0 = fs::read_to_string(POST)?;
+            t.post.1 = new_hash;
+
+            //Re-build the posts.
+            //Delete the old hashes and List::update() will do the work.
+            for (_, v) in posts.posts.iter_mut() {
+                v.hash = String::new();
+            }
+        }
+
+        let mut rebuild_list = false;
+
+        let new_hash = hash(LIST)?;
+        if new_hash != t.list.1 {
+            info!("Compiled: {:?}", LIST);
+            t.list.0 = fs::read_to_string(LIST)?;
+            t.list.1 = new_hash;
+            rebuild_list = true;
+        }
+
+        let new_hash = hash(LIST_ITEM)?;
+        if new_hash != t.list_item.1 {
+            info!("Compiled: {:?}", LIST_ITEM);
+            t.list_item.0 = fs::read_to_string(LIST_ITEM)?;
+            t.list_item.1 = new_hash;
+            rebuild_list = true;
+        }
+
+        if rebuild_list {
+            posts.build_list(&mut t)?;
+        }
+
+        posts.update(&mut t)?;
 
         std::thread::sleep(POLL_DURATION);
     }
