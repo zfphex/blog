@@ -30,7 +30,7 @@ use pulldown_cmark::{
 };
 use pulldown_cmark::{Alignment, CodeBlockKind, Event, LinkType, Tag};
 
-use crate::Highlighter;
+use crate::syntax_highlighting::Highlighter;
 
 enum TableState {
     Head,

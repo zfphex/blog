@@ -20,12 +20,12 @@ const LIST_ITEM: &str = "templates\\post_list_item.html";
 
 mod hex;
 mod html;
+mod syntax_highlighting;
 
 fn now() -> String {
     Local::now().time().format("%H:%M:%S").to_string()
 }
 
-//TODO: Profile
 fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
     cfg.keep_closing_tags = true;
@@ -299,7 +299,6 @@ impl Metadata {
 
 #[derive(Debug)]
 pub struct Post {
-    pub html: String,
     pub metadata: Metadata,
     pub build_path: PathBuf,
     pub hash: String,
@@ -311,16 +310,12 @@ impl Post {
 
         //Read the markdown file.
         let file = fs::read_to_string(path)?;
-
         let metadata = Metadata::new(&file, path)?;
         let file = &file[metadata.end_position..].trim_start();
-
-        //TODO: Add syntax highlighting to the code blocks.
 
         //Convert the markdown to html.
         let parser = Parser::new_ext(file, Options::all());
         let mut html = String::new();
-        // html::push_html(&mut html, parser);
         crate::html::push_html(&mut html, parser);
 
         //Generate the post using the metadata and html.
@@ -329,75 +324,24 @@ impl Post {
             .replace("<!-- title -->", &metadata.title)
             .replace("<!-- date -->", &format!("{day} of {month}, {year}"))
             .replace("<!-- content -->", &html);
+        println!("{}", post);
 
         //Convert "markdown/example.md" to "build/example.html"
         let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
         name.pop();
         name.pop();
         name.push_str("html");
-        let path = PathBuf::from(BUILD_PATH).join(name);
+        let build_path = PathBuf::from(BUILD_PATH).join(name);
 
-        let html = minify(&html);
-        fs::write(&path, html)?;
+        let minified_post = minify(&post);
+        fs::write(&build_path, minified_post)?;
         info!("Compiled: {path:?}");
 
         Ok(Self {
-            html: post,
             metadata,
-            build_path: path,
+            build_path,
             hash,
         })
-    }
-}
-
-use syntect::{
-    easy::HighlightLines,
-    highlighting::{Theme, ThemeSet},
-    html::{append_highlighted_html_for_styled_line, IncludeBackground},
-    parsing::SyntaxSet,
-    util::LinesWithEndings,
-};
-
-pub struct Highlighter {
-    ss: SyntaxSet,
-    buffer: String,
-    theme: Theme,
-    language: String,
-}
-
-impl Highlighter {
-    //TODO: Create custom theme.
-    pub(crate) fn new() -> Self {
-        let ss = SyntaxSet::load_defaults_newlines();
-        let ts = ThemeSet::load_defaults();
-        let theme = ts.themes["base16-ocean.dark"].clone();
-
-        Self {
-            ss,
-            theme,
-            buffer: String::new(),
-            language: String::new(),
-        }
-    }
-    pub fn push_str(&mut self, str: &str) {
-        self.buffer.push_str(str);
-    }
-    pub fn highlight(&mut self) -> String {
-        let syntax = self
-            .ss
-            .find_syntax_by_token(&self.language)
-            .unwrap_or_else(|| self.ss.find_syntax_plain_text());
-        let mut highlighter = HighlightLines::new(syntax, &self.theme);
-        let mut html = String::new();
-
-        let lines = std::mem::take(&mut self.buffer);
-        for line in LinesWithEndings::from(&lines) {
-            let regions = highlighter.highlight_line(line, &self.ss).unwrap();
-            append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
-                .unwrap();
-        }
-
-        html
     }
 }
 
@@ -417,28 +361,34 @@ impl Templates {
         })
     }
     pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
-        let new_hash = hash(POST)?;
-        let (file, old_hash) = &mut self.post;
+        {
+            let new_hash = hash(POST)?;
+            let (file, old_hash) = &mut self.post;
 
-        if *old_hash != new_hash {
-            *file = fs::read_to_string(POST)?;
-            *old_hash = new_hash;
+            if *old_hash != new_hash {
+                *file = fs::read_to_string(POST)?;
+                *old_hash = new_hash;
+            }
         }
 
-        let new_hash = hash(LIST)?;
-        let (file, old_hash) = &mut self.post;
+        {
+            let new_hash = hash(LIST)?;
+            let (file, old_hash) = &mut self.list;
 
-        if *old_hash != new_hash {
-            *file = fs::read_to_string(LIST)?;
-            *old_hash = new_hash;
+            if *old_hash != new_hash {
+                *file = fs::read_to_string(LIST)?;
+                *old_hash = new_hash;
+            }
         }
 
-        let new_hash = hash(LIST_ITEM)?;
-        let (file, old_hash) = &mut self.post;
+        {
+            let new_hash = hash(LIST_ITEM)?;
+            let (file, old_hash) = &mut self.list_item;
 
-        if *old_hash != new_hash {
-            *file = fs::read_to_string(LIST_ITEM)?;
-            *old_hash = new_hash;
+            if *old_hash != new_hash {
+                *file = fs::read_to_string(LIST_ITEM)?;
+                *old_hash = new_hash;
+            }
         }
 
         Ok(())
