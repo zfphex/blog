@@ -44,6 +44,7 @@
 - [ ] Reference section needs indentation on the content see (i. Sample rate, ii. Sampels).
 - [ ] Pagination (or should there be infinite scrolling)
 - [ ] Improve performance of syntax highlighting
+- [ ] Add a nav bar or improve page navigation with better back button.
 
 h1 = 24 pixels
 
