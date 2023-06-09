@@ -3,6 +3,17 @@ title: Markdown Reference
 date: 10/01/2023 +0930
 ~~~
 
+
+Common text
+
+_Emphasized text_
+
+~~Strikethrough text~~
+
+__Strong text__
+
+___Strong emphasized text___
+
 # H1
 
 ## H2
@@ -15,8 +26,6 @@ date: 10/01/2023 +0930
 
 ##### H6
 
----
-
 | Heading       | Item   |
 |---------------|--------|
 | Sub-heading 1 | Item 1 |
@@ -24,16 +33,28 @@ date: 10/01/2023 +0930
 | Sub-heading 3 | Item 3 |
 | Sub-heading 4 | Item 4 |
 
-List
+Left aligned Header | Right aligned Header | Center aligned Header
+| :--- | ---: | :---:
+Content Cell  | Content Cell | Content Cell
+Content Cell  | Content Cell | Content Cell
+
 - Item 1
 - Item 2
 - Item 3
 
-> Quote 1
->
-> Quote 2
+* Bullet list
+    * Nested bullet
+        * Sub-nested bullet etc
+* Bullet list item 2
 
-> Quote 3
+1. A numbered list
+    1. A nested numbered list
+    2. Which is numbered
+2. Which is numbered
+
+
+> Blockquote
+>> Nested blockquote
 
 ---
 
