@@ -11,10 +11,12 @@ use std::{
 };
 
 const MARKDOWN_PATH: &str = "markdown";
-const TEMPLATE_PATH: &str = "templates";
 const BUILD_PATH: &str = "site";
-const POLL_DURATION: Duration = Duration::from_millis(250);
-const INDEX: &str = "site/index.html";
+const POLL_DURATION: Duration = Duration::from_millis(120);
+const INDEX: &str = "site\\index.html";
+const POST: &str = "templates\\post.html";
+const LIST: &str = "templates\\post_list.html";
+const LIST_ITEM: &str = "templates\\post_list_item.html";
 
 mod hex;
 mod html;
@@ -70,6 +72,7 @@ fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
     let mut len = 32;
     let mut hex = String::new();
 
+    //TOOD: Maybe don't use a string, it's kinda slow dude.
     while len > 0 {
         output.fill(&mut block);
         let hex_str = hex::encode(&block[..]);
@@ -81,67 +84,97 @@ fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
     Ok(hex)
 }
 
-struct Posts {
+struct List {
     pub posts: HashMap<PathBuf, Post>,
-    pub list_template: String,
-    pub list_item_template: String,
-    pub post_template: String,
 }
 
-impl Posts {
+impl List {
     pub fn new() -> Self {
         Self {
             posts: HashMap::new(),
-            list_template: fs::read_to_string("templates/post_list.html").unwrap(),
-            list_item_template: fs::read_to_string("templates/post_list_item.html").unwrap(),
-            post_template: fs::read_to_string("templates/post.html").unwrap(),
         }
     }
-    pub fn update_templates(&mut self) {
-        self.list_template = fs::read_to_string("templates/post_list.html").unwrap();
-        self.list_item_template = fs::read_to_string("templates/post_list_item.html").unwrap();
-        self.post_template = fs::read_to_string("templates/post.html").unwrap();
-    }
-    pub fn build_post(&mut self, path: &Path) -> Result<(), Box<dyn Error>> {
-        match Post::new(&self.post_template, path) {
-            Ok(post) => {
-                info!("Compiled: {path:?}");
-                post.write()?;
-                self.posts.insert(path.to_path_buf(), post);
+    pub fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
+        let new_files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| matches!(path.extension().and_then(OsStr::to_str), Some("md")))
+            .collect();
+
+        //Drain the removed posts
+        self.posts.drain_filter(|k, v| {
+            if new_files.contains(k) {
+                false
+            } else {
+                match fs::remove_file(&v.build_path) {
+                    Ok(_) => info!("Removed {:?}", v.build_path),
+                    Err(err) => warn!("Failed to removed {:?}\n{err}", v.build_path),
+                };
+                true
             }
-            Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
-        };
-        Ok(())
-    }
-    pub fn build_list(&mut self) -> Result<(), Box<dyn Error>> {
-        info!("Compiled: {}", INDEX);
-        let index = self
-            .list_template
-            .find("<!-- posts -->")
-            .ok_or("Couldn't find <!-- posts -->")?;
-        let mut template = self.list_template.replace("<!-- posts -->", "");
+        });
 
-        let mut posts: Vec<&Post> = self.posts.values().collect();
-        posts.sort_by_key(|post| post.metadata.date);
+        let mut rebuild_list = false;
+        let (post_template, _) = &templates.post;
 
-        for post in posts {
-            let metadata = &post.metadata;
-            let (day, month, year) = metadata.date();
-            let list_item = self
-                .list_item_template
-                .replace("~link~", &metadata.link_path)
-                .replace("<!-- title -->", &metadata.title)
-                .replace("<!-- date -->", &format!("{day} {month} {year}"))
-                .replace("<!-- read_time -->", &metadata.read_time())
-                .replace("<!-- word_count -->", &metadata.word_count())
-                .replace("<!-- summary -->", &metadata.summary);
+        //Add the new posts
+        for file in new_files {
+            //Generate a hash for the file.
+            let hash = hash(&file)?;
 
-            template.insert_str(index, &list_item);
+            if let Some(post) = self.posts.get_mut(&file) {
+                //File is out of date.
+                if hash != post.hash {
+                    rebuild_list = true;
+                    match Post::new(&post_template, &file, hash) {
+                        Ok(p) => *post = p,
+                        Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                    };
+                }
+            } else {
+                //File is new.
+                rebuild_list = true;
+                match Post::new(&post_template, &file, hash) {
+                    Ok(post) => {
+                        self.posts.insert(file, post);
+                    }
+                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                };
+            }
         }
 
-        let template = minify(&template);
+        if rebuild_list {
+            let (list_template, _) = &templates.list;
+            let (list_item_template, _) = &templates.list_item;
 
-        fs::write(INDEX, template)?;
+            let index = list_template
+                .find("<!-- posts -->")
+                .ok_or("Couldn't find <!-- posts -->")?;
+
+            let mut template = list_template.replace("<!-- posts -->", "");
+
+            let mut posts: Vec<&Post> = self.posts.values().collect();
+            posts.sort_by_key(|post| post.metadata.date);
+
+            for post in posts {
+                let metadata = &post.metadata;
+                let (day, month, year) = metadata.date();
+                let list_item = list_item_template
+                    .replace("~link~", &metadata.link_path)
+                    .replace("<!-- title -->", &metadata.title)
+                    .replace("<!-- date -->", &format!("{day} {month} {year}"))
+                    .replace("<!-- read_time -->", &metadata.read_time())
+                    .replace("<!-- word_count -->", &metadata.word_count())
+                    .replace("<!-- summary -->", &metadata.summary);
+
+                template.insert_str(index, &list_item);
+            }
+
+            let template = minify(&template);
+
+            fs::write(INDEX, template)?;
+            info!("Compiled: {}", INDEX);
+        }
 
         Ok(())
     }
@@ -269,10 +302,11 @@ pub struct Post {
     pub html: String,
     pub metadata: Metadata,
     pub build_path: PathBuf,
+    pub hash: String,
 }
 
 impl Post {
-    pub fn new(post_template: &str, path: &Path) -> Result<Self, Box<dyn Error>> {
+    pub fn new(post_template: &str, path: &Path, hash: String) -> Result<Self, Box<dyn Error>> {
         use pulldown_cmark::*;
 
         //Read the markdown file.
@@ -303,15 +337,16 @@ impl Post {
         name.push_str("html");
         let path = PathBuf::from(BUILD_PATH).join(name);
 
+        let html = minify(&html);
+        fs::write(&path, html)?;
+        info!("Compiled: {path:?}");
+
         Ok(Self {
             html: post,
             metadata,
             build_path: path,
+            hash,
         })
-    }
-    pub fn write(&self) -> std::io::Result<()> {
-        let html = minify(&self.html);
-        fs::write(&self.build_path, html)
     }
 }
 
@@ -366,90 +401,63 @@ impl Highlighter {
     }
 }
 
+#[derive(Default)]
+struct Templates {
+    pub post: (String, String),
+    pub list: (String, String),
+    pub list_item: (String, String),
+}
+
+impl Templates {
+    pub fn new() -> Result<Self, Box<dyn Error>> {
+        Ok(Self {
+            post: (fs::read_to_string(POST)?, hash(POST)?),
+            list: (fs::read_to_string(LIST)?, hash(LIST)?),
+            list_item: (fs::read_to_string(LIST_ITEM)?, hash(LIST_ITEM)?),
+        })
+    }
+    pub fn update(&mut self) -> Result<(), Box<dyn Error>> {
+        let new_hash = hash(POST)?;
+        let (file, old_hash) = &mut self.post;
+
+        if *old_hash != new_hash {
+            *file = fs::read_to_string(POST)?;
+            *old_hash = new_hash;
+        }
+
+        let new_hash = hash(LIST)?;
+        let (file, old_hash) = &mut self.post;
+
+        if *old_hash != new_hash {
+            *file = fs::read_to_string(LIST)?;
+            *old_hash = new_hash;
+        }
+
+        let new_hash = hash(LIST_ITEM)?;
+        let (file, old_hash) = &mut self.post;
+
+        if *old_hash != new_hash {
+            *file = fs::read_to_string(LIST_ITEM)?;
+            *old_hash = new_hash;
+        }
+
+        Ok(())
+    }
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     //Make sure the build folder exists.
     let _ = fs::create_dir(BUILD_PATH);
 
     info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
 
-    let mut posts = Posts::new();
-    let mut files: HashMap<PathBuf, String> = HashMap::new();
+    //TODO: Rework the file and post system.
+    let mut templates = Templates::new()?;
+    let mut posts = List::new();
 
     loop {
-        let new_files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
-            .chain(fs::read_dir(TEMPLATE_PATH)?)
-            .flatten()
-            .map(|entry| entry.path())
-            .filter(|path| {
-                matches!(
-                    path.extension().and_then(OsStr::to_str),
-                    Some("md") | Some("html")
-                )
-            })
-            .collect();
-
-        //Make sure 'physically' deleted files are removed from memory.
-        if new_files.len() != files.len() {
-            files.drain_filter(|k, _| {
-                if !new_files.contains(k) {
-                    info!("Removed: {:?}", k);
-                    true
-                } else {
-                    false
-                }
-            });
-        }
-
-        let mut outdated_files: Vec<PathBuf> = new_files
-            .into_iter()
-            .filter_map(|path| {
-                //Generate a hash for the file.
-                let hash = hash(&path).unwrap_or_default();
-
-                match files.insert(path.clone(), hash.clone()) {
-                    //File is out of date.
-                    Some(old_hash) if hash != old_hash => Some(path),
-                    //File is new.
-                    None => Some(path),
-                    //File is up to date.
-                    _ => None,
-                }
-            })
-            .collect();
-
-        //Sort "html" files first. If a template needs updating, it's wasteful to rebuild everything twice.
-        outdated_files.sort_by(|a, b| a.extension().cmp(&b.extension()));
-
-        for file in &outdated_files {
-            match file.extension().and_then(OsStr::to_str) {
-                Some("html") => {
-                    info!("Re-building templates.");
-                    posts.update_templates();
-
-                    let md: Vec<&PathBuf> = files
-                        .keys()
-                        .filter(|key| key.extension().and_then(OsStr::to_str) == Some("md"))
-                        .collect();
-
-                    for path in md {
-                        posts.build_post(path)?;
-                    }
-                    break;
-                }
-                Some("md") => posts.build_post(file)?,
-                _ => (),
-            }
-        }
-
-        //If a post is updated, the metadata could also be updated.
-        //So the list of posts will also need to be updated.
-        //Updating templates has the same requirement.
-        if !outdated_files.is_empty() {
-            match posts.build_list() {
-                Ok(_) => info!("Sucessfully built posts."),
-                Err(err) => warn!("Failed to compile posts\n{err}"),
-            };
-        }
+        templates.update()?;
+        posts.update(&mut templates)?;
 
         std::thread::sleep(POLL_DURATION);
     }
