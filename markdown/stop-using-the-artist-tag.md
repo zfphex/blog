@@ -1,1 +1,0 @@
-../../../Git/writing/stop-using-the-artist-tag.md

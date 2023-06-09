@@ -1,15 +1,13 @@
+## Blog
+
 ```
 /src - the compiler
 /markdown - stores markdown files that will be compiled
 /templates - stores the templates to be compiled
-/site - stores the compiled parts of the website
+/site - stores the compiled pages of the website
 /site/assets - fonts, styles, images, etc.
 /site/img - images.
 ```
-
-TODO:
-Maybe markdown files need a heading for the page and a title for the post list. IDK.
-Path's should all be set relative to the project, it's kind of all over the place right now. Just look at build/post_list.html
 
 - [x] Better logging
 - [x] Allow empty metadata
@@ -45,20 +43,24 @@ Path's should all be set relative to the project, it's kind of all over the plac
 - [ ] CLS on KaTex
 - [ ] Reference section needs indentation on the content see (i. Sample rate, ii. Sampels).
 - [ ] Pagination (or should there be infinite scrolling)
+- [ ] Improve performance of syntax highlighting
 
 h1 = 24 pixels
+
 h2 = 22 pixels
+
 h3 = 20 pixels
+
 h4 = 18 pixels
+
 h5 = 16 pixels
+
 h6 = 16 pixels
 
 https://stackoverflow.com/questions/55696808/why-do-h5-and-h6-have-smaller-font-sizes-than-p-in-most-user-agent-default
 
-
 Nice syntax highting with diffing
 https://www.11ty.dev/docs/plugins/syntaxhighlight/
-
 
 Maybe I don't need diagram support I can just render images and add them.
 
