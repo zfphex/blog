@@ -1,7 +1,41 @@
 ~~~
-title: Example
+title: Markdown Reference
 date: 10/01/2023 +0930
 ~~~
+
+# H1
+
+## H2
+
+### H3
+
+#### H4
+
+##### H5
+
+##### H6
+
+---
+
+| Heading       | Item   |
+|---------------|--------|
+| Sub-heading 1 | Item 1 |
+| Sub-heading 2 | Item 2 |
+| Sub-heading 3 | Item 3 |
+| Sub-heading 4 | Item 4 |
+
+List
+- Item 1
+- Item 2
+- Item 3
+
+> Quote 1
+>
+> Quote 2
+
+> Quote 3
+
+---
 
 $x + y{a \over b} \times 300$
 
@@ -62,22 +96,3 @@ pub fn highlight_line(code: &str) -> String {
     </summary>
 </a>
 ```
-
-| Heading | Item |
-|---------|------|
-| Item    | Item |
-| Item    | Item |
-| Item    | Item |
-| Item    | Item |
-
-This is a list of things
-- Item 1
-- Item 2
-- Item 3
-
-
-> This is an epic quote
->
-> This is more epic quotes
->
-> WoW
