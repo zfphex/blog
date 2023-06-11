@@ -45,6 +45,7 @@
 - [ ] Pagination (or should there be infinite scrolling)
 - [ ] Improve performance of syntax highlighting
 - [ ] Add a nav bar or improve page navigation with better back button.
+- [ ] Minify `styles.css`
 
 h1 = 24 pixels
 
