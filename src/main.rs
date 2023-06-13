@@ -380,6 +380,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let css = hash(CSS)?;
 
     loop {
+        //Make sure the templates and `style-min.css` are up to date.
         let new_hash = hash(CSS)?;
         if new_hash != css {
             let css = fs::read_to_string(CSS)?;
