@@ -17,6 +17,8 @@ const INDEX: &str = "site\\index.html";
 const POST: &str = "templates\\post.html";
 const LIST: &str = "templates\\post_list.html";
 const LIST_ITEM: &str = "templates\\post_list_item.html";
+const CSS: &str = "site\\assets\\style.css";
+const CSS_MIN: &str = "site\\assets\\style-min.css";
 
 mod hex;
 mod html;
@@ -375,8 +377,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut t = Templates::new()?;
     let mut posts = List::new();
+    let css = hash(CSS)?;
 
     loop {
+        let new_hash = hash(CSS)?;
+        if new_hash != css {
+            let css = fs::read_to_string(CSS)?;
+            let min = minify(&css);
+            fs::write(&CSS_MIN, min)?;
+        }
+
         let new_hash = hash(POST)?;
         if new_hash != t.post.1 {
             info!("Compiled: {:?}", POST);

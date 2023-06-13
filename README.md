@@ -31,6 +31,7 @@
 - [x] Cleanup iframe styling.
 - [x] Add `target="_blank"` to all `hrefs`.
 - [x] Back button. Currently there is no way to get to the home screen from a post.
+- [x] Minify `style.css`
 - [ ] Compile math instead of rendering at runtime. (HARD, LOW PRIORITY)
 - [ ] Table of contents on right-side of post. (HARD, LOW PRIORITY)
 - [ ] Simplify reference system. I know zola has a system for it. (HARD, MEDIUM PRIORITY)
@@ -45,7 +46,6 @@
 - [ ] Pagination (or should there be infinite scrolling)
 - [ ] Improve performance of syntax highlighting
 - [ ] Add a nav bar or improve page navigation with better back button.
-- [ ] Minify `style.css`
 
 h1 = 24 pixels
 
