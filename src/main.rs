@@ -101,21 +101,22 @@ impl List {
             .filter(|path| matches!(path.extension().and_then(OsStr::to_str), Some("md")))
             .collect();
 
+        let mut rebuild_list = false;
+        let (post_template, _) = &templates.post;
+
         //Drain the removed posts
         self.posts.drain_filter(|k, v| {
             if new_files.contains(k) {
                 false
             } else {
+                rebuild_list = true;
                 match fs::remove_file(&v.build_path) {
-                    Ok(_) => info!("Removed {:?}", v.build_path),
-                    Err(err) => warn!("Failed to removed {:?}\n{err}", v.build_path),
+                    Ok(_) => info!("Removed: {:?}", v.build_path),
+                    Err(err) => warn!("Failed to removed: {:?}\n{err}", v.build_path),
                 };
                 true
             }
         });
-
-        let mut rebuild_list = false;
-        let (post_template, _) = &templates.post;
 
         //Add the new posts
         for file in new_files {
