@@ -32,6 +32,7 @@
 - [x] Add `target="_blank"` to all `hrefs`.
 - [x] Back button. Currently there is no way to get to the home screen from a post.
 - [x] Minify `style.css`
+- [ ] Github pages favicon
 - [ ] Compile math instead of rendering at runtime. (HARD, LOW PRIORITY)
 - [ ] Table of contents on right-side of post. (HARD, LOW PRIORITY)
 - [ ] Simplify reference system. I know zola has a system for it. (HARD, MEDIUM PRIORITY)
