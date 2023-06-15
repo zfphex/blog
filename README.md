@@ -43,8 +43,6 @@
 - [ ] Delete compiled posts that aren't in the markdown list anymore.
 - [ ] All the margins are wrong especially around the footnotes.
 - [ ] CLS on KaTex
-- [ ] Reference section needs indentation on the content see (i. Sample rate, ii. Sampels).
-- [ ] Pagination (or should there be infinite scrolling)
 - [ ] Improve performance of syntax highlighting
 - [ ] Add a nav bar or improve page navigation with better back button.
 - [ ] `html` files that are in `site/` but note `markdown/` will not be removed automatically.

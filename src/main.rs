@@ -97,7 +97,7 @@ impl List {
         }
     }
     pub fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
-        let new_files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
+        let files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
             .flatten()
             .map(|entry| entry.path())
             .filter(|path| matches!(path.extension().and_then(OsStr::to_str), Some("md")))
@@ -108,7 +108,7 @@ impl List {
 
         //Drain the removed posts
         self.posts.drain_filter(|k, v| {
-            if new_files.contains(k) {
+            if files.contains(k) {
                 false
             } else {
                 rebuild_list = true;
@@ -121,7 +121,7 @@ impl List {
         });
 
         //Add the new posts
-        for file in new_files {
+        for file in files {
             //Generate a hash for the file.
             let hash = hash(&file)?;
 
