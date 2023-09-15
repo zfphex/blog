@@ -239,7 +239,7 @@
 
  @font-face {
      font-family: jetbrains;
-     src: url('JetBrainsMono.ttf');
+     src: url('JetBrainsMono-Regular.woff2');
      /* Ensure text remains visible during webfont load */
      font-display: block;
  }

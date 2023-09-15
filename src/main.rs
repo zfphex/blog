@@ -14,12 +14,11 @@ const BUILD_PATH: &str = "site";
 const POLL_DURATION: Duration = Duration::from_millis(120);
 const INDEX: &str = "site\\index.html";
 const POST: &str = "templates\\post.html";
-const LIST: &str = "templates\\post_list.html";
-const LIST_ITEM: &str = "templates\\post_list_item.html";
+const LIST: &str = "templates\\index.html";
+const LIST_ITEM: &str = "templates\\item.html";
 const CSS: &str = "site\\assets\\style.css";
 const CSS_MIN: &str = "site\\assets\\style-min.css";
 
-mod hex;
 mod html;
 mod syntax_highlighting;
 
@@ -52,7 +51,7 @@ macro_rules! warn {
     }};
 }
 
-fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
+fn hash(path: impl AsRef<Path>) -> Result<u64, Box<dyn Error>> {
     use blake3::*;
 
     let file = File::open(path)?;
@@ -68,21 +67,12 @@ fn hash(path: impl AsRef<Path>) -> Result<String, Box<dyn Error>> {
     let mut hasher = Hasher::new();
     hasher.update(cursor.get_ref());
 
-    let mut output = hasher.finalize_xof();
-    let mut block = [0; blake3::guts::BLOCK_LEN];
-    let mut len = 32;
-    let mut hex = String::new();
+    let output = hasher.finalize();
 
-    //TOOD: Maybe don't use a string, it's kinda slow dude.
-    while len > 0 {
-        output.fill(&mut block);
-        let hex_str = hex::encode(&block[..]);
-        let take_bytes = std::cmp::min(len, block.len() as u64);
-        hex.push_str(&hex_str[..2 * take_bytes as usize]);
-        len -= take_bytes;
-    }
-
-    Ok(hex)
+    //No need using a u256 for this hash.
+    Ok(u64::from_be_bytes(
+        output.as_bytes()[0..8].try_into().unwrap(),
+    ))
 }
 
 struct List {
@@ -311,11 +301,11 @@ impl Metadata {
 pub struct Post {
     pub metadata: Metadata,
     pub build_path: PathBuf,
-    pub hash: String,
+    pub hash: u64,
 }
 
 impl Post {
-    pub fn new(post_template: &str, path: &Path, hash: String) -> Result<Self, Box<dyn Error>> {
+    pub fn new(post_template: &str, path: &Path, hash: u64) -> Result<Self, Box<dyn Error>> {
         use pulldown_cmark::*;
 
         //Read the markdown file.
@@ -356,9 +346,9 @@ impl Post {
 
 #[derive(Default)]
 struct Templates {
-    pub post: (String, String),
-    pub list: (String, String),
-    pub list_item: (String, String),
+    pub post: (String, u64),
+    pub list: (String, u64),
+    pub list_item: (String, u64),
 }
 
 impl Templates {
@@ -379,7 +369,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut t = Templates::new()?;
     let mut posts = List::new();
-    let css = hash(CSS)?;
+    let css = 0;
 
     loop {
         //Make sure the templates and `style-min.css` are up to date.
@@ -399,7 +389,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             //Re-build the posts.
             //Delete the old hashes and List::update() will do the work.
             for (_, v) in posts.posts.iter_mut() {
-                v.hash = String::new();
+                v.hash = 0;
             }
         }
 
@@ -407,7 +397,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let new_hash = hash(LIST)?;
         if new_hash != t.list.1 {
-            info!("New: {} Old: {}", new_hash, t.post.1);
             info!("Compiled: {:?}", LIST);
             t.list.0 = fs::read_to_string(LIST)?;
             t.list.1 = new_hash;
