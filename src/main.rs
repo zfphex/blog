@@ -1,4 +1,3 @@
-#![feature(hash_drain_filter)]
 use chrono::{DateTime, Datelike, FixedOffset, Local, Utc};
 use std::{
     collections::HashMap,
@@ -40,7 +39,7 @@ fn minify(html: &str) -> Vec<u8> {
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {{
-        print!("\x1b[90m{} \x1b[94mINFO\x1b[0m ", now());
+        print!("\x1b[90m{} \x1b[94mINFO\x1b[0m {}:{}:{} ", now(), file!(), line!(), column!());
         println!($($arg)*);
     }};
 }
@@ -48,7 +47,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {{
-        print!("\x1b[90m{} \x1b[93mWARN\x1b[0m '{}:{}:{}' ", now(), file!(), line!(), column!());
+        print!("\x1b[90m{} \x1b[93mWARN\x1b[0m {}:{}:{} ", now(), file!(), line!(), column!());
         println!($($arg)*);
     }};
 }
@@ -106,19 +105,22 @@ impl List {
         let mut rebuild_list = false;
         let (post_template, _) = &templates.post;
 
-        //Drain the removed posts
-        self.posts.drain_filter(|k, v| {
-            if files.contains(k) {
-                false
-            } else {
-                rebuild_list = true;
-                match fs::remove_file(&v.build_path) {
-                    Ok(_) => info!("Removed: {:?}", v.build_path),
-                    Err(err) => warn!("Failed to removed: {:?}\n{err}", v.build_path),
-                };
-                true
-            }
-        });
+        let posts = std::mem::take(&mut self.posts);
+        self.posts = posts
+            .into_iter()
+            .filter_map(|(k, v)| {
+                if files.contains(&k) {
+                    Some((k, v))
+                } else {
+                    rebuild_list = true;
+                    match fs::remove_file(&v.build_path) {
+                        Ok(_) => info!("Removed: {:?}", v.build_path),
+                        Err(err) => warn!("Failed to removed: {:?}\n{err}", v.build_path),
+                    };
+                    None
+                }
+            })
+            .collect();
 
         //Add the new posts
         for file in files {
@@ -342,7 +344,7 @@ impl Post {
 
         let minified_post = minify(&post);
         fs::write(&build_path, minified_post)?;
-        info!("Compiled: {path:?}");
+        info!("Created new post: {path:?}");
 
         Ok(Self {
             metadata,
@@ -405,6 +407,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let new_hash = hash(LIST)?;
         if new_hash != t.list.1 {
+            info!("New: {} Old: {}", new_hash, t.post.1);
             info!("Compiled: {:?}", LIST);
             t.list.0 = fs::read_to_string(LIST)?;
             t.list.1 = new_hash;
