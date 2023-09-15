@@ -3,10 +3,9 @@ use std::{
     collections::HashMap,
     error::Error,
     ffi::OsStr,
-    fs::{self, File},
-    io::Cursor,
+    fs,
     path::{Path, PathBuf},
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 const MARKDOWN_PATH: &str = "markdown";
@@ -38,7 +37,7 @@ fn minify(html: &str) -> Vec<u8> {
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {{
-        print!("\x1b[90m{} \x1b[94mINFO\x1b[0m {}:{}:{} ", now(), file!(), line!(), column!());
+        print!("\x1b[90m{} \x1b[94mINFO\x1b[0m {}:{} ", now(), file!(), line!());
         println!($($arg)*);
     }};
 }
@@ -51,28 +50,18 @@ macro_rules! warn {
     }};
 }
 
-fn hash(path: impl AsRef<Path>) -> Result<u64, Box<dyn Error>> {
-    use blake3::*;
+#[derive(Debug, PartialEq, Clone)]
+pub struct Hash(blake3::Hash);
+impl Default for Hash {
+    fn default() -> Self {
+        Self(blake3::Hash::from_bytes([0; 32]))
+    }
+}
 
-    let file = File::open(path)?;
-    let metadata = file.metadata()?;
-    let file_size = metadata.len();
-    let map = unsafe {
-        memmap2::MmapOptions::new()
-            .len(file_size as usize)
-            .map(&file)?
-    };
-
-    let cursor = Cursor::new(map);
-    let mut hasher = Hasher::new();
-    hasher.update(cursor.get_ref());
-
-    let output = hasher.finalize();
-
-    //No need using a u256 for this hash.
-    Ok(u64::from_be_bytes(
-        output.as_bytes()[0..8].try_into().unwrap(),
-    ))
+fn hash<P: AsRef<Path>>(path: P) -> Result<Hash, Box<dyn Error>> {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(&fs::read(path)?);
+    Ok(Hash(hasher.finalize()))
 }
 
 struct List {
@@ -301,11 +290,11 @@ impl Metadata {
 pub struct Post {
     pub metadata: Metadata,
     pub build_path: PathBuf,
-    pub hash: u64,
+    pub hash: Hash,
 }
 
 impl Post {
-    pub fn new(post_template: &str, path: &Path, hash: u64) -> Result<Self, Box<dyn Error>> {
+    pub fn new(post_template: &str, path: &Path, hash: Hash) -> Result<Self, Box<dyn Error>> {
         use pulldown_cmark::*;
 
         //Read the markdown file.
@@ -344,11 +333,10 @@ impl Post {
     }
 }
 
-#[derive(Default)]
 struct Templates {
-    pub post: (String, u64),
-    pub list: (String, u64),
-    pub list_item: (String, u64),
+    pub post: (String, Hash),
+    pub list: (String, Hash),
+    pub list_item: (String, Hash),
 }
 
 impl Templates {
@@ -369,7 +357,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut t = Templates::new()?;
     let mut posts = List::new();
-    let css = 0;
+    let css = Hash::default();
+
+    let mut first = Some(Instant::now());
 
     loop {
         //Make sure the templates and `style-min.css` are up to date.
@@ -389,7 +379,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             //Re-build the posts.
             //Delete the old hashes and List::update() will do the work.
             for (_, v) in posts.posts.iter_mut() {
-                v.hash = 0;
+                v.hash = Hash::default();
             }
         }
 
@@ -417,6 +407,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         posts.update(&mut t)?;
 
+        if first.is_some() {
+            info!("Finished in {:?}", first.unwrap().elapsed());
+            first = None;
+        }
         std::thread::sleep(POLL_DURATION);
     }
 }
