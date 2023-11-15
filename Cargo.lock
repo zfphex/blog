@@ -89,7 +89,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "chrono",
- "memmap2",
+ "mini",
  "minify-html",
  "pulldown-cmark",
  "syntect",
@@ -304,13 +304,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f232d6ef707e1956a43342693d2a31e72989554d58299d7a88738cc95b0d35c"
 
 [[package]]
-name = "memmap2"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d28bba84adfe6646737845bc5ebbfa2c08424eb1c37e94a1fd2a82adb56a872"
-dependencies = [
- "libc",
-]
+name = "mini"
+version = "0.1.0"
 
 [[package]]
 name = "minify-html"

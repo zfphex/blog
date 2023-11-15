@@ -1,4 +1,5 @@
-use chrono::{DateTime, Datelike, FixedOffset, Local, Utc};
+use chrono::{DateTime, Datelike, FixedOffset, Utc};
+use mini::*;
 use std::{
     collections::HashMap,
     error::Error,
@@ -8,22 +9,22 @@ use std::{
     time::{Duration, Instant},
 };
 
-const MARKDOWN_PATH: &str = "markdown";
-const BUILD_PATH: &str = "site";
 const POLL_DURATION: Duration = Duration::from_millis(120);
-const INDEX: &str = "site\\index.html";
-const POST: &str = "templates\\post.html";
-const LIST: &str = "templates\\index.html";
-const LIST_ITEM: &str = "templates\\item.html";
-const CSS: &str = "site\\assets\\style.css";
-const CSS_MIN: &str = "site\\assets\\style-min.css";
+
+const MARKDOWN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
+const BUILD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
+
+const INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\index.html");
+
+const TEMPLATE_INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index.html");
+const TEMPLATE_POST: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
+const TEMPLATE_ITEM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\item.html");
+
+const CSS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style.css");
+const CSS_MIN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style-min.css");
 
 mod html;
 mod syntax_highlighting;
-
-fn now() -> String {
-    Local::now().time().format("%H:%M:%S").to_string()
-}
 
 fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
@@ -32,22 +33,6 @@ fn minify(html: &str) -> Vec<u8> {
     cfg.minify_css = true;
     cfg.minify_js = true;
     minify_html::minify(html.as_bytes(), &cfg)
-}
-
-#[macro_export]
-macro_rules! info {
-    ($($arg:tt)*) => {{
-        print!("\x1b[90m{} \x1b[94mINFO\x1b[0m {}:{} ", now(), file!(), line!());
-        println!($($arg)*);
-    }};
-}
-
-#[macro_export]
-macro_rules! warn {
-    ($($arg:tt)*) => {{
-        print!("\x1b[90m{} \x1b[93mWARN\x1b[0m {}:{}:{} ", now(), file!(), line!(), column!());
-        println!($($arg)*);
-    }};
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -75,7 +60,7 @@ impl List {
         }
     }
     pub fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
-        let files: Vec<PathBuf> = fs::read_dir(MARKDOWN_PATH)?
+        let files: Vec<PathBuf> = fs::read_dir(MARKDOWN)?
             .flatten()
             .map(|entry| entry.path())
             .filter(|path| matches!(path.extension().and_then(OsStr::to_str), Some("md")))
@@ -319,7 +304,7 @@ impl Post {
         name.pop();
         name.pop();
         name.push_str("html");
-        let build_path = PathBuf::from(BUILD_PATH).join(name);
+        let build_path = PathBuf::from(BUILD).join(name);
 
         let minified_post = minify(&post);
         fs::write(&build_path, minified_post)?;
@@ -342,18 +327,18 @@ struct Templates {
 impl Templates {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            post: (fs::read_to_string(POST)?, hash(POST)?),
-            list: (fs::read_to_string(LIST)?, hash(LIST)?),
-            list_item: (fs::read_to_string(LIST_ITEM)?, hash(LIST_ITEM)?),
+            post: (fs::read_to_string(TEMPLATE_POST)?, hash(TEMPLATE_POST)?),
+            list: (fs::read_to_string(TEMPLATE_INDEX)?, hash(TEMPLATE_INDEX)?),
+            list_item: (fs::read_to_string(TEMPLATE_ITEM)?, hash(TEMPLATE_ITEM)?),
         })
     }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     //Make sure the build folder exists.
-    let _ = fs::create_dir(BUILD_PATH);
+    let _ = fs::create_dir(BUILD);
 
-    info!("Watching files in {:?}", Path::new(MARKDOWN_PATH));
+    info!("Watching files in {:?}", Path::new(MARKDOWN));
 
     let mut t = Templates::new()?;
     let mut posts = List::new();
@@ -370,10 +355,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             fs::write(&CSS_MIN, min)?;
         }
 
-        let new_hash = hash(POST)?;
+        let new_hash = hash(TEMPLATE_POST)?;
         if new_hash != t.post.1 {
-            info!("Compiled: {:?}", POST);
-            t.post.0 = fs::read_to_string(POST)?;
+            info!("Compiled: {:?}", TEMPLATE_POST);
+            t.post.0 = fs::read_to_string(TEMPLATE_POST)?;
             t.post.1 = new_hash;
 
             //Re-build the posts.
@@ -385,18 +370,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let mut rebuild_list = false;
 
-        let new_hash = hash(LIST)?;
+        let new_hash = hash(TEMPLATE_INDEX)?;
         if new_hash != t.list.1 {
-            info!("Compiled: {:?}", LIST);
-            t.list.0 = fs::read_to_string(LIST)?;
+            info!("Compiled: {:?}", TEMPLATE_INDEX);
+            t.list.0 = fs::read_to_string(TEMPLATE_INDEX)?;
             t.list.1 = new_hash;
             rebuild_list = true;
         }
 
-        let new_hash = hash(LIST_ITEM)?;
+        let new_hash = hash(TEMPLATE_ITEM)?;
         if new_hash != t.list_item.1 {
-            info!("Compiled: {:?}", LIST_ITEM);
-            t.list_item.0 = fs::read_to_string(LIST_ITEM)?;
+            info!("Compiled: {:?}", TEMPLATE_ITEM);
+            t.list_item.0 = fs::read_to_string(TEMPLATE_ITEM)?;
             t.list_item.1 = new_hash;
             rebuild_list = true;
         }
