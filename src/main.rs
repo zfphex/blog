@@ -335,7 +335,7 @@ impl Templates {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    //Make sure the build folder exists.
+    //This will fail if the folder already exists.
     let _ = fs::create_dir(BUILD);
 
     info!("Watching files in {:?}", Path::new(MARKDOWN));

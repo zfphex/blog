@@ -36,16 +36,20 @@
 - [ ] Compile math instead of rendering at runtime. (HARD, LOW PRIORITY)
 - [ ] Table of contents on right-side of post. (HARD, LOW PRIORITY)
 - [ ] Simplify reference system. I know zola has a system for it. (HARD, MEDIUM PRIORITY)
-- [ ] Diagrams.
 - [ ] Since ID's are used a lot, they should be prefixed with something. When creating citations and in post links like [](#blog). There might be some overlap. So change, #post to #zx-post or something. Maybe id's can be localized or something?
 - [ ] Multiline summaries in post metadata.
 - [ ] Fix syntax highlighting theme.
 - [ ] Delete compiled posts that aren't in the markdown list anymore.
 - [ ] All the margins are wrong especially around the footnotes.
-- [ ] CLS on KaTex
 - [ ] Improve performance of syntax highlighting
 - [ ] Add a nav bar or improve page navigation with better back button.
 - [ ] `html` files that are in `site/` but note `markdown/` will not be removed automatically.
+
+- [ ] The first h1 in a markdown file should probably be the heading.
+- [ ] Just use the creation date instead of user defining it. We might not even need metadata in the markdown files.
+- [ ] Swap to MDC once it's stable.
+- [ ] Statically generate LaTex with MDC. 
+- [ ] Diagram/Graph support. Could use https://github.com/plotters-rs/plotters
 
 h1 = 24 pixels
 
@@ -64,10 +68,11 @@ https://stackoverflow.com/questions/55696808/why-do-h5-and-h6-have-smaller-font-
 Nice syntax highting with diffing
 https://www.11ty.dev/docs/plugins/syntaxhighlight/
 
-Maybe I don't need diagram support I can just render images and add them.
+I really like the green `+` & red `-` that Eleventy does.
 
-https://www.mermaid.live
-
-https://github.com/mermaid-js/mermaid
-
-https://mermaid.js.org/intro/n00b-gettingStarted.html#_3-calling-the-javascript-api
+```js
++function myFunction() {
+   // …
+-  return true;
+ }
+```
