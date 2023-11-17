@@ -1,3 +1,4 @@
+#![feature(allocator_api)]
 use chrono::{DateTime, Datelike, FixedOffset, Utc};
 use mini::*;
 use std::{
@@ -42,7 +43,6 @@ impl Default for Hash {
 }
 
 fn hash<P: AsRef<Path>>(path: P) -> Result<Hash, Box<dyn Error>> {
-    profile!();
     let mut hasher = blake3::Hasher::new();
     hasher.update(&fs::read(path)?);
     Ok(Hash(hasher.finalize()))
@@ -345,7 +345,6 @@ impl Post {
             | Options::ENABLE_TASKLISTS;
 
         let parser = Parser::new_ext(file, options);
-        // let mut lang = String::new();
         let mut lang = String::new();
         let mut code = false;
 
@@ -369,6 +368,10 @@ impl Post {
                 _ => Event::End(tag),
             },
             Event::Text(text) if code => {
+                // let text = if &lang == "math" {
+                // } else {
+                //     highligher.highlight(&lang, &text)
+                // };
                 let text = highligher.highlight(&lang, &text);
                 Event::Html(text.into())
             }
@@ -423,8 +426,6 @@ impl Templates {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    defer_results!();
-
     //This will fail if the folder already exists.
     let _ = fs::create_dir(BUILD);
 
@@ -488,8 +489,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             info!("Finished in {:?}", first.unwrap().elapsed());
             first = None;
         }
+
         std::thread::sleep(POLL_DURATION);
     }
-
-    Ok(())
 }

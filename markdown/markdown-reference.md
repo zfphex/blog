@@ -27,17 +27,17 @@ ___Strong emphasized text___
 ##### H6
 
 | Heading       | Item   |
-|---------------|--------|
+| ------------- | ------ |
 | Sub-heading 1 | Item 1 |
 | Sub-heading 2 | Item 2 |
 | Sub-heading 3 | Item 3 |
 | Sub-heading 4 | Item 4 |
 
 
-Left aligned Header | Right aligned Header | Center aligned Header
-| :--- | ---: | :---:
-Content Cell  | Content Cell | Content Cell
-Content Cell  | Content Cell | Content Cell
+| Left aligned Header | Right aligned Header | Center aligned Header |
+| :------------------ | -------------------: | :-------------------: |
+| Content Cell        |         Content Cell |     Content Cell      |
+| Content Cell        |         Content Cell |     Content Cell      |
 
 - Item 1
 - Item 2
@@ -58,8 +58,6 @@ Content Cell  | Content Cell | Content Cell
 >> Nested blockquote
 
 ---
-
-$x + y{a \over b} \times 300$
 
 $x={-b \pm \sqrt {b^2 - 4ac}\over2a}$
 
