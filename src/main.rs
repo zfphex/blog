@@ -23,9 +23,7 @@ const TEMPLATE_ITEM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\it
 const CSS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style.css");
 const CSS_MIN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style-min.css");
 
-mod html;
-mod syntax_highlighting;
-
+#[cfg(feature = "minify")]
 fn minify(html: &str) -> Vec<u8> {
     let mut cfg = minify_html::Cfg::spec_compliant();
     cfg.keep_closing_tags = true;
@@ -44,6 +42,7 @@ impl Default for Hash {
 }
 
 fn hash<P: AsRef<Path>>(path: P) -> Result<Hash, Box<dyn Error>> {
+    profile!();
     let mut hasher = blake3::Hasher::new();
     hasher.update(&fs::read(path)?);
     Ok(Hash(hasher.finalize()))
@@ -51,12 +50,14 @@ fn hash<P: AsRef<Path>>(path: P) -> Result<Hash, Box<dyn Error>> {
 
 struct List {
     pub posts: HashMap<PathBuf, Post>,
+    pub highligher: Highlighter,
 }
 
 impl List {
     pub fn new() -> Self {
         Self {
             posts: HashMap::new(),
+            highligher: Highlighter::new(),
         }
     }
     pub fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
@@ -95,7 +96,7 @@ impl List {
                 //File is out of date.
                 if hash != post.hash {
                     rebuild_list = true;
-                    match Post::new(&post_template, &file, hash) {
+                    match Post::new(&post_template, &file, hash, &self.highligher) {
                         Ok(p) => *post = p,
                         Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
                     };
@@ -103,7 +104,7 @@ impl List {
             } else {
                 //File is new.
                 rebuild_list = true;
-                match Post::new(&post_template, &file, hash) {
+                match Post::new(&post_template, &file, hash, &self.highligher) {
                     Ok(post) => {
                         self.posts.insert(file, post);
                     }
@@ -145,6 +146,7 @@ impl List {
             template.insert_str(index, &list_item);
         }
 
+        #[cfg(feature = "minify")]
         let template = minify(&template);
 
         fs::write(INDEX, template)?;
@@ -271,6 +273,51 @@ impl Metadata {
     }
 }
 
+use syntect::{
+    easy::HighlightLines,
+    highlighting::{Theme, ThemeSet},
+    html::{append_highlighted_html_for_styled_line, IncludeBackground},
+    parsing::SyntaxSet,
+    util::LinesWithEndings,
+};
+
+pub struct Highlighter {
+    pub ss: SyntaxSet,
+    pub buffer: String,
+    pub theme: Theme,
+}
+
+impl Highlighter {
+    pub fn new() -> Self {
+        let ss = SyntaxSet::load_defaults_newlines();
+        let ts = ThemeSet::load_defaults();
+        let theme = ts.themes["base16-ocean.dark"].clone();
+
+        Self {
+            ss,
+            theme,
+            buffer: String::new(),
+        }
+    }
+
+    pub fn highlight(&self, lang: &str, code: &str) -> String {
+        let syntax = self
+            .ss
+            .find_syntax_by_token(&lang)
+            .unwrap_or_else(|| self.ss.find_syntax_plain_text());
+        let mut highlighter = HighlightLines::new(syntax, &self.theme);
+        let mut html = String::new();
+
+        for line in LinesWithEndings::from(&code) {
+            let regions = highlighter.highlight_line(line, &self.ss).unwrap();
+            append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
+                .unwrap();
+        }
+
+        html
+    }
+}
+
 #[derive(Debug)]
 pub struct Post {
     pub metadata: Metadata,
@@ -279,7 +326,12 @@ pub struct Post {
 }
 
 impl Post {
-    pub fn new(post_template: &str, path: &Path, hash: Hash) -> Result<Self, Box<dyn Error>> {
+    pub fn new(
+        post_template: &str,
+        path: &Path,
+        hash: Hash,
+        highligher: &Highlighter,
+    ) -> Result<Self, Box<dyn Error>> {
         use pulldown_cmark::*;
 
         //Read the markdown file.
@@ -287,10 +339,44 @@ impl Post {
         let metadata = Metadata::new(&file, path)?;
         let file = &file[metadata.end_position..].trim_start();
 
-        //Convert the markdown to html.
-        let parser = Parser::new_ext(file, Options::all());
+        let options = Options::ENABLE_FOOTNOTES
+            | Options::ENABLE_TABLES
+            | Options::ENABLE_TABLES
+            | Options::ENABLE_TASKLISTS;
+
+        let parser = Parser::new_ext(file, options);
+        // let mut lang = String::new();
+        let mut lang = String::new();
+        let mut code = false;
+
+        let parser = parser.map(|event| match event {
+            Event::Start(tag) => match tag {
+                Tag::CodeBlock(info) => match info {
+                    CodeBlockKind::Fenced(fenced) => {
+                        code = true;
+                        lang = fenced.to_string();
+                        Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(fenced)))
+                    }
+                    CodeBlockKind::Indented => Event::Start(Tag::CodeBlock(info)),
+                },
+                _ => Event::Start(tag),
+            },
+            Event::End(tag) => match tag {
+                Tag::CodeBlock(info) => {
+                    code = false;
+                    Event::End(Tag::CodeBlock(info))
+                }
+                _ => Event::End(tag),
+            },
+            Event::Text(text) if code => {
+                let text = highligher.highlight(&lang, &text);
+                Event::Html(text.into())
+            }
+            _ => event,
+        });
+
         let mut html = String::new();
-        crate::html::push_html(&mut html, parser);
+        pulldown_cmark::html::push_html(&mut html, parser);
 
         //Generate the post using the metadata and html.
         let (day, month, year) = metadata.date();
@@ -306,8 +392,10 @@ impl Post {
         name.push_str("html");
         let build_path = PathBuf::from(BUILD).join(name);
 
-        let minified_post = minify(&post);
-        fs::write(&build_path, minified_post)?;
+        #[cfg(feature = "minify")]
+        let post = minify(&post);
+
+        fs::write(&build_path, post)?;
         info!("Created new post: {path:?}");
 
         Ok(Self {
@@ -335,6 +423,8 @@ impl Templates {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    defer_results!();
+
     //This will fail if the folder already exists.
     let _ = fs::create_dir(BUILD);
 
@@ -351,8 +441,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         let new_hash = hash(CSS)?;
         if new_hash != css {
             let css = fs::read_to_string(CSS)?;
-            let min = minify(&css);
-            fs::write(&CSS_MIN, min)?;
+
+            #[cfg(feature = "minify")]
+            let css = minify(&css);
+            fs::write(&CSS_MIN, css)?;
         }
 
         let new_hash = hash(TEMPLATE_POST)?;
@@ -398,4 +490,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         std::thread::sleep(POLL_DURATION);
     }
+
+    Ok(())
 }
