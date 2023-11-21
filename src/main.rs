@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-const POLL_DURATION: Duration = Duration::from_millis(120);
+const POLL_DURATION: Duration = Duration::from_millis(250);
 
 const MARKDOWN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
 const BUILD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
@@ -42,9 +42,9 @@ impl Default for Hash {
     }
 }
 
-fn hash<P: AsRef<Path>>(path: P) -> Result<Hash, Box<dyn Error>> {
+fn hash(bytes: &[u8]) -> Result<Hash, Box<dyn Error>> {
     let mut hasher = blake3::Hasher::new();
-    hasher.update(&fs::read(path)?);
+    hasher.update(bytes);
     Ok(Hash(hasher.finalize()))
 }
 
@@ -88,27 +88,28 @@ impl List {
             .collect();
 
         //Add the new posts
-        for file in files {
+        for path in files {
             //Generate a hash for the file.
-            let hash = hash(&file)?;
+            let file = fs::read_to_string(&path)?;
+            let hash = hash(file.as_bytes())?;
 
-            if let Some(post) = self.posts.get_mut(&file) {
+            if let Some(post) = self.posts.get_mut(&path) {
                 //File is out of date.
                 if hash != post.hash {
                     rebuild_list = true;
-                    match Post::new(&post_template, &file, hash, &self.highligher) {
+                    match Post::new(&post_template, file, &path, hash, &self.highligher) {
                         Ok(p) => *post = p,
-                        Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                        Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
                     };
                 }
             } else {
                 //File is new.
                 rebuild_list = true;
-                match Post::new(&post_template, &file, hash, &self.highligher) {
+                match Post::new(&post_template, file, &path, hash, &self.highligher) {
                     Ok(post) => {
-                        self.posts.insert(file, post);
+                        self.posts.insert(path, post);
                     }
-                    Err(err) => warn!("Failed to compile: {file:?}\n{err}"),
+                    Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
                 };
             }
         }
@@ -120,8 +121,8 @@ impl List {
         Ok(())
     }
     pub fn build_list(&self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
-        let (list_template, _) = &templates.list;
-        let (list_item_template, _) = &templates.list_item;
+        let (list_template, _) = &templates.index;
+        let (list_item_template, _) = &templates.item;
 
         let index = list_template
             .find("<!-- posts -->")
@@ -328,6 +329,7 @@ pub struct Post {
 impl Post {
     pub fn new(
         post_template: &str,
+        file: String,
         path: &Path,
         hash: Hash,
         highligher: &Highlighter,
@@ -335,7 +337,7 @@ impl Post {
         use pulldown_cmark::*;
 
         //Read the markdown file.
-        let file = fs::read_to_string(path)?;
+        // let file = fs::read_to_string(path)?;
         let metadata = Metadata::new(&file, path)?;
         let file = &file[metadata.end_position..].trim_start();
 
@@ -411,16 +413,28 @@ impl Post {
 
 struct Templates {
     pub post: (String, Hash),
-    pub list: (String, Hash),
-    pub list_item: (String, Hash),
+    pub index: (String, Hash),
+    pub item: (String, Hash),
 }
 
 impl Templates {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            post: (fs::read_to_string(TEMPLATE_POST)?, hash(TEMPLATE_POST)?),
-            list: (fs::read_to_string(TEMPLATE_INDEX)?, hash(TEMPLATE_INDEX)?),
-            list_item: (fs::read_to_string(TEMPLATE_ITEM)?, hash(TEMPLATE_ITEM)?),
+            post: {
+                let file = fs::read_to_string(TEMPLATE_POST)?;
+                let hash = hash(file.as_bytes())?;
+                (file, hash)
+            },
+            index: {
+                let file = fs::read_to_string(TEMPLATE_INDEX)?;
+                let hash = hash(file.as_bytes())?;
+                (file, hash)
+            },
+            item: {
+                let file = fs::read_to_string(TEMPLATE_ITEM)?;
+                let hash = hash(file.as_bytes())?;
+                (file, hash)
+            },
         })
     }
 }
@@ -433,28 +447,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut t = Templates::new()?;
     let mut posts = List::new();
-    let css = Hash::default();
+    let mut css = (String::new(), Hash::default());
 
     let mut first = Some(Instant::now());
 
     loop {
         //Make sure the templates and `style-min.css` are up to date.
-        let new_hash = hash(CSS)?;
-        if new_hash != css {
-            let css = fs::read_to_string(CSS)?;
-
+        if build(CSS, &mut css, &mut false)? {
             #[cfg(feature = "minify")]
             let css = minify(&css);
-            fs::write(&CSS_MIN, css)?;
+            fs::write(&CSS_MIN, &css.0)?;
         }
 
-        let new_hash = hash(TEMPLATE_POST)?;
-        if new_hash != t.post.1 {
-            info!("Compiled: {:?}", TEMPLATE_POST);
-            t.post.0 = fs::read_to_string(TEMPLATE_POST)?;
-            t.post.1 = new_hash;
-
-            //Re-build the posts.
+        //Re-build the posts.
+        if build(TEMPLATE_POST, &mut t.post, &mut false)? {
             //Delete the old hashes and List::update() will do the work.
             for (_, v) in posts.posts.iter_mut() {
                 v.hash = Hash::default();
@@ -463,21 +469,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let mut rebuild_list = false;
 
-        let new_hash = hash(TEMPLATE_INDEX)?;
-        if new_hash != t.list.1 {
-            info!("Compiled: {:?}", TEMPLATE_INDEX);
-            t.list.0 = fs::read_to_string(TEMPLATE_INDEX)?;
-            t.list.1 = new_hash;
-            rebuild_list = true;
-        }
-
-        let new_hash = hash(TEMPLATE_ITEM)?;
-        if new_hash != t.list_item.1 {
-            info!("Compiled: {:?}", TEMPLATE_ITEM);
-            t.list_item.0 = fs::read_to_string(TEMPLATE_ITEM)?;
-            t.list_item.1 = new_hash;
-            rebuild_list = true;
-        }
+        build(TEMPLATE_INDEX, &mut t.index, &mut rebuild_list)?;
+        build(TEMPLATE_ITEM, &mut t.item, &mut rebuild_list)?;
 
         if rebuild_list {
             posts.build_list(&mut t)?;
@@ -490,6 +483,26 @@ fn main() -> Result<(), Box<dyn Error>> {
             first = None;
         }
 
+        unsafe { core::arch::x86_64::_mm_pause() };
+
         std::thread::sleep(POLL_DURATION);
+    }
+}
+
+pub fn build(
+    path: &str,
+    template: &mut (String, Hash),
+    rebuild: &mut bool,
+) -> Result<bool, Box<dyn Error>> {
+    let file = fs::read_to_string(path)?;
+    let new_hash = hash(file.as_bytes())?;
+    if new_hash != template.1 {
+        info!("Compiled: {:?}", path);
+        template.0 = file;
+        template.1 = new_hash;
+        *rebuild = true;
+        Ok(true)
+    } else {
+        Ok(false)
     }
 }
