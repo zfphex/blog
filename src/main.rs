@@ -1,6 +1,6 @@
-use chrono::{DateTime, Datelike, FixedOffset, Utc};
 use mini::*;
 use std::{
+    cmp::Ordering,
     collections::HashMap,
     error::Error,
     ffi::OsStr,
@@ -130,15 +130,19 @@ impl List {
         let mut template = list_template.replace("<!-- posts -->", "");
 
         let mut posts: Vec<&Post> = self.posts.values().collect();
-        posts.sort_by_key(|post| post.metadata.date);
+
+        // TODO: Implement sorting by d/m/y
+        posts.sort_by(|_a, _b| {
+            //
+            Ordering::Equal
+        });
 
         for post in posts {
             let metadata = &post.metadata;
-            let (day, month, year) = metadata.date();
             let list_item = list_item_template
                 .replace("~link~", &metadata.link_path)
                 .replace("<!-- title -->", &metadata.title)
-                .replace("<!-- date -->", &format!("{day} {month} {year}"))
+                .replace("<!-- date -->", &metadata.index_date)
                 .replace("<!-- read_time -->", &metadata.read_time())
                 .replace("<!-- word_count -->", &metadata.word_count())
                 .replace("<!-- summary -->", &metadata.summary);
@@ -160,7 +164,8 @@ impl List {
 pub struct Metadata {
     pub title: String,
     pub summary: String,
-    pub date: DateTime<FixedOffset>,
+    pub index_date: String,
+    pub post_date: String,
     pub link_path: String,
     pub real_path: PathBuf,
     pub word_count: usize,
@@ -174,9 +179,8 @@ impl Metadata {
 
         let mut title = String::new();
         let mut summary = String::new();
-
-        let creation_date: DateTime<Utc> = fs::metadata(path)?.created()?.into();
-        let mut date = creation_date.into();
+        let mut index_date = String::new();
+        let mut post_date = String::new();
 
         let mut end = 0;
 
@@ -194,10 +198,44 @@ impl Metadata {
                         "title" => title = v.to_string(),
                         "summary" => summary = v.to_string(),
                         "date" => {
-                            date = DateTime::parse_from_str(
-                                &format!("{v} 00:00"),
-                                "%d/%m/%Y %z %H:%M",
-                            )?;
+                            //TODO:
+                            let splits: Vec<&str> = v.split('/').collect();
+                            if splits.len() != 3 {
+                                error!("Invalid date {}", v);
+                                continue;
+                            }
+                            let d = &splits[0].parse::<usize>().unwrap();
+                            let m = &splits[1].parse::<usize>().unwrap();
+                            let year = &splits[2].parse::<usize>().unwrap();
+                            let month = match m {
+                                1 => "January",
+                                2 => "February",
+                                3 => "March",
+                                4 => "April",
+                                5 => "May",
+                                6 => "June",
+                                7 => "July",
+                                8 => "August",
+                                9 => "September",
+                                10 => "October",
+                                11 => "November",
+                                12 => "December",
+                                _ => unreachable!(),
+                            };
+
+                            //Ordinal suffix.
+                            let i = d % 10;
+                            let j = d % 100;
+                            let day = match i {
+                                1 if j != 11 => format!("{d}st"),
+                                2 if j != 12 => format!("{d}nd"),
+                                3 if j != 13 => format!("{d}rd"),
+                                _ => format!("{d}th"),
+                            };
+
+                            //Can't wait for the Y3K problem.
+                            index_date = format!("{day} {month} 20{year}");
+                            post_date = format!("{day} of {month}, 20{year}");
                         }
                         _ => continue,
                     }
@@ -214,7 +252,8 @@ impl Metadata {
         Ok(Metadata {
             title,
             summary,
-            date,
+            post_date,
+            index_date,
             link_path: pathbuf
                 .file_name()
                 .ok_or("file_name")?
@@ -240,36 +279,6 @@ impl Metadata {
         } else {
             format!("{} minute read", self.read_time as usize)
         }
-    }
-    pub fn date(&self) -> (String, String, i32) {
-        let month = match self.date.month() {
-            1 => "January",
-            2 => "February",
-            3 => "March",
-            4 => "April",
-            5 => "May",
-            6 => "June",
-            7 => "July",
-            8 => "August",
-            9 => "September",
-            10 => "October",
-            11 => "November",
-            12 => "December",
-            _ => unreachable!(),
-        };
-
-        //Ordinal suffix.
-        let day = self.date.day();
-        let i = day % 10;
-        let j = day % 100;
-        let day = match i {
-            1 if j != 11 => format!("{day}st"),
-            2 if j != 12 => format!("{day}nd"),
-            3 if j != 13 => format!("{day}rd"),
-            _ => format!("{day}th"),
-        };
-
-        (day, month.to_string(), self.date.year())
     }
 }
 
@@ -383,10 +392,9 @@ impl Post {
         pulldown_cmark::html::push_html(&mut html, parser);
 
         //Generate the post using the metadata and html.
-        let (day, month, year) = metadata.date();
         let post = post_template
             .replace("<!-- title -->", &metadata.title)
-            .replace("<!-- date -->", &format!("{day} of {month}, {year}"))
+            .replace("<!-- date -->", &metadata.post_date)
             .replace("<!-- content -->", &html);
 
         //Convert "markdown/example.md" to "build/example.html"

@@ -21,6 +21,15 @@ A fast static site generator written in Rust.
 /site/img - images.
 ```
 
+### Metadata
+
+```
+title: This is a title 
+summary: This is a summary of the post
+date: d/m/y
+
+```
+
 ### TODO
 
 - [ ] Remove chrono from dependencies.
