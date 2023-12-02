@@ -1,8 +1,8 @@
-A fast static site generator written in Rust.
+## A fast static site generator written in Rust.
 
 ### Features
 
-- Simple and lightweight (single file, 500 loc)
+- Simple and lightweight (single file, 500 LOC)
 - Hot reloading
 - Extended Markdown syntax with metadata
 - Syntax highlighting
@@ -26,8 +26,7 @@ A fast static site generator written in Rust.
 ```
 title: This is a title 
 summary: This is a summary of the post
-date: d/m/y
-
+date: dd/mm/yy
 ```
 
 ### TODO
