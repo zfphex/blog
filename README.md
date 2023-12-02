@@ -8,6 +8,7 @@
 - Syntax highlighting
 - LaTeX Support
 - Template system (can embed anything directly into html)
+- Automatic minification
 - 100/100 Lighthouse performance
 
 ### Design
@@ -31,7 +32,6 @@ date: dd/mm/yy
 
 ### TODO
 
-- [ ] Remove chrono from dependencies.
 - [ ] Github pages favicon
 - [ ] Compile math instead of rendering at runtime. 
 - [ ] Improve performance of syntax highlighting.

@@ -34,7 +34,7 @@ fn minify(html: &str) -> Vec<u8> {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Hash(blake3::Hash);
+struct Hash(blake3::Hash);
 impl Default for Hash {
     fn default() -> Self {
         Self(blake3::Hash::from_bytes([0; 32]))
@@ -48,18 +48,18 @@ fn hash(bytes: &[u8]) -> Result<Hash, Box<dyn Error>> {
 }
 
 struct List {
-    pub posts: HashMap<PathBuf, Post>,
-    pub highligher: Highlighter,
+    posts: HashMap<PathBuf, Post>,
+    highligher: Highlighter,
 }
 
 impl List {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self {
             posts: HashMap::new(),
             highligher: Highlighter::new(),
         }
     }
-    pub fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
+    fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
         let files: Vec<PathBuf> = fs::read_dir(MARKDOWN)?
             .flatten()
             .map(|entry| entry.path())
@@ -119,7 +119,7 @@ impl List {
 
         Ok(())
     }
-    pub fn build_list(&self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
+    fn build_list(&self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
         let (list_template, _) = &templates.index;
         let (list_item_template, _) = &templates.item;
 
@@ -161,20 +161,19 @@ impl List {
 }
 
 #[derive(Debug)]
-pub struct Metadata {
+struct Metadata {
     pub title: String,
     pub summary: String,
     pub index_date: String,
     pub post_date: String,
     pub link_path: String,
-    pub real_path: PathBuf,
     pub word_count: usize,
     pub read_time: f32,
     pub end_position: usize,
 }
 
 impl Metadata {
-    pub fn new(file: &str, path: &Path) -> Result<Self, Box<dyn Error>> {
+    fn new(file: &str, path: &Path) -> Result<Self, Box<dyn Error>> {
         let config = file.get(3..).ok_or("Invalid metadata")?.trim_start();
 
         let mut title = String::new();
@@ -198,10 +197,9 @@ impl Metadata {
                         "title" => title = v.to_string(),
                         "summary" => summary = v.to_string(),
                         "date" => {
-                            //TODO:
                             let splits: Vec<&str> = v.split('/').collect();
                             if splits.len() != 3 {
-                                error!("Invalid date {}", v);
+                                error!("Invalid date: {} {:?}", v, path);
                                 continue;
                             }
                             let d = &splits[0].parse::<usize>().unwrap();
@@ -260,20 +258,19 @@ impl Metadata {
                 .to_str()
                 .ok_or("to_str")?
                 .to_string(),
-            real_path: path.to_path_buf(),
             read_time: word_count as f32 / 250.0,
             word_count,
             end_position: end,
         })
     }
-    pub fn word_count(&self) -> String {
+    fn word_count(&self) -> String {
         if self.word_count != 1 {
             format!("{} words", self.word_count)
         } else {
             String::from("1 word")
         }
     }
-    pub fn read_time(&self) -> String {
+    fn read_time(&self) -> String {
         if self.read_time < 1.0 {
             String::from("&lt;1 minute read")
         } else {
@@ -290,26 +287,21 @@ use syntect::{
     util::LinesWithEndings,
 };
 
-pub struct Highlighter {
-    pub ss: SyntaxSet,
-    pub buffer: String,
-    pub theme: Theme,
+struct Highlighter {
+    ss: SyntaxSet,
+    theme: Theme,
 }
 
 impl Highlighter {
-    pub fn new() -> Self {
+    fn new() -> Self {
         let ss = SyntaxSet::load_defaults_newlines();
         let ts = ThemeSet::load_defaults();
         let theme = ts.themes["base16-ocean.dark"].clone();
 
-        Self {
-            ss,
-            theme,
-            buffer: String::new(),
-        }
+        Self { ss, theme }
     }
 
-    pub fn highlight(&self, lang: &str, code: &str) -> String {
+    fn highlight(&self, lang: &str, code: &str) -> String {
         let syntax = self
             .ss
             .find_syntax_by_token(&lang)
@@ -328,14 +320,14 @@ impl Highlighter {
 }
 
 #[derive(Debug)]
-pub struct Post {
-    pub metadata: Metadata,
-    pub build_path: PathBuf,
-    pub hash: Hash,
+struct Post {
+    metadata: Metadata,
+    build_path: PathBuf,
+    hash: Hash,
 }
 
 impl Post {
-    pub fn new(
+    fn new(
         post_template: &str,
         file: String,
         path: &Path,
@@ -419,13 +411,13 @@ impl Post {
 }
 
 struct Templates {
-    pub post: (String, Hash),
-    pub index: (String, Hash),
-    pub item: (String, Hash),
+    post: (String, Hash),
+    index: (String, Hash),
+    item: (String, Hash),
 }
 
 impl Templates {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
+    fn new() -> Result<Self, Box<dyn Error>> {
         Ok(Self {
             post: {
                 let file = fs::read_to_string(TEMPLATE_POST)?;
@@ -450,6 +442,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     //This will fail if the folder already exists.
     let _ = fs::create_dir(BUILD);
 
+    #[cfg(feature = "minify")]
+    info!("Using feature \"minify\"");
     info!("Watching files in {:?}", Path::new(MARKDOWN));
 
     let mut t = Templates::new()?;
@@ -461,9 +455,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     loop {
         //Make sure the templates and `style-min.css` are up to date.
         if build(CSS, &mut css, &mut false)? {
+            let css = &css.0;
             #[cfg(feature = "minify")]
-            let css = minify(&css);
-            fs::write(&CSS_MIN, &css.0)?;
+            let css = minify(css);
+
+            fs::write(&CSS_MIN, css)?;
         }
 
         //Re-build the posts.
@@ -496,7 +492,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub fn build(
+fn build(
     path: &str,
     template: &mut (String, Hash),
     rebuild: &mut bool,
