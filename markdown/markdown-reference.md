@@ -3,7 +3,6 @@ title: Markdown Reference
 date: 10/01/2023 +0930
 ~~~
 
-
 Common text
 
 _Emphasized text_

@@ -1,78 +1,56 @@
-## Blog
+A fast static site generator written in Rust.
+
+### Features
+
+- Simple and lightweight (single file, 500 loc)
+- Hot reloading
+- Extended Markdown syntax with metadata
+- Syntax highlighting
+- LaTeX Support
+- Template system (can embed anything directly into html)
+- 100/100 Lighthouse performance
+
+### Design
 
 ```
-/src - the compiler
+/src - site generator
 /markdown - stores markdown files that will be compiled
 /templates - stores the templates to be compiled
 /site - stores the compiled pages of the website
-/site/assets - fonts, styles, images, etc.
+/site/assets - fonts, styles, images, etc
 /site/img - images.
 ```
 
-- [x] Better logging
-- [x] Allow empty metadata
-- [x] Sort posts by date.
-- [x] Date posted metadata.
-- [x] Summary text is too small and doesn't stand out.
-- [x] Deleted files are left in memory.
-- [x] Hyperlink colors are weird.
-- [x] Re-work the color scheme.
-- [x] Add time to logging.
-- [x] HTML, CSS & JS minification.
-- [x] Syntax highlighting https://github.com/trishume/syntect
-- [x] ~~Blurry transform scaling.~~
-- [x] Add a github logo in the bottom left or right. Mabye a 'Made by Bay ❤' or something.
-- [x] Cleanup margins, there are different ones for paragraphs, tables, code, heading etc..
-- [x] Write a package command that combines all files for shipping. Will need to fix paths too!
-- [x] LaTex support.
-- [x] Mobile support.
-- [x] `<sup>` should be styled a different color.
-- [x] Inline code is broken I think? \`inline code\`
-- [x] Cleanup iframe styling.
-- [x] Add `target="_blank"` to all `hrefs`.
-- [x] Back button. Currently there is no way to get to the home screen from a post.
-- [x] Minify `style.css`
+### TODO
+
+- [ ] Remove chrono from dependencies.
 - [ ] Github pages favicon
-- [ ] Compile math instead of rendering at runtime. (HARD, LOW PRIORITY)
-- [ ] Table of contents on right-side of post. (HARD, LOW PRIORITY)
-- [ ] Simplify reference system. I know zola has a system for it. (HARD, MEDIUM PRIORITY)
+- [ ] Compile math instead of rendering at runtime. 
+- [ ] Improve performance of syntax highlighting.
+- [ ] Table of contents on right-side of post. 
+- [ ] Use last modified date instead of blake3 hash (if it's faster).
+- [ ] Simplify reference system. I know zola has a system for it.
 - [ ] Since ID's are used a lot, they should be prefixed with something. When creating citations and in post links like [](#blog). There might be some overlap. So change, #post to #zx-post or something. Maybe id's can be localized or something?
 - [ ] Multiline summaries in post metadata.
-- [ ] Fix syntax highlighting theme.
+- [ ] Match syntax highlighting theme with site theme.
 - [ ] Delete compiled posts that aren't in the markdown list anymore.
-- [ ] All the margins are wrong especially around the footnotes.
-- [ ] Improve performance of syntax highlighting
+- [ ] Markdown files that reference images are not copied to `/site/img/`
+- [ ] Improve margins, especially around footnotes.
 - [ ] Add a nav bar or improve page navigation with better back button.
 - [ ] `html` files that are in `site/` but note `markdown/` will not be removed automatically.
-
-- [ ] The first h1 in a markdown file should probably be the heading.
+- [ ] The first h1 in a markdown file should probably be the heading instead of using metadata.
 - [ ] Just use the creation date instead of user defining it. We might not even need metadata in the markdown files.
 - [ ] Swap to MDC once it's stable.
 - [ ] Statically generate LaTex with MDC. 
 - [ ] Diagram/Graph support. Could use https://github.com/plotters-rs/plotters
+- [ ] Syntax highting with diffing
+      https://www.11ty.dev/docs/plugins/syntaxhighlight/
 
-h1 = 24 pixels
+   I really like the green `+` and red `-` that Eleventy does.
 
-h2 = 22 pixels
-
-h3 = 20 pixels
-
-h4 = 18 pixels
-
-h5 = 16 pixels
-
-h6 = 16 pixels
-
-https://stackoverflow.com/questions/55696808/why-do-h5-and-h6-have-smaller-font-sizes-than-p-in-most-user-agent-default
-
-Nice syntax highting with diffing
-https://www.11ty.dev/docs/plugins/syntaxhighlight/
-
-I really like the green `+` & red `-` that Eleventy does.
-
-```js
-+function myFunction() {
-   // …
--  return true;
- }
-```
+   ```js
+   +function myFunction() {
+      // …
+   -  return true;
+   }
+   ```

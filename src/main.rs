@@ -1,4 +1,3 @@
-#![feature(allocator_api)]
 use chrono::{DateTime, Datelike, FixedOffset, Utc};
 use mini::*;
 use std::{
