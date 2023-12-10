@@ -1,8 +1,2 @@
 /target
-
-!site/
-site/*
-!/site/assets
-!/site/img
-
 *.exe
