@@ -2,7 +2,7 @@
 
 ### Features
 
-- Simple and lightweight (single file, 500 LOC)
+- Simple and lightweight (single file, 400 LOC)
 - Hot reloading
 - Extended Markdown syntax with metadata
 - Syntax highlighting

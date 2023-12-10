@@ -103,7 +103,7 @@ pub fn highlight_line(code: &str) -> String {
 ```
 
 ```html
-<a id="post" href="~link~">
+<a id="post" href="<!-- link -->">
     <div id="title">
         <span id="hash">#</span>
         <span id="text"><!-- title --></span>

@@ -1,13 +1,19 @@
 use mini::*;
+use pulldown_cmark::{Options, Parser};
 use std::{
-    cmp::Ordering,
-    collections::HashMap,
-    error::Error,
-    ffi::OsStr,
     fs,
+    os::windows::fs::MetadataExt,
     path::{Path, PathBuf},
-    time::{Duration, Instant},
+    time::Duration,
 };
+use syntect::{
+    easy::HighlightLines,
+    highlighting::{Theme, ThemeSet},
+    html::{append_highlighted_html_for_styled_line, IncludeBackground},
+    parsing::SyntaxSet,
+    util::LinesWithEndings,
+};
+use winwalk::*;
 
 const POLL_DURATION: Duration = Duration::from_millis(250);
 
@@ -20,249 +26,191 @@ const TEMPLATE_INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\i
 const TEMPLATE_POST: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
 const TEMPLATE_ITEM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\item.html");
 
-const CSS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style.css");
-const CSS_MIN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style-min.css");
+// const CSS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style.css");
+// const CSS_MIN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style-min.css");
 
-#[cfg(feature = "minify")]
-fn minify(html: &str) -> Vec<u8> {
-    let mut cfg = minify_html::Cfg::spec_compliant();
-    cfg.keep_closing_tags = true;
-    cfg.keep_html_and_head_opening_tags = true;
-    cfg.minify_css = true;
-    cfg.minify_js = true;
-    minify_html::minify(html.as_bytes(), &cfg)
+struct Highlighter {
+    ss: SyntaxSet,
+    theme: Theme,
 }
 
-#[derive(Debug, PartialEq, Clone)]
-struct Hash(blake3::Hash);
-impl Default for Hash {
-    fn default() -> Self {
-        Self(blake3::Hash::from_bytes([0; 32]))
-    }
-}
+impl Highlighter {
+    fn highlight(&mut self, lang: &str, code: &str) -> String {
+        profile!();
+        let syntax = self
+            .ss
+            .find_syntax_by_token(&lang)
+            .unwrap_or_else(|| self.ss.find_syntax_plain_text());
+        let mut highlighter = HighlightLines::new(syntax, &self.theme);
+        let mut html = String::new();
 
-fn hash(bytes: &[u8]) -> Result<Hash, Box<dyn Error>> {
-    let mut hasher = blake3::Hasher::new();
-    hasher.update(bytes);
-    Ok(Hash(hasher.finalize()))
-}
-
-struct List {
-    posts: HashMap<PathBuf, Post>,
-    highligher: Highlighter,
-}
-
-impl List {
-    fn new() -> Self {
-        Self {
-            posts: HashMap::new(),
-            highligher: Highlighter::new(),
+        for line in LinesWithEndings::from(&code) {
+            let regions = highlighter.highlight_line(line, &self.ss).unwrap();
+            append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
+                .unwrap();
         }
+        html
     }
-    fn update(&mut self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
-        let files: Vec<PathBuf> = fs::read_dir(MARKDOWN)?
-            .flatten()
-            .map(|entry| entry.path())
-            .filter(|path| matches!(path.extension().and_then(OsStr::to_str), Some("md")))
-            .collect();
+}
 
-        let mut rebuild_list = false;
-        let (post_template, _) = &templates.post;
+fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
+    let config = file
+        .md
+        .get(3..)
+        .ok_or("Invalid metadata")
+        .unwrap()
+        .trim_start();
 
-        let posts = std::mem::take(&mut self.posts);
-        self.posts = posts
-            .into_iter()
-            .filter_map(|(k, v)| {
-                if files.contains(&k) {
-                    Some((k, v))
-                } else {
-                    rebuild_list = true;
-                    match fs::remove_file(&v.build_path) {
-                        Ok(_) => info!("Removed: {:?}", v.build_path),
-                        Err(err) => warn!("Failed to removed: {:?}\n{err}", v.build_path),
-                    };
-                    None
-                }
-            })
-            .collect();
+    let mut end = 0;
 
-        //Add the new posts
-        for path in files {
-            //Generate a hash for the file.
-            let file = fs::read_to_string(&path)?;
-            let hash = hash(file.as_bytes())?;
+    if let Some(e) = config.find("~~~") {
+        for line in config.split('\n') {
+            if line.starts_with("~~~") {
+                //NOTE: Config is offset by 4(zero index as 3)!
+                end = 4 + e + line.len();
+                break;
+            }
 
-            if let Some(post) = self.posts.get_mut(&path) {
-                //File is out of date.
-                if hash != post.hash {
-                    rebuild_list = true;
-                    match Post::new(&post_template, file, &path, hash, &self.highligher) {
-                        Ok(p) => *post = p,
-                        Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
-                    };
-                }
-            } else {
-                //File is new.
-                rebuild_list = true;
-                match Post::new(&post_template, file, &path, hash, &self.highligher) {
-                    Ok(post) => {
-                        self.posts.insert(path, post);
+            if let Some((k, v)) = line.split_once(':') {
+                let v = v.trim();
+                match k {
+                    "title" => {
+                        file.title.clear();
+                        file.title.push_str(v)
                     }
-                    Err(err) => warn!("Failed to compile: {path:?}\n{err}"),
-                };
+                    "summary" => {
+                        file.summary.clear();
+                        file.summary.push_str(v)
+                    }
+                    "date" => {
+                        let splits: Vec<&str> = v.split('/').collect();
+                        if splits.len() != 3 {
+                            error!("Invalid date: {} {:?}", v, &file.path);
+                            continue;
+                        }
+                        let d = &splits[0].parse::<usize>().unwrap();
+                        let m = &splits[1].parse::<usize>().unwrap();
+                        let year = &splits[2].parse::<usize>().unwrap();
+                        let month = match m {
+                            1 => "January",
+                            2 => "February",
+                            3 => "March",
+                            4 => "April",
+                            5 => "May",
+                            6 => "June",
+                            7 => "July",
+                            8 => "August",
+                            9 => "September",
+                            10 => "October",
+                            11 => "November",
+                            12 => "December",
+                            _ => unreachable!(),
+                        };
+
+                        //Ordinal suffix.
+                        let i = d % 10;
+                        let j = d % 100;
+                        let day = match i {
+                            1 if j != 11 => format!("{d}st"),
+                            2 if j != 12 => format!("{d}nd"),
+                            3 if j != 13 => format!("{d}rd"),
+                            _ => format!("{d}th"),
+                        };
+
+                        //Can't wait for the Y3K problem.
+                        file.index_date = format!("{day} {month} 20{year}");
+                        file.post_date = format!("{day} of {month}, 20{year}");
+                    }
+                    _ => continue,
+                }
             }
         }
-
-        if rebuild_list {
-            self.build_list(templates)?;
-        }
-
-        Ok(())
     }
-    fn build_list(&self, templates: &mut Templates) -> Result<(), Box<dyn Error>> {
-        let (list_template, _) = &templates.index;
-        let (list_item_template, _) = &templates.item;
 
-        let index = list_template
-            .find("<!-- posts -->")
-            .ok_or("Couldn't find <!-- posts -->")?;
+    let mut pathbuf = file.path.clone();
+    pathbuf.set_extension("html");
 
-        let mut template = list_template.replace("<!-- posts -->", "");
+    file.word_count = file.md[end..].split(|c: char| c.is_whitespace()).count();
+    file.read_time = file.word_count as f32 / 250.0;
 
-        let mut posts: Vec<&Post> = self.posts.values().collect();
+    let parser = Parser::new_ext(
+        &file.md[end..],
+        Options::ENABLE_FOOTNOTES
+            | Options::ENABLE_TABLES
+            | Options::ENABLE_STRIKETHROUGH
+            | Options::ENABLE_TASKLISTS,
+    );
 
-        // TODO: Implement sorting by d/m/y
-        posts.sort_by(|_a, _b| {
-            //
-            Ordering::Equal
-        });
+    let mut lang = String::new();
+    let mut code = false;
 
-        for post in posts {
-            let metadata = &post.metadata;
-            let list_item = list_item_template
-                .replace("~link~", &metadata.link_path)
-                .replace("<!-- title -->", &metadata.title)
-                .replace("<!-- date -->", &metadata.index_date)
-                .replace("<!-- read_time -->", &metadata.read_time())
-                .replace("<!-- word_count -->", &metadata.word_count())
-                .replace("<!-- summary -->", &metadata.summary);
-
-            template.insert_str(index, &list_item);
+    use pulldown_cmark::{CodeBlockKind, Event, Tag};
+    let parser = parser.map(|event| match event {
+        Event::Start(tag) => match tag {
+            Tag::CodeBlock(info) => match info {
+                CodeBlockKind::Fenced(fenced) => {
+                    code = true;
+                    lang = fenced.to_string();
+                    Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(fenced)))
+                }
+                CodeBlockKind::Indented => Event::Start(Tag::CodeBlock(info)),
+            },
+            _ => Event::Start(tag),
+        },
+        Event::End(tag) => match tag {
+            Tag::CodeBlock(info) => {
+                code = false;
+                Event::End(Tag::CodeBlock(info))
+            }
+            _ => Event::End(tag),
+        },
+        Event::Text(text) if code => {
+            if &lang == "math" {
+                todo!();
+            } else {
+                Event::Html(highlighter.highlight(&lang, &text).into())
+            }
         }
+        _ => event,
+    });
 
-        #[cfg(feature = "minify")]
-        let template = minify(&template);
+    file.html.clear();
+    pulldown_cmark::html::push_html(&mut file.html, parser);
 
-        fs::write(INDEX, template)?;
-        info!("Compiled: {}", INDEX);
+    //Generate the post using the metadata and html.
+    file.post = template
+        .replace("<!-- title -->", &file.title)
+        .replace("<!-- date -->", &file.post_date)
+        .replace("<!-- content -->", &file.html);
 
-        Ok(())
-    }
+    info!("Created new post {}", &file.build_path.display());
+    fs::write(&file.build_path, &file.post).unwrap();
 }
 
-#[derive(Debug)]
-struct Metadata {
+#[derive(Debug, Default)]
+struct File {
+    pub path: PathBuf,
+    pub build_path: PathBuf,
+    pub last_write: SystemTime,
+
+    pub md: String,
+    pub html: String,
+    pub post: String,
+
+    ///Date displayed on post.
+    pub post_date: String,
+    ///Date displayed on index.
+    pub index_date: String,
+
+    //Really these should be &'a str, but self referencing structs in Rust don't work.
     pub title: String,
     pub summary: String,
-    pub index_date: String,
-    pub post_date: String,
-    pub link_path: String,
+
     pub word_count: usize,
     pub read_time: f32,
-    pub end_position: usize,
 }
 
-impl Metadata {
-    fn new(file: &str, path: &Path) -> Result<Self, Box<dyn Error>> {
-        let config = file.get(3..).ok_or("Invalid metadata")?.trim_start();
-
-        let mut title = String::new();
-        let mut summary = String::new();
-        let mut index_date = String::new();
-        let mut post_date = String::new();
-
-        let mut end = 0;
-
-        if let Some(e) = config.find("~~~") {
-            for line in config.split('\n') {
-                if line.starts_with("~~~") {
-                    //NOTE: Config is offset by 4(zero index as 3)!
-                    end = 4 + e + line.len();
-                    break;
-                }
-
-                if let Some((k, v)) = line.split_once(':') {
-                    let v = v.trim();
-                    match k {
-                        "title" => title = v.to_string(),
-                        "summary" => summary = v.to_string(),
-                        "date" => {
-                            let splits: Vec<&str> = v.split('/').collect();
-                            if splits.len() != 3 {
-                                error!("Invalid date: {} {:?}", v, path);
-                                continue;
-                            }
-                            let d = &splits[0].parse::<usize>().unwrap();
-                            let m = &splits[1].parse::<usize>().unwrap();
-                            let year = &splits[2].parse::<usize>().unwrap();
-                            let month = match m {
-                                1 => "January",
-                                2 => "February",
-                                3 => "March",
-                                4 => "April",
-                                5 => "May",
-                                6 => "June",
-                                7 => "July",
-                                8 => "August",
-                                9 => "September",
-                                10 => "October",
-                                11 => "November",
-                                12 => "December",
-                                _ => unreachable!(),
-                            };
-
-                            //Ordinal suffix.
-                            let i = d % 10;
-                            let j = d % 100;
-                            let day = match i {
-                                1 if j != 11 => format!("{d}st"),
-                                2 if j != 12 => format!("{d}nd"),
-                                3 if j != 13 => format!("{d}rd"),
-                                _ => format!("{d}th"),
-                            };
-
-                            //Can't wait for the Y3K problem.
-                            index_date = format!("{day} {month} 20{year}");
-                            post_date = format!("{day} of {month}, 20{year}");
-                        }
-                        _ => continue,
-                    }
-                }
-            }
-        }
-
-        let mut pathbuf = path.to_path_buf();
-        pathbuf.set_extension("html");
-
-        //Rough estimate of the word count. Doesn't actually count alphanumerically.
-        let word_count = file[end..].split(|c: char| c.is_whitespace()).count();
-
-        Ok(Metadata {
-            title,
-            summary,
-            post_date,
-            index_date,
-            link_path: pathbuf
-                .file_name()
-                .ok_or("file_name")?
-                .to_str()
-                .ok_or("to_str")?
-                .to_string(),
-            read_time: word_count as f32 / 250.0,
-            word_count,
-            end_position: end,
-        })
-    }
+impl File {
     fn word_count(&self) -> String {
         if self.word_count != 1 {
             format!("{} words", self.word_count)
@@ -279,233 +227,151 @@ impl Metadata {
     }
 }
 
-use syntect::{
-    easy::HighlightLines,
-    highlighting::{Theme, ThemeSet},
-    html::{append_highlighted_html_for_styled_line, IncludeBackground},
-    parsing::SyntaxSet,
-    util::LinesWithEndings,
-};
-
-struct Highlighter {
-    ss: SyntaxSet,
-    theme: Theme,
+struct Template {
+    pub path: &'static str,
+    pub data: String,
+    pub last_write: u64,
 }
 
-impl Highlighter {
-    fn new() -> Self {
-        let ss = SyntaxSet::load_defaults_newlines();
-        let ts = ThemeSet::load_defaults();
-        let theme = ts.themes["base16-ocean.dark"].clone();
-
-        Self { ss, theme }
-    }
-
-    fn highlight(&self, lang: &str, code: &str) -> String {
-        let syntax = self
-            .ss
-            .find_syntax_by_token(&lang)
-            .unwrap_or_else(|| self.ss.find_syntax_plain_text());
-        let mut highlighter = HighlightLines::new(syntax, &self.theme);
-        let mut html = String::new();
-
-        for line in LinesWithEndings::from(&code) {
-            let regions = highlighter.highlight_line(line, &self.ss).unwrap();
-            append_highlighted_html_for_styled_line(&regions[..], IncludeBackground::No, &mut html)
-                .unwrap();
+impl Template {
+    pub fn update(&mut self, rebuild: &mut bool) {
+        let last_write = fs::metadata(self.path).unwrap().last_write_time();
+        if self.last_write != last_write {
+            *rebuild = true;
+            info!("Updated {}", self.path);
+            self.last_write = last_write;
+            self.data = fs::read_to_string(self.path).unwrap();
         }
-
-        html
     }
 }
 
-#[derive(Debug)]
-struct Post {
-    metadata: Metadata,
-    build_path: PathBuf,
-    hash: Hash,
-}
-
-impl Post {
-    fn new(
-        post_template: &str,
-        file: String,
-        path: &Path,
-        hash: Hash,
-        highligher: &Highlighter,
-    ) -> Result<Self, Box<dyn Error>> {
-        use pulldown_cmark::*;
-
-        //Read the markdown file.
-        // let file = fs::read_to_string(path)?;
-        let metadata = Metadata::new(&file, path)?;
-        let file = &file[metadata.end_position..].trim_start();
-
-        let options = Options::ENABLE_FOOTNOTES
-            | Options::ENABLE_TABLES
-            | Options::ENABLE_TABLES
-            | Options::ENABLE_TASKLISTS;
-
-        let parser = Parser::new_ext(file, options);
-        let mut lang = String::new();
-        let mut code = false;
-
-        let parser = parser.map(|event| match event {
-            Event::Start(tag) => match tag {
-                Tag::CodeBlock(info) => match info {
-                    CodeBlockKind::Fenced(fenced) => {
-                        code = true;
-                        lang = fenced.to_string();
-                        Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(fenced)))
-                    }
-                    CodeBlockKind::Indented => Event::Start(Tag::CodeBlock(info)),
-                },
-                _ => Event::Start(tag),
-            },
-            Event::End(tag) => match tag {
-                Tag::CodeBlock(info) => {
-                    code = false;
-                    Event::End(Tag::CodeBlock(info))
-                }
-                _ => Event::End(tag),
-            },
-            Event::Text(text) if code => {
-                // let text = if &lang == "math" {
-                // } else {
-                //     highligher.highlight(&lang, &text)
-                // };
-                let text = highligher.highlight(&lang, &text);
-                Event::Html(text.into())
-            }
-            _ => event,
-        });
-
-        let mut html = String::new();
-        pulldown_cmark::html::push_html(&mut html, parser);
-
-        //Generate the post using the metadata and html.
-        let post = post_template
-            .replace("<!-- title -->", &metadata.title)
-            .replace("<!-- date -->", &metadata.post_date)
-            .replace("<!-- content -->", &html);
-
-        //Convert "markdown/example.md" to "build/example.html"
-        let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
-        name.pop();
-        name.pop();
-        name.push_str("html");
-        let build_path = PathBuf::from(BUILD).join(name);
-
-        #[cfg(feature = "minify")]
-        let post = minify(&post);
-
-        fs::write(&build_path, post)?;
-        info!("Created new post: {path:?}");
-
-        Ok(Self {
-            metadata,
-            build_path,
-            hash,
-        })
+fn template(path: &'static str) -> Template {
+    //read_to_string reads the metadata. Then we read it again 🙄.
+    //Functions like default_read_to_end are private so we can't write our own.
+    let data = fs::read_to_string(path).unwrap();
+    let last_write = fs::metadata(path).unwrap().last_write_time();
+    Template {
+        path,
+        data,
+        last_write,
     }
 }
 
-struct Templates {
-    post: (String, Hash),
-    index: (String, Hash),
-    item: (String, Hash),
-}
+fn main() {
+    // defer_results!();
+    let mut files: Vec<File> = Vec::new();
+    let mut walk: Vec<DirEntry>;
+    let mut post = template(TEMPLATE_POST);
+    let mut index = template(TEMPLATE_INDEX);
+    let mut item = template(TEMPLATE_ITEM);
 
-impl Templates {
-    fn new() -> Result<Self, Box<dyn Error>> {
-        Ok(Self {
-            post: {
-                let file = fs::read_to_string(TEMPLATE_POST)?;
-                let hash = hash(file.as_bytes())?;
-                (file, hash)
-            },
-            index: {
-                let file = fs::read_to_string(TEMPLATE_INDEX)?;
-                let hash = hash(file.as_bytes())?;
-                (file, hash)
-            },
-            item: {
-                let file = fs::read_to_string(TEMPLATE_ITEM)?;
-                let hash = hash(file.as_bytes())?;
-                (file, hash)
-            },
-        })
-    }
-}
+    let ts = ThemeSet::load_defaults();
+    let mut highlighter = Highlighter {
+        ss: SyntaxSet::load_defaults_newlines(),
+        theme: ts.themes["base16-ocean.dark"].clone(),
+    };
 
-fn main() -> Result<(), Box<dyn Error>> {
-    //This will fail if the folder already exists.
-    let _ = fs::create_dir(BUILD);
-
-    #[cfg(feature = "minify")]
-    info!("Using feature \"minify\"");
-    info!("Watching files in {:?}", Path::new(MARKDOWN));
-
-    let mut t = Templates::new()?;
-    let mut posts = List::new();
-    let mut css = (String::new(), Hash::default());
-
-    let mut first = Some(Instant::now());
+    let mut rebuild = false;
 
     loop {
-        //Make sure the templates and `style-min.css` are up to date.
-        if build(CSS, &mut css, &mut false)? {
-            let css = &css.0;
-            #[cfg(feature = "minify")]
-            let css = minify(css);
+        post.update(&mut rebuild);
+        index.update(&mut rebuild);
+        item.update(&mut rebuild);
 
-            fs::write(&CSS_MIN, css)?;
+        walk = walkdir(MARKDOWN, 1)
+            .into_iter()
+            .flatten()
+            .filter(|file| !file.is_folder)
+            .collect();
+
+        if walk.len() != files.len() {
+            files.clear();
         }
 
-        //Re-build the posts.
-        if build(TEMPLATE_POST, &mut t.post, &mut false)? {
-            //Delete the old hashes and List::update() will do the work.
-            for (_, v) in posts.posts.iter_mut() {
-                v.hash = Hash::default();
+        for file in walk {
+            let f = files
+                .iter_mut()
+                .find(|f| f.path.as_path() == Path::new(&file.path));
+
+            match f {
+                //File has changes. Currenty there is no way to read a file without re-allocating.
+                Some(f) if f.last_write != file.last_write => {
+                    info!("Updated contents of {}", f.path.display());
+
+                    rebuild = true;
+                    f.last_write = file.last_write;
+                    f.md = fs::read_to_string(&f.path).unwrap();
+                    metadata(f, &post.data, &mut highlighter);
+                }
+                //File exists and has no changes.
+                Some(_) => {}
+                //File is new.
+                None => {
+                    rebuild = true;
+                    info!("Adding file {}", file.path);
+                    let path = PathBuf::from(&file.path);
+                    let mut file = File {
+                        md: fs::read_to_string(&file.path).unwrap(),
+                        html: String::new(),
+                        post: String::new(),
+                        // Convert "markdown/example.md" to "build/example.html"
+                        build_path: {
+                            let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
+                            name.pop();
+                            name.pop();
+                            name.push_str("html");
+                            PathBuf::from(BUILD).join(name)
+                        },
+                        path,
+                        last_write: file.last_write,
+                        post_date: String::new(),
+                        index_date: String::new(),
+                        title: String::new(),
+                        summary: String::new(),
+                        word_count: 0,
+                        read_time: 0.0,
+                    };
+                    metadata(&mut file, &post.data, &mut highlighter);
+                    files.push(file);
+                }
             }
         }
 
-        let mut rebuild_list = false;
+        if rebuild {
+            let index = &index.data;
+            let item = &item.data;
+            let i = index
+                .find("<!-- posts -->")
+                .expect("Couldn't find <!-- posts -->");
 
-        build(TEMPLATE_INDEX, &mut t.index, &mut rebuild_list)?;
-        build(TEMPLATE_ITEM, &mut t.item, &mut rebuild_list)?;
+            let mut template = index.replace("<!-- posts -->", "");
 
-        if rebuild_list {
-            posts.build_list(&mut t)?;
+            // TODO: Implement sorting by d/m/y
+            // files.sort_by(|_a, _b| {
+            //     Ordering::Equal
+            // });
+
+            for file in &files {
+                // let metadata = &post.metadata;
+                let item = item
+                    .replace("<!-- title -->", &file.title)
+                    .replace("<!-- summary -->", &file.summary)
+                    .replace("<!-- date -->", &file.index_date)
+                    .replace("<!-- read_time -->", &file.read_time())
+                    .replace("<!-- word_count -->", &file.word_count())
+                    .replace(
+                        "<!-- link -->",
+                        file.build_path.file_name().unwrap().to_str().unwrap(),
+                    );
+
+                template.insert_str(i, &item);
+            }
+
+            info!("Compiled index {}", INDEX);
+            fs::write(INDEX, template).unwrap();
+            rebuild = false;
         }
-
-        posts.update(&mut t)?;
-
-        if first.is_some() {
-            info!("Finished in {:?}", first.unwrap().elapsed());
-            first = None;
-        }
-
-        unsafe { core::arch::x86_64::_mm_pause() };
 
         std::thread::sleep(POLL_DURATION);
-    }
-}
-
-fn build(
-    path: &str,
-    template: &mut (String, Hash),
-    rebuild: &mut bool,
-) -> Result<bool, Box<dyn Error>> {
-    let file = fs::read_to_string(path)?;
-    let new_hash = hash(file.as_bytes())?;
-    if new_hash != template.1 {
-        info!("Compiled: {:?}", path);
-        template.0 = file;
-        template.1 = new_hash;
-        *rebuild = true;
-        Ok(true)
-    } else {
-        Ok(false)
     }
 }
