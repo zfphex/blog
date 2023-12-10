@@ -259,6 +259,10 @@ fn template(path: &'static str) -> Template {
 
 fn main() {
     // defer_results!();
+
+    //For "reasons" site/ is my github pages repo.
+    assert!(Path::new("site").exists());
+
     let mut files: Vec<File> = Vec::new();
     let mut walk: Vec<DirEntry>;
     let mut post = template(TEMPLATE_POST);
