@@ -13,6 +13,8 @@
 
 ### Design
 
+> Currently only Windows is supported.
+
 ```
 /src - site generator
 /markdown - stores markdown files that will be compiled
@@ -30,9 +32,68 @@ summary: This is a summary of the post
 date: dd/mm/yy
 ```
 
+### Templates
+
+HTML comments can be replaced with anything.
+This may seem slow, but it's not; at least compared to syntax highlighting.
+
+```
+replace (42 runs) src\main.rs:370
+  - total: 369.1µs
+  - mean:  8.788µs
+  - min:   6.2µs
+  - max:   32.7µs
+```
+
+```rs
+for file in &files {
+    let item = item
+        .replace("<!-- title -->", &file.title)
+        .replace("<!-- summary -->", &file.summary)
+        .replace("<!-- date -->", &file.index_date)
+        .replace("<!-- read_time -->", &file.read_time())
+        .replace("<!-- word_count -->", &file.word_count())
+        .replace(
+            "<!-- link -->",
+            file.build_path.file_name().unwrap().to_str().unwrap(),
+        );
+}
+```
+
+```html
+<a class="post" href="<!-- link -->">
+    <div id="title">
+        <span id="hash">#</span>
+        <span id="text"><!-- title --></span>
+    </div>
+    <div id="metadata">
+        <div id="metadata-left">
+            <svg>
+                <use xlink:href="#user" />
+            </svg>
+            <span style="padding-right: 4px">Bay</span>
+            <svg>
+                <use xlink:href="#calender" />
+            </svg>
+            <!-- date -->
+        </div>
+        <div id="metadata-right">
+            <svg>
+                <use xlink:href="#clock" />
+            </svg>
+            <!-- read_time -->
+        </div>
+    </div>
+    <summary>
+        <!-- summary -->
+    </summary>
+</a>
+```
+
 ### TODO
 
 - [ ] Github pages favicon
+- [ ] Strip tailwind colors in build css.
 - [ ] Compile math to MathML instead of rendering with javascript. 
 - [ ] Improve performance of syntax highlighting.
 - [ ] Table of contents on right-side of post. 

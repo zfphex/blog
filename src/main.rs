@@ -1,5 +1,4 @@
 use mini::*;
-use pulldown_cmark::{Options, Parser};
 use std::{
     fs,
     os::windows::fs::MetadataExt,
@@ -15,19 +14,15 @@ use syntect::{
 };
 use winwalk::*;
 
-const POLL_DURATION: Duration = Duration::from_millis(250);
+const POLL_DURATION: Duration = Duration::from_millis(33);
 
 const MARKDOWN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
 const BUILD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
-
 const INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\index.html");
-
 const TEMPLATE_INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index.html");
 const TEMPLATE_POST: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
 const TEMPLATE_ITEM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\item.html");
-
 // const CSS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style.css");
-// const CSS_MIN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style-min.css");
 
 struct Highlighter {
     ss: SyntaxSet,
@@ -53,13 +48,82 @@ impl Highlighter {
     }
 }
 
+#[derive(Debug, Default)]
+struct File {
+    pub path: PathBuf,
+    pub build_path: PathBuf,
+    pub last_write: SystemTime,
+
+    pub md: String,
+    pub html: String,
+    pub post: String,
+
+    ///Date displayed on post.
+    pub post_date: String,
+    ///Date displayed on index.
+    pub index_date: String,
+
+    //Really these should be &'a str, but self referencing structs in Rust don't work.
+    pub title: String,
+    pub summary: String,
+
+    pub word_count: usize,
+    pub read_time: f32,
+}
+
+impl File {
+    fn word_count(&self) -> String {
+        if self.word_count != 1 {
+            format!("{} words", self.word_count)
+        } else {
+            String::from("1 word")
+        }
+    }
+    fn read_time(&self) -> String {
+        if self.read_time < 1.0 {
+            String::from("&lt;1 minute read")
+        } else {
+            format!("{} minute read", self.read_time as usize)
+        }
+    }
+}
+
+struct Template {
+    pub path: &'static str,
+    pub data: String,
+    pub last_write: u64,
+}
+
+impl Template {
+    pub fn update(&mut self, rebuild: &mut bool) {
+        let last_write = fs::metadata(self.path).unwrap().last_write_time();
+        if self.last_write != last_write {
+            *rebuild = true;
+            info!("Updated {}", self.path);
+            self.last_write = last_write;
+            self.data = fs::read_to_string(self.path).unwrap();
+        }
+    }
+}
+
+fn template(path: &'static str) -> Template {
+    //read_to_string reads the metadata. Then we read it again 🙄.
+    //Functions like default_read_to_end are private so we can't write our own.
+    let data = fs::read_to_string(path).unwrap();
+    let last_write = fs::metadata(path).unwrap().last_write_time();
+    Template {
+        path,
+        data,
+        last_write,
+    }
+}
+
 fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
-    let config = file
-        .md
-        .get(3..)
-        .ok_or("Invalid metadata")
-        .unwrap()
-        .trim_start();
+    let Some(config) = file.md.get(3..) else {
+        error!("Invalid metadata {}", file.path.display());
+        return;
+    };
+    let config = config.trim_start();
 
     let mut end = 0;
 
@@ -133,6 +197,8 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
     file.word_count = file.md[end..].split(|c: char| c.is_whitespace()).count();
     file.read_time = file.word_count as f32 / 250.0;
 
+    use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
+
     let parser = Parser::new_ext(
         &file.md[end..],
         Options::ENABLE_FOOTNOTES
@@ -144,7 +210,6 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
     let mut lang = String::new();
     let mut code = false;
 
-    use pulldown_cmark::{CodeBlockKind, Event, Tag};
     let parser = parser.map(|event| match event {
         Event::Start(tag) => match tag {
             Tag::CodeBlock(info) => match info {
@@ -183,78 +248,7 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
         .replace("<!-- date -->", &file.post_date)
         .replace("<!-- content -->", &file.html);
 
-    info!("Created new post {}", &file.build_path.display());
     fs::write(&file.build_path, &file.post).unwrap();
-}
-
-#[derive(Debug, Default)]
-struct File {
-    pub path: PathBuf,
-    pub build_path: PathBuf,
-    pub last_write: SystemTime,
-
-    pub md: String,
-    pub html: String,
-    pub post: String,
-
-    ///Date displayed on post.
-    pub post_date: String,
-    ///Date displayed on index.
-    pub index_date: String,
-
-    //Really these should be &'a str, but self referencing structs in Rust don't work.
-    pub title: String,
-    pub summary: String,
-
-    pub word_count: usize,
-    pub read_time: f32,
-}
-
-impl File {
-    fn word_count(&self) -> String {
-        if self.word_count != 1 {
-            format!("{} words", self.word_count)
-        } else {
-            String::from("1 word")
-        }
-    }
-    fn read_time(&self) -> String {
-        if self.read_time < 1.0 {
-            String::from("&lt;1 minute read")
-        } else {
-            format!("{} minute read", self.read_time as usize)
-        }
-    }
-}
-
-struct Template {
-    pub path: &'static str,
-    pub data: String,
-    pub last_write: u64,
-}
-
-impl Template {
-    pub fn update(&mut self, rebuild: &mut bool) {
-        let last_write = fs::metadata(self.path).unwrap().last_write_time();
-        if self.last_write != last_write {
-            *rebuild = true;
-            info!("Updated {}", self.path);
-            self.last_write = last_write;
-            self.data = fs::read_to_string(self.path).unwrap();
-        }
-    }
-}
-
-fn template(path: &'static str) -> Template {
-    //read_to_string reads the metadata. Then we read it again 🙄.
-    //Functions like default_read_to_end are private so we can't write our own.
-    let data = fs::read_to_string(path).unwrap();
-    let last_write = fs::metadata(path).unwrap().last_write_time();
-    Template {
-        path,
-        data,
-        last_write,
-    }
 }
 
 fn main() {
@@ -276,6 +270,9 @@ fn main() {
     };
 
     let mut rebuild = false;
+    let md = std::ffi::OsStr::new("md");
+    #[allow(unused)]
+    let html = std::ffi::OsStr::new("html");
 
     loop {
         post.update(&mut rebuild);
@@ -286,10 +283,24 @@ fn main() {
             .into_iter()
             .flatten()
             .filter(|file| !file.is_folder)
+            .filter(|file| file.extension() == Some(&md))
             .collect();
 
         if walk.len() != files.len() {
             files.clear();
+
+            //NOTE: I'd rather do this manually for now, I don't like force deleting files.
+
+            //Delete all the old html files.
+            // for file in walkdir(BUILD, 1)
+            //     .into_iter()
+            //     .flatten()
+            //     .filter(|file| !file.is_folder)
+            //     .filter(|file| file.extension() == Some(&html))
+            // {
+            //     info!("Removed file {}", &file.path);
+            //     fs::remove_file(&file.path).unwrap();
+            // }
         }
 
         for file in walk {
@@ -356,7 +367,6 @@ fn main() {
             // });
 
             for file in &files {
-                // let metadata = &post.metadata;
                 let item = item
                     .replace("<!-- title -->", &file.title)
                     .replace("<!-- summary -->", &file.summary)
@@ -376,6 +386,7 @@ fn main() {
             rebuild = false;
         }
 
+        std::hint::spin_loop();
         std::thread::sleep(POLL_DURATION);
     }
 }
