@@ -14,7 +14,8 @@ use syntect::{
 };
 use winwalk::*;
 
-const POLL_DURATION: Duration = Duration::from_millis(33);
+const POLL_DURATION: Duration = Duration::from_millis(66);
+const METADATA_SEPERATOR: &str = "~~~";
 
 const MARKDOWN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
 const BUILD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
@@ -118,89 +119,90 @@ fn template(path: &'static str) -> Template {
     }
 }
 
+///Read post metadata, highlight code and create html file.
 fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
-    let Some(config) = file.md.get(3..) else {
-        error!("Invalid metadata {}", file.path.display());
-        return;
+    //Find the opening `~~~`.
+    if file.md.get(..3) != Some(METADATA_SEPERATOR) {
+        return error!("Invalid metadata {}", file.path.display());
+    }
+
+    let md = &file.md[3..];
+
+    //Find the closing `~~~`.
+    let Some(end) = md.find(METADATA_SEPERATOR) else {
+        return error!("Invalid metadata {}", file.path.display());
     };
-    let config = config.trim_start();
 
-    let mut end = 0;
-
-    if let Some(e) = config.find("~~~") {
-        for line in config.split('\n') {
-            if line.starts_with("~~~") {
-                //NOTE: Config is offset by 4(zero index as 3)!
-                end = 4 + e + line.len();
-                break;
-            }
-
-            if let Some((k, v)) = line.split_once(':') {
-                let v = v.trim();
-                match k {
-                    "title" => {
-                        file.title.clear();
-                        file.title.push_str(v)
-                    }
-                    "summary" => {
-                        file.summary.clear();
-                        file.summary.push_str(v)
-                    }
-                    "date" => {
-                        let splits: Vec<&str> = v.split('/').collect();
-                        if splits.len() != 3 {
-                            error!("Invalid date: {} {:?}", v, &file.path);
-                            continue;
-                        }
-                        let d = &splits[0].parse::<usize>().unwrap();
-                        let m = &splits[1].parse::<usize>().unwrap();
-                        let year = &splits[2].parse::<usize>().unwrap();
-                        let month = match m {
-                            1 => "January",
-                            2 => "February",
-                            3 => "March",
-                            4 => "April",
-                            5 => "May",
-                            6 => "June",
-                            7 => "July",
-                            8 => "August",
-                            9 => "September",
-                            10 => "October",
-                            11 => "November",
-                            12 => "December",
-                            _ => unreachable!(),
-                        };
-
-                        //Ordinal suffix.
-                        let i = d % 10;
-                        let j = d % 100;
-                        let day = match i {
-                            1 if j != 11 => format!("{d}st"),
-                            2 if j != 12 => format!("{d}nd"),
-                            3 if j != 13 => format!("{d}rd"),
-                            _ => format!("{d}th"),
-                        };
-
-                        //Can't wait for the Y3K problem.
-                        file.index_date = format!("{day} {month} 20{year}");
-                        file.post_date = format!("{day} of {month}, 20{year}");
-                    }
-                    _ => continue,
+    for line in md[..end].split('\n') {
+        if let Some((k, v)) = line.split_once(':') {
+            let v = v.trim();
+            // info!("{k}: {v}");
+            match k {
+                "title" => {
+                    file.title.clear();
+                    file.title.push_str(v)
                 }
+                "summary" => {
+                    file.summary.clear();
+                    file.summary.push_str(v)
+                }
+                "date" => {
+                    let splits: Vec<&str> = v.split('/').collect();
+                    if splits.len() != 3 {
+                        error!("Invalid date: {} {:?}", v, &file.path);
+                        continue;
+                    }
+                    let d = &splits[0].parse::<usize>().unwrap();
+                    let m = &splits[1].parse::<usize>().unwrap();
+                    let year = &splits[2].parse::<usize>().unwrap();
+                    let month = match m {
+                        1 => "January",
+                        2 => "February",
+                        3 => "March",
+                        4 => "April",
+                        5 => "May",
+                        6 => "June",
+                        7 => "July",
+                        8 => "August",
+                        9 => "September",
+                        10 => "October",
+                        11 => "November",
+                        12 => "December",
+                        _ => unreachable!(),
+                    };
+
+                    //Ordinal suffix.
+                    let i = d % 10;
+                    let j = d % 100;
+                    let day = match i {
+                        1 if j != 11 => format!("{d}st"),
+                        2 if j != 12 => format!("{d}nd"),
+                        3 if j != 13 => format!("{d}rd"),
+                        _ => format!("{d}th"),
+                    };
+
+                    //Can't wait for the Y3K problem.
+                    file.index_date = format!("{day} {month} 20{year}");
+                    file.post_date = format!("{day} of {month}, 20{year}");
+                }
+                _ => continue,
             }
         }
     }
 
+    //Get the user content excluding the metadata.
+    let md = &md[end + METADATA_SEPERATOR.len()..];
+
     let mut pathbuf = file.path.clone();
     pathbuf.set_extension("html");
 
-    file.word_count = file.md[end..].split(|c: char| c.is_whitespace()).count();
+    file.word_count = md.split(|c: char| c.is_whitespace()).count();
     file.read_time = file.word_count as f32 / 250.0;
 
     use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
 
     let parser = Parser::new_ext(
-        &file.md[end..],
+        &md,
         Options::ENABLE_FOOTNOTES
             | Options::ENABLE_TABLES
             | Options::ENABLE_STRIKETHROUGH

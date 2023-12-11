@@ -8,7 +8,6 @@
 - Syntax highlighting
 - LaTeX Support
 - Template system (can embed anything directly into html)
-- Automatic minification
 - 100/100 Lighthouse performance
 
 ### Design
