@@ -177,7 +177,7 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
                         };
 
                         //Can't wait for the Y3K problem.
-                        file.index_date = format!("{day} {month} 20{year}");
+                        file.index_date = format!("{day} {month}, 20{year}");
                         file.post_date = format!("{day} of {month}, 20{year}");
                     }
                     _ => continue,

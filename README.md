@@ -109,3 +109,4 @@ for file in &files {
 - [ ] The first h1 in a markdown file should probably be the heading instead of using metadata.
 - [ ] Just use the creation date instead of user defining it. We might not even need metadata in the markdown files.
 - [ ] Diagram/Graph support. Could use https://github.com/plotters-rs/plotters
+- [ ] Move github icon and back button to center of screen when page is too small.
