@@ -9,6 +9,12 @@ minify = []
 
 [dependencies]
 pulldown-cmark = { version = "0.9.3" }
-syntect = "5.1.0"
-mini = { path = "../mini", version = "0.1.0", features = ["profile"] }
+syntect = { version = "5.2.0", default-features = false, features = [
+    "default-syntaxes",
+    "default-themes",
+    "html",
+    "parsing",
+    "regex-onig",
+] }
+mini = { path = "../mini", version = "0.1.0" }
 winwalk = { version = "0.2.2", path = "../winwalk" }
