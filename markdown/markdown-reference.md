@@ -1,6 +1,6 @@
 ~~~
 title: Markdown Reference
-date: 10/01/23
+date: 10/02/2025
 ~~~
 
 Common text

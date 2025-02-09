@@ -126,7 +126,8 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
     let len = SEPERATOR.len();
     let body = if file.md.get(..len) == Some(SEPERATOR) {
         let Some(end) = file.md[len..].find(SEPERATOR) else {
-            return error!("Invalid metadata {}", file.path.display());
+            error!("Invalid metadata {}", file.path.display());
+            return;
         };
 
         for line in file.md[len..end + len].split('\n') {
@@ -144,12 +145,23 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
                     "date" => {
                         let splits: Vec<&str> = v.split('/').collect();
                         if splits.len() != 3 {
-                            error!("Invalid date: {} {:?}", v, &file.path);
+                            error!("Invalid date: '{}' {}", v, &file.path.display());
                             continue;
                         }
-                        let d = &splits[0].parse::<usize>().unwrap();
-                        let m = &splits[1].parse::<usize>().unwrap();
-                        let year = &splits[2].parse::<usize>().unwrap();
+                        let Ok(d) = &splits[0].parse::<usize>() else {
+                            continue;
+                        };
+                        let Ok(m) = &splits[1].parse::<usize>() else {
+                            continue;
+                        };
+                        let Ok(year) = &splits[2].parse::<usize>() else {
+                            error!("Invalid date: '{}' {}", v, &file.path.display());
+                            continue;
+                        };
+                        if *year < 1000 {
+                            error!("Invalid year: '{}' {}", v, &file.path.display());
+                            continue;
+                        }
                         let month = match m {
                             1 => "January",
                             2 => "February",
@@ -176,9 +188,8 @@ fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
                             _ => format!("{d}th"),
                         };
 
-                        //Can't wait for the Y3K problem.
-                        file.index_date = format!("{day} {month}, 20{year}");
-                        file.post_date = format!("{day} of {month}, 20{year}");
+                        file.index_date = format!("{day} {month}, {year}");
+                        file.post_date = format!("{day} of {month}, {year}");
                     }
                     _ => continue,
                 }
