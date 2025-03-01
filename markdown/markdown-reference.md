@@ -32,6 +32,8 @@ _Emphasized text_
 | Sub-heading 3 | Item 3 |
 | Sub-heading 4 | Item 4 |
 
+</br>
+
 | Left aligned Header | Right aligned Header | Center aligned Header |
 | :------------------ | -------------------: | :-------------------: |
 | Content Cell        |         Content Cell |     Content Cell      |
@@ -117,10 +119,6 @@ pub fn highlight_line(code: &str) -> String {
 ---
 
 <lite-youtube style="border-radius: 18px;" videoid="jNQXAC9IVRw"></lite-youtube>
-
-**Image**
-
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/1200px-Colosseo_2020.jpg" width="500" height="auto" />
 
 **Centered Image**
 
