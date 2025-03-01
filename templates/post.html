@@ -48,8 +48,12 @@
         object-fit: contain;
     }
 
+    /* TODO: Now that the title is a link to the home page. */
+    /* Add some kind of highlight to show the user can click on it. */
     #title {
         font-size: 44px;
+        font-weight: bold;
+        color: var(--text);
         line-height: 100%;
         margin-top: 16px;
         margin-bottom: 0;
@@ -70,61 +74,25 @@
         margin-left: auto;
         margin-right: auto;
     }
-
-    #back-min {
-        display: none;
-    }
-
-    #back,
-    #back-min {
-        color: var(--text);
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        margin-bottom: 8px;
-        margin-left: 8px;
-        font-size: 20px;
-        border-bottom: 2px solid var(--accent);
-    }
-
-    #back:hover,
-    #back-min:hover {
-        color: var(--neutral-400);
-    }
-
-    @media screen and (max-width: 1150px) {
-        #back {
-            display: none;
-        }
-    }
 </style>
 
 <body>
-    <div id="top-bar"></div>
-
     <div id="grid">
         <div id="left"></div>
-
         <div id="center" style="padding: 0;"></div>
-
         <div id="right"></div>
-
         <div id="bottom-left"></div>
-
         <div id="bottom-middle">
             <div id="post">
-                <h1 id="title">
+                <a id="title" href="index.html">
                     <!-- title -->
                     <div id="metadata">Posted <time><!-- date --></time></div>
-                </h1>
+                </a>
                 <!-- content -->
             </div>
         </div>
-
         <div id="bottom-right"></div>
     </div>
-
-    <a id="back" href="index.html">&lt;- Back</a>
 </body>
 
 </html>

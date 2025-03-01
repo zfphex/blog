@@ -1,7 +1,7 @@
-~~~
+<!--
 title: Markdown Reference
 date: 10/02/2025
-~~~
+-->
 
 Common text
 
@@ -9,9 +9,9 @@ _Emphasized text_
 
 ~~Strikethrough text~~
 
-__Strong text__
+**Strong text**
 
-___Strong emphasized text___
+**_Strong emphasized text_**
 
 # H1
 
@@ -32,7 +32,6 @@ ___Strong emphasized text___
 | Sub-heading 3 | Item 3 |
 | Sub-heading 4 | Item 4 |
 
-
 | Left aligned Header | Right aligned Header | Center aligned Header |
 | :------------------ | -------------------: | :-------------------: |
 | Content Cell        |         Content Cell |     Content Cell      |
@@ -43,18 +42,18 @@ ___Strong emphasized text___
 - Item 3
 
 * Bullet list
-    * Nested bullet
-        * Sub-nested bullet etc
+  - Nested bullet
+    - Sub-nested bullet etc
 * Bullet list item 2
 
 1. A numbered list
-    1. A nested numbered list
-    2. Which is numbered
+   1. A nested numbered list
+   2. Which is numbered
 2. Which is numbered
 
-
 > Blockquote
->> Nested blockquote
+>
+> > Nested blockquote
 
 ---
 
@@ -104,15 +103,14 @@ pub fn highlight_line(code: &str) -> String {
 
 ```html
 <a id="post" href="<!-- link -->">
-    <div id="title">
-        <span id="hash">#</span>
-        <span id="text"><!-- title --></span>
-    </div>
-    <div id="metadata">
-    </div>
-    <summary>
-        <!-- summary -->
-    </summary>
+  <div id="title">
+    <span id="hash">#</span>
+    <span id="text"><!-- title --></span>
+  </div>
+  <div id="metadata"></div>
+  <summary>
+    <!-- summary -->
+  </summary>
 </a>
 ```
 

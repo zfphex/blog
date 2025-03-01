@@ -3,9 +3,9 @@ name = "blog"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
 minify = []
+# TODO: Feature flags are broken
 profile = ["mini/profile"]
 info = ["mini/info"]
 warn = ["mini/warn"]
@@ -20,5 +20,5 @@ syntect = { version = "5.2.0", default-features = false, features = [
     "parsing",
     "regex-onig",
 ] }
-mini = { path = "../mini", version = "0.1.0" }
+mini = { path = "../mini", version = "0.1.0", features = ["info", "profile"] }
 winwalk = { version = "0.2.2", path = "../winwalk" }

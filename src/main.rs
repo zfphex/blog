@@ -1,6 +1,8 @@
+#![allow(dead_code)]
 use mini::*;
 use std::{
-    fs,
+    ffi::OsStr,
+    fs::{metadata, read_to_string},
     os::windows::fs::MetadataExt,
     path::{Path, PathBuf},
     time::Duration,
@@ -14,15 +16,11 @@ use syntect::{
 };
 use winwalk::*;
 
-const POLL_DURATION: Duration = Duration::from_millis(66);
-
-const MARKDOWN: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
-const BUILD: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
-const INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\index.html");
-const TEMPLATE_INDEX: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index.html");
-const TEMPLATE_POST: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
-const TEMPLATE_ITEM: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\item.html");
-// const CSS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\assets\\style.css");
+const USER_MARKDOWN_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
+const POST_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
+const INDEX_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index.html");
+const INDEX_ITEM_TEMPLATE_PATH: &str =
+    concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index_item.html");
 
 struct Highlighter {
     ss: SyntaxSet,
@@ -30,6 +28,13 @@ struct Highlighter {
 }
 
 impl Highlighter {
+    fn new() -> Self {
+        let ts = ThemeSet::load_defaults();
+        Self {
+            ss: SyntaxSet::load_defaults_newlines(),
+            theme: ts.themes["base16-ocean.dark"].clone(),
+        }
+    }
     fn highlight(&mut self, lang: &str, code: &str) -> String {
         profile!();
         let syntax = self
@@ -48,30 +53,222 @@ impl Highlighter {
     }
 }
 
-#[derive(Debug, Default)]
-struct File {
-    pub path: PathBuf,
-    pub build_path: PathBuf,
-    pub last_write: SystemTime,
-
-    pub md: String,
-    pub html: String,
-    pub post: String,
-
-    ///Date displayed on post.
-    pub post_date: String,
-    ///Date displayed on index.
-    pub index_date: String,
-
-    //Really these should be &'a str, but self referencing structs in Rust don't work.
-    pub title: String,
-    pub summary: String,
-
-    pub word_count: usize,
-    pub read_time: f32,
+#[derive(Debug, Clone)]
+struct Template {
+    path: &'static str,
+    data: String,
+    last_write: u64,
 }
 
-impl File {
+impl Template {
+    fn new(path: &'static str) -> Self {
+        Self {
+            data: read_to_string(path).unwrap(),
+            last_write: metadata(path).unwrap().last_write_time(),
+            path,
+        }
+    }
+    fn update(&mut self) -> bool {
+        let last_write = metadata(self.path).unwrap().last_write_time();
+        if self.last_write != last_write {
+            info!("Building template {}", self.path);
+            self.last_write = last_write;
+            self.data = read_to_string(self.path).unwrap();
+            true
+        } else {
+            false
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct Post {
+    path: PathBuf,
+    build_path: PathBuf,
+    last_write: u64,
+    post_date: String,
+    index_date: String,
+    title: String,
+    summary: String,
+    word_count: usize,
+    read_time: f32,
+}
+
+impl Post {
+    const BUILD_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
+
+    fn new(path: &Path, post_template: &Template, highlighter: &mut Highlighter) -> Option<Self> {
+        info!("Building post {}", path.to_string_lossy());
+
+        // Convert "markdown/example.md" to "build/example.html"
+        let build_path = {
+            let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
+            name.pop();
+            name.pop();
+            name.push_str("html");
+            PathBuf::from(Self::BUILD_PATH).join(name)
+        };
+        let md = read_to_string(&path).unwrap();
+        let mut title = String::new();
+        let mut html = String::new();
+        let mut post_date = String::new();
+        let mut index_date = String::new();
+        let mut summary = String::new();
+
+        const START_SEPERATOR: &str = "<!--";
+        const END_SEPERATOR: &str = "-->";
+        //Find the opening `<!--`
+        let body = if md.get(..START_SEPERATOR.len()) == Some(START_SEPERATOR) {
+            let Some(end) = md[START_SEPERATOR.len()..].find(END_SEPERATOR) else {
+                error!("Invalid metadata {}", path.display());
+                return None;
+            };
+
+            for line in md[START_SEPERATOR.len()..end + END_SEPERATOR.len()].split('\n') {
+                if let Some((k, v)) = line.split_once(':') {
+                    let v = v.trim();
+                    match k {
+                        "title" => {
+                            title.clear();
+                            title.push_str(v)
+                        }
+                        "summary" => {
+                            summary.clear();
+                            summary.push_str(v)
+                        }
+                        "date" => {
+                            let splits: Vec<&str> = v.split('/').collect();
+                            if splits.len() != 3 {
+                                error!("Invalid date: '{}' {}", v, &path.display());
+                                continue;
+                            }
+                            let Ok(d) = &splits[0].parse::<usize>() else {
+                                continue;
+                            };
+                            let Ok(m) = &splits[1].parse::<usize>() else {
+                                continue;
+                            };
+                            let Ok(year) = &splits[2].parse::<usize>() else {
+                                error!("Invalid date: '{}' {}", v, &path.display());
+                                continue;
+                            };
+                            if *year < 1000 {
+                                error!("Invalid year: '{}' {}", v, &path.display());
+                                continue;
+                            }
+                            let month = match m {
+                                1 => "January",
+                                2 => "February",
+                                3 => "March",
+                                4 => "April",
+                                5 => "May",
+                                6 => "June",
+                                7 => "July",
+                                8 => "August",
+                                9 => "September",
+                                10 => "October",
+                                11 => "November",
+                                12 => "December",
+                                _ => unreachable!(),
+                            };
+
+                            //Ordinal suffix.
+                            let i = d % 10;
+                            let j = d % 100;
+                            let day = match i {
+                                1 if j != 11 => format!("{d}st"),
+                                2 if j != 12 => format!("{d}nd"),
+                                3 if j != 13 => format!("{d}rd"),
+                                _ => format!("{d}th"),
+                            };
+
+                            index_date = format!("{day} {month}, {year}");
+                            post_date = format!("{day} of {month}, {year}");
+                        }
+                        _ => continue,
+                    }
+                }
+            }
+
+            //Get the user content excluding the metadata.
+            //Add the start '<!--' then the ending position plus '-->'.
+            &md[START_SEPERATOR.len() + end + END_SEPERATOR.len()..]
+        } else {
+            &md
+        };
+
+        let mut pathbuf = path.to_path_buf();
+        pathbuf.set_extension("html");
+
+        let word_count = body.split(|c: char| c.is_whitespace()).count();
+        let read_time = word_count as f32 / 250.0;
+
+        use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
+
+        let parser = Parser::new_ext(
+            &body,
+            Options::ENABLE_FOOTNOTES
+                | Options::ENABLE_TABLES
+                | Options::ENABLE_STRIKETHROUGH
+                | Options::ENABLE_TASKLISTS,
+        );
+
+        let mut lang = String::new();
+        let mut code = false;
+
+        let parser = parser.map(|event| match event {
+            Event::Start(tag) => match tag {
+                Tag::CodeBlock(info) => match info {
+                    CodeBlockKind::Fenced(fenced) => {
+                        code = true;
+                        lang = fenced.to_string();
+                        Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(fenced)))
+                    }
+                    CodeBlockKind::Indented => Event::Start(Tag::CodeBlock(info)),
+                },
+                _ => Event::Start(tag),
+            },
+            Event::End(tag) => match tag {
+                Tag::CodeBlock(info) => {
+                    code = false;
+                    Event::End(Tag::CodeBlock(info))
+                }
+                _ => Event::End(tag),
+            },
+            Event::Text(text) if code => {
+                if &lang == "math" {
+                    todo!();
+                } else {
+                    Event::Html(highlighter.highlight(&lang, &text).into())
+                }
+            }
+            _ => event,
+        });
+
+        html.clear();
+        pulldown_cmark::html::push_html(&mut html, parser);
+
+        //Generate the post using the metadata and html.
+        let post = post_template
+            .data
+            .replace("<!-- title -->", &title)
+            .replace("<!-- date -->", &post_date)
+            .replace("<!-- content -->", &html);
+
+        std::fs::write(&build_path, &post).unwrap();
+
+        Some(Self {
+            path: PathBuf::from(path),
+            last_write: metadata(path).unwrap().last_write_time(),
+            build_path,
+            post_date,
+            index_date,
+            title,
+            summary,
+            word_count,
+            read_time,
+        })
+    }
     fn word_count(&self) -> String {
         if self.word_count != 1 {
             format!("{} words", self.word_count)
@@ -86,223 +283,107 @@ impl File {
             format!("{} minute read", self.read_time as usize)
         }
     }
-}
-
-struct Template {
-    pub path: &'static str,
-    pub data: String,
-    pub last_write: u64,
-}
-
-impl Template {
-    pub fn update(&mut self, rebuild: &mut bool) {
-        let last_write = fs::metadata(self.path).unwrap().last_write_time();
-        if self.last_write != last_write {
-            *rebuild = true;
-            info!("Updated {}", self.path);
-            self.last_write = last_write;
-            self.data = fs::read_to_string(self.path).unwrap();
+    fn update(&mut self, post_template: &Template, highlighter: &mut Highlighter) -> bool {
+        let last_write = metadata(&self.path).unwrap().last_write_time();
+        if last_write != self.last_write {
+            info!("Building post {}", self.path.to_string_lossy());
+            if let Some(new) = Self::new(&self.path, post_template, highlighter) {
+                *self = new;
+            }
+            true
+        } else {
+            false
         }
     }
 }
 
-fn template(path: &'static str) -> Template {
-    //read_to_string reads the metadata. Then we read it again 🙄.
-    //Functions like default_read_to_end are private so we can't write our own.
-    let data = fs::read_to_string(path).unwrap();
-    let last_write = fs::metadata(path).unwrap().last_write_time();
-    Template {
-        path,
-        data,
-        last_write,
+#[derive(Debug, Clone)]
+struct Posts {
+    posts: Vec<Post>,
+}
+
+impl Posts {
+    fn new(
+        file_watcher: &FileWatcher,
+        post_template: &Template,
+        highlighter: &mut Highlighter,
+    ) -> Self {
+        Self {
+            posts: file_watcher
+                .files
+                .iter()
+                .flat_map(|file| Post::new(Path::new(&file.path), post_template, highlighter))
+                .collect(),
+        }
     }
 }
 
-///Read post metadata, highlight code and create html file.
-fn metadata(file: &mut File, template: &str, highlighter: &mut Highlighter) {
-    const SEPERATOR: &str = "~~~";
+struct Index {}
 
-    //Find the opening `~~~`.
-    let len = SEPERATOR.len();
-    let body = if file.md.get(..len) == Some(SEPERATOR) {
-        let Some(end) = file.md[len..].find(SEPERATOR) else {
-            error!("Invalid metadata {}", file.path.display());
-            return;
-        };
+impl Index {
+    const PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\index.html");
 
-        for line in file.md[len..end + len].split('\n') {
-            if let Some((k, v)) = line.split_once(':') {
-                let v = v.trim();
-                match k {
-                    "title" => {
-                        file.title.clear();
-                        file.title.push_str(v)
-                    }
-                    "summary" => {
-                        file.summary.clear();
-                        file.summary.push_str(v)
-                    }
-                    "date" => {
-                        let splits: Vec<&str> = v.split('/').collect();
-                        if splits.len() != 3 {
-                            error!("Invalid date: '{}' {}", v, &file.path.display());
-                            continue;
-                        }
-                        let Ok(d) = &splits[0].parse::<usize>() else {
-                            continue;
-                        };
-                        let Ok(m) = &splits[1].parse::<usize>() else {
-                            continue;
-                        };
-                        let Ok(year) = &splits[2].parse::<usize>() else {
-                            error!("Invalid date: '{}' {}", v, &file.path.display());
-                            continue;
-                        };
-                        if *year < 1000 {
-                            error!("Invalid year: '{}' {}", v, &file.path.display());
-                            continue;
-                        }
-                        let month = match m {
-                            1 => "January",
-                            2 => "February",
-                            3 => "March",
-                            4 => "April",
-                            5 => "May",
-                            6 => "June",
-                            7 => "July",
-                            8 => "August",
-                            9 => "September",
-                            10 => "October",
-                            11 => "November",
-                            12 => "December",
-                            _ => unreachable!(),
-                        };
+    fn new(index_item_template: &Template, index_template: &Template, posts: &Posts) -> Self {
+        let index_template = &index_template.data;
+        let item_template = &index_item_template.data;
+        let i = index_template
+            .find("<!-- posts -->")
+            .expect("Couldn't find <!-- posts -->");
 
-                        //Ordinal suffix.
-                        let i = d % 10;
-                        let j = d % 100;
-                        let day = match i {
-                            1 if j != 11 => format!("{d}st"),
-                            2 if j != 12 => format!("{d}nd"),
-                            3 if j != 13 => format!("{d}rd"),
-                            _ => format!("{d}th"),
-                        };
+        // TODO: Implement sorting by d/m/y
+        // files.sort_by(|_a, _b| {
+        //     Ordering::Equal
+        // });
 
-                        file.index_date = format!("{day} {month}, {year}");
-                        file.post_date = format!("{day} of {month}, {year}");
-                    }
-                    _ => continue,
-                }
-            }
+        let mut template = index_template.replace("<!-- posts -->", "");
+
+        for post in &posts.posts {
+            let item = item_template
+                .replace("<!-- title -->", &post.title)
+                .replace("<!-- summary -->", &post.summary)
+                .replace("<!-- date -->", &post.index_date)
+                .replace("<!-- read_time -->", &post.read_time())
+                .replace("<!-- word_count -->", &post.word_count())
+                .replace(
+                    "<!-- link -->",
+                    post.build_path.file_name().unwrap().to_str().unwrap(),
+                );
+
+            template.insert_str(i, &item);
         }
 
-        //Get the user content excluding the metadata.
-        //Add the start '~~~' then the ending position plus '~~~'.
-        &file.md[len + end + len..]
-    } else {
-        &file.md
-    };
+        std::fs::write(Self::PATH, template).unwrap();
 
-    let mut pathbuf = file.path.clone();
-    pathbuf.set_extension("html");
+        Self {}
+    }
 
-    file.word_count = body.split(|c: char| c.is_whitespace()).count();
-    file.read_time = file.word_count as f32 / 250.0;
-
-    use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag};
-
-    let parser = Parser::new_ext(
-        &body,
-        Options::ENABLE_FOOTNOTES
-            | Options::ENABLE_TABLES
-            | Options::ENABLE_STRIKETHROUGH
-            | Options::ENABLE_TASKLISTS,
-    );
-
-    let mut lang = String::new();
-    let mut code = false;
-
-    let parser = parser.map(|event| match event {
-        Event::Start(tag) => match tag {
-            Tag::CodeBlock(info) => match info {
-                CodeBlockKind::Fenced(fenced) => {
-                    code = true;
-                    lang = fenced.to_string();
-                    Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(fenced)))
-                }
-                CodeBlockKind::Indented => Event::Start(Tag::CodeBlock(info)),
-            },
-            _ => Event::Start(tag),
-        },
-        Event::End(tag) => match tag {
-            Tag::CodeBlock(info) => {
-                code = false;
-                Event::End(Tag::CodeBlock(info))
-            }
-            _ => Event::End(tag),
-        },
-        Event::Text(text) if code => {
-            if &lang == "math" {
-                todo!();
-            } else {
-                Event::Html(highlighter.highlight(&lang, &text).into())
-            }
-        }
-        _ => event,
-    });
-
-    file.html.clear();
-    pulldown_cmark::html::push_html(&mut file.html, parser);
-
-    //Generate the post using the metadata and html.
-    file.post = template
-        .replace("<!-- title -->", &file.title)
-        .replace("<!-- date -->", &file.post_date)
-        .replace("<!-- content -->", &file.html);
-
-    fs::write(&file.build_path, &file.post).unwrap();
+    fn update(&mut self, index_item_template: &Template, index_template: &Template, posts: &Posts) {
+        info!("Updating Index");
+        *self = Self::new(index_item_template, index_template, posts);
+    }
 }
 
-fn main() {
-    // defer_results!();
+#[derive(Debug, Clone, PartialEq)]
+struct FileWatcher {
+    files: Vec<DirEntry>,
+}
 
-    //For "reasons" site/ is my github pages repo.
-    assert!(Path::new("site").exists());
+impl FileWatcher {
+    pub fn new() -> Self {
+        Self {
+            files: walkdir(USER_MARKDOWN_PATH, 1)
+                .into_iter()
+                .flatten()
+                .filter(|file| !file.is_folder)
+                .filter(|file| file.extension() == Some(&OsStr::new("md")))
+                .collect(),
+        }
+    }
 
-    let mut files: Vec<File> = Vec::new();
-    let mut walk: Vec<DirEntry>;
-    let mut post = template(TEMPLATE_POST);
-    let mut index = template(TEMPLATE_INDEX);
-    let mut item = template(TEMPLATE_ITEM);
-
-    let ts = ThemeSet::load_defaults();
-    let mut highlighter = Highlighter {
-        ss: SyntaxSet::load_defaults_newlines(),
-        theme: ts.themes["base16-ocean.dark"].clone(),
-    };
-
-    let mut rebuild = false;
-    let md = std::ffi::OsStr::new("md");
-    #[allow(unused)]
-    let html = std::ffi::OsStr::new("html");
-
-    loop {
-        post.update(&mut rebuild);
-        index.update(&mut rebuild);
-        item.update(&mut rebuild);
-
-        walk = walkdir(MARKDOWN, 1)
-            .into_iter()
-            .flatten()
-            .filter(|file| !file.is_folder)
-            .filter(|file| file.extension() == Some(&md))
-            .collect();
-
-        if walk.len() != files.len() {
-            files.clear();
-
-            //NOTE: I'd rather do this manually for now, I don't like force deleting files.
-
+    fn update(&mut self) -> bool {
+        let fw = FileWatcher::new();
+        if self != &fw {
+            *self = fw;
             //Delete all the old html files.
             // for file in walkdir(BUILD, 1)
             //     .into_iter()
@@ -313,93 +394,71 @@ fn main() {
             //     info!("Removed file {}", &file.path);
             //     fs::remove_file(&file.path).unwrap();
             // }
+            true
+        } else {
+            false
+        }
+    }
+}
+
+fn main() {
+    //For "reasons" site/ is my github pages repo.
+    assert!(Path::new("site").exists());
+
+    let mut highlighter = Highlighter::new();
+    let mut post_template = Template::new(&POST_TEMPLATE_PATH);
+    let mut index_template = Template::new(&INDEX_TEMPLATE_PATH);
+    let mut index_item_template = Template::new(&INDEX_ITEM_TEMPLATE_PATH);
+
+    let mut file_watcher = FileWatcher::new();
+    let mut posts = Posts::new(&file_watcher, &post_template, &mut highlighter);
+    let mut index = Index::new(&index_item_template, &index_template, &posts);
+
+    // Relationships
+    // Index Template -> Index
+    // Index Item Template -> Index
+    // Post Template -> Posts -> Index
+
+    // Files -> Posts -> Index
+
+    info!("Started watching files");
+
+    loop {
+        //Index Template -> Index
+        if index_template.update() {
+            index.update(&index_item_template, &index_template, &posts);
         }
 
-        //TODO: It seems like last_write is invalid for symlinks...
-        for file in walk {
-            let f = files
-                .iter_mut()
-                .find(|f| f.path.as_path() == Path::new(&file.path));
+        //Index Item Template -> Index
+        if index_item_template.update() {
+            index.update(&index_item_template, &index_template, &posts);
+        }
 
-            match f {
-                //File has changes. Currenty there is no way to read a file without re-allocating.
-                Some(f) if f.last_write != file.last_write => {
-                    info!("Updated contents of {}", f.path.display());
+        //Post Template -> Posts -> Index
+        if post_template.update() {
+            posts = Posts::new(&file_watcher, &post_template, &mut highlighter);
+            index.update(&index_item_template, &index_template, &posts);
+        }
 
-                    rebuild = true;
-                    f.last_write = file.last_write;
-                    f.md = fs::read_to_string(&f.path).unwrap();
-                    metadata(f, &post.data, &mut highlighter);
-                }
-                //File exists and has no changes.
-                Some(_) => {}
-                //File is new.
-                None => {
-                    rebuild = true;
-                    info!("Adding file {}", file.path);
-                    let path = PathBuf::from(&file.path);
-                    let mut file = File {
-                        md: fs::read_to_string(&file.path).unwrap(),
-                        html: String::new(),
-                        post: String::new(),
-                        // Convert "markdown/example.md" to "build/example.html"
-                        build_path: {
-                            let mut name = path.file_name().unwrap().to_str().unwrap().to_string();
-                            name.pop();
-                            name.pop();
-                            name.push_str("html");
-                            PathBuf::from(BUILD).join(name)
-                        },
-                        path,
-                        last_write: file.last_write,
-                        post_date: String::new(),
-                        index_date: String::new(),
-                        title: String::new(),
-                        summary: String::new(),
-                        word_count: 0,
-                        read_time: 0.0,
-                    };
-                    metadata(&mut file, &post.data, &mut highlighter);
-                    files.push(file);
-                }
+        //Files -> Posts -> Index
+        if file_watcher.update() {
+            //TODO: Only add or remove old/new posts. Not everything.
+            posts = Posts::new(&file_watcher, &post_template, &mut highlighter);
+            index.update(&index_item_template, &index_template, &posts);
+        }
+
+        //Posts -> Index
+        let mut post_updated = false;
+        for post in &mut posts.posts {
+            if post.update(&post_template, &mut highlighter) {
+                post_updated = true;
             }
         }
 
-        if rebuild {
-            let index = &index.data;
-            let item = &item.data;
-            let i = index
-                .find("<!-- posts -->")
-                .expect("Couldn't find <!-- posts -->");
-
-            let mut template = index.replace("<!-- posts -->", "");
-
-            // TODO: Implement sorting by d/m/y
-            // files.sort_by(|_a, _b| {
-            //     Ordering::Equal
-            // });
-
-            for file in &files {
-                let item = item
-                    .replace("<!-- title -->", &file.title)
-                    .replace("<!-- summary -->", &file.summary)
-                    .replace("<!-- date -->", &file.index_date)
-                    .replace("<!-- read_time -->", &file.read_time())
-                    .replace("<!-- word_count -->", &file.word_count())
-                    .replace(
-                        "<!-- link -->",
-                        file.build_path.file_name().unwrap().to_str().unwrap(),
-                    );
-
-                template.insert_str(i, &item);
-            }
-
-            info!("Compiled index {}", INDEX);
-            fs::write(INDEX, template).unwrap();
-            rebuild = false;
+        if post_updated {
+            index.update(&index_item_template, &index_template, &posts);
         }
 
-        std::hint::spin_loop();
-        std::thread::sleep(POLL_DURATION);
+        std::thread::sleep(Duration::from_millis(32));
     }
 }
