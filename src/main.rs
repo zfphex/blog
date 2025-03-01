@@ -16,6 +16,11 @@ use syntect::{
 };
 use winwalk::*;
 
+//https://github.com/andresmichel/one-dark-theme
+//https://github.com/erremauro/TwoDark
+const ONEDARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\themes\\OneDark.tmTheme");
+const TWODARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\themes\\TwoDark.tmTheme");
+
 const USER_MARKDOWN_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
 const POST_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
 const INDEX_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index.html");
@@ -29,10 +34,9 @@ struct Highlighter {
 
 impl Highlighter {
     fn new() -> Self {
-        let ts = ThemeSet::load_defaults();
         Self {
             ss: SyntaxSet::load_defaults_newlines(),
-            theme: ts.themes["base16-ocean.dark"].clone(),
+            theme: ThemeSet::get_theme(TWODARK).unwrap(),
         }
     }
     fn highlight(&mut self, lang: &str, code: &str) -> String {

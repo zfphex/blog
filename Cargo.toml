@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-minify = []
 # TODO: Feature flags are broken
 profile = ["mini/profile"]
 info = ["mini/info"]
@@ -19,6 +18,7 @@ syntect = { version = "5.2.0", default-features = false, features = [
     "html",
     "parsing",
     "regex-onig",
+    "plist-load"
 ] }
 mini = { path = "../mini", version = "0.1.0", features = ["info", "profile"] }
 winwalk = { version = "0.2.2", path = "../winwalk" }
