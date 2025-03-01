@@ -26,7 +26,7 @@
 ### Metadata
 
 ```
-title: This is a title 
+title: This is a title
 summary: This is a summary of the post
 date: dd/mm/yy
 ```
@@ -61,31 +61,31 @@ for file in &files {
 
 ```html
 <a class="post" href="<!-- link -->">
-    <div id="title">
-        <span id="hash">#</span>
-        <span id="text"><!-- title --></span>
+  <div id="title">
+    <span id="hash">#</span>
+    <span id="text"><!-- title --></span>
+  </div>
+  <div id="metadata">
+    <div id="metadata-left">
+      <svg>
+        <use xlink:href="#user" />
+      </svg>
+      <span style="padding-right: 4px">Bay</span>
+      <svg>
+        <use xlink:href="#calender" />
+      </svg>
+      <!-- date -->
     </div>
-    <div id="metadata">
-        <div id="metadata-left">
-            <svg>
-                <use xlink:href="#user" />
-            </svg>
-            <span style="padding-right: 4px">Bay</span>
-            <svg>
-                <use xlink:href="#calender" />
-            </svg>
-            <!-- date -->
-        </div>
-        <div id="metadata-right">
-            <svg>
-                <use xlink:href="#clock" />
-            </svg>
-            <!-- read_time -->
-        </div>
+    <div id="metadata-right">
+      <svg>
+        <use xlink:href="#clock" />
+      </svg>
+      <!-- read_time -->
     </div>
-    <summary>
-        <!-- summary -->
-    </summary>
+  </div>
+  <summary>
+    <!-- summary -->
+  </summary>
 </a>
 ```
 
@@ -93,9 +93,9 @@ for file in &files {
 
 - [ ] Github pages favicon
 - [ ] Strip tailwind colors in build css.
-- [ ] Compile math to MathML instead of rendering with javascript. 
+- [ ] Compile math to MathML instead of rendering with javascript.
 - [ ] Improve performance of syntax highlighting.
-- [ ] Table of contents on right-side of post. 
+- [ ] Table of contents on right-side of post.
 - [ ] Use last modified date instead of blake3 hash (if it's faster).
 - [ ] Simplify reference system. I know zola has a system for it.
 - [ ] Since ID's are used a lot, they should be prefixed with something. When creating citations and in post links like [](#blog). There might be some overlap. So change, #post to #zx-post or something. Maybe id's can be localized or something?
@@ -110,3 +110,4 @@ for file in &files {
 - [ ] Just use the creation date instead of user defining it. We might not even need metadata in the markdown files.
 - [ ] Diagram/Graph support. Could use https://github.com/plotters-rs/plotters
 - [ ] Move github icon and back button to center of screen when page is too small.
+- [ ] Many of the example on katex do not work, probably broken in the markdown to html conversion step
