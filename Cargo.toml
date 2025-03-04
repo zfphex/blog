@@ -9,6 +9,7 @@ profile = ["mini/profile"]
 info = ["mini/info"]
 warn = ["mini/warn"]
 error = ["mini/error"]
+tailwind = []
 
 [dependencies]
 pulldown-cmark = { version = "0.9.3" }

@@ -406,6 +406,25 @@ impl FileWatcher {
 }
 
 fn main() {
+    //Start tailwind
+    #[cfg(feature = "tailwind")]
+    std::thread::spawn(|| {
+        //tailwindcss -i templates/input.css -o styles/tailwind.css --watch
+        let mut command = std::process::Command::new("tailwindcss")
+            .args(&[
+                "--cwd",
+                "templates/",
+                // "-i",
+                // "templates/input.css",
+                "-o",
+                "../site/assets/tailwind.css",
+                "--watch",
+            ])
+            .spawn()
+            .unwrap();
+        command.wait().unwrap();
+    });
+
     //For "reasons" site/ is my github pages repo.
     assert!(Path::new("site").exists());
 

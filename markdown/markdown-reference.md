@@ -13,6 +13,8 @@ _Emphasized text_
 
 **_Strong emphasized text_**
 
+[Hyperlink text]()
+
 # H1
 
 ## H2

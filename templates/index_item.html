@@ -1,27 +1,27 @@
 <a class="post" href="<!-- link -->">
-    <div id="title">
-        <span id="hash">#</span>
-        <span id="text"><!-- title --></span>
+  <div style="margin-bottom: 12px; font-weight: bold; font-size: 28px">
+    <span style="color: var(--accent)">#</span>
+    <span id="post-title" style="border-bottom: 3px solid var(--accent)"><!-- title --></span>
+  </div>
+  <div id="metadata" style="font-size: 20px; color: var(--neutral-400); padding-bottom: 12px; display: flex">
+    <div id="metadata-left" style="margin-right: auto; flex-shrink: 0; display: flex; gap: 8px; align-items: center">
+      <svg>
+        <use xlink:href="#user" />
+      </svg>
+      <span style="padding-right: 4px">Bay</span>
+      <svg>
+        <use xlink:href="#calender" />
+      </svg>
+      <!-- date -->
     </div>
-    <div id="metadata">
-        <div id="metadata-left">
-            <svg>
-                <use xlink:href="#user" />
-            </svg>
-            <span style="padding-right: 4px">Bay</span>
-            <svg>
-                <use xlink:href="#calender" />
-            </svg>
-            <!-- date -->
-        </div>
-        <div id="metadata-right">
-            <svg>
-                <use xlink:href="#clock" />
-            </svg>
-            <!-- read_time -->
-        </div>
+    <div id="metadata-right" style="display: flex; align-items: center; gap: 8px">
+      <svg>
+        <use xlink:href="#clock" />
+      </svg>
+      <!-- read_time -->
     </div>
-    <summary>
-        <!-- summary -->
-    </summary>
+  </div>
+  <summary style="font-size: 20px">
+    <!-- summary -->
+  </summary>
 </a>
