@@ -379,7 +379,7 @@ impl FileWatcher {
                 .into_iter()
                 .flatten()
                 .filter(|file| !file.is_folder)
-                .filter(|file| file.extension() == Some(&OsStr::new("md")))
+                .filter(|file| file.extension() == Some(OsStr::new("md")))
                 .collect(),
         }
     }
