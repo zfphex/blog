@@ -45,12 +45,13 @@
       border-radius: 6px;
 
       transition: transform 120ms;
-
       /* Stops the text from wobbling around. */
-      backface-visibility: hidden;
-      -webkit-font-smoothing: subpixel-antialiased;
+      will-change: transform;
 
-      overflow: hidden;
+      /* Legacy attempts to fix wobbling text. */
+      /* backface-visibility: hidden;
+      -webkit-font-smoothing: subpixel-antialiased;
+      overflow: hidden; */
     }
 
     .post:hover {
