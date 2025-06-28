@@ -1,88 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Layout - zfphex.dev</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="preload" href="assets/style.css" as="style" />
-    <link rel="stylesheet" href="assets/style.css" />
+<head>
+  <title>Layout - zfphex.dev</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <link rel="stylesheet" href="assets/katex/katex.min.css" />
+  <link rel="preload" href="assets/style.css" as="style" />
+  <link rel="stylesheet" href="assets/style.css" />
 
-    <script type="module" src="assets/lite-youtube.js"></script>
+  <link rel="stylesheet" href="assets/katex/katex.min.css" />
 
-    <script defer src="assets/katex/katex.min.js"></script>
-    <script defer src="assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        renderMathInElement(document.body, {
-          // customised options
-          // • auto-render specific keys, e.g.:
-          delimiters: [
-            { left: "$$", right: "$$", display: true },
-            { left: "$", right: "$", display: false },
-            { left: "\\(", right: "\\)", display: false },
-            { left: "\\[", right: "\\]", display: true },
-          ],
-          // • rendering keys, e.g.:
-          throwOnError: false,
-        });
+  <script type="module" src="assets/lite-youtube.js"></script>
+
+  <script defer src="assets/katex/katex.min.js"></script>
+  <script defer src="assets/katex/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.body, {
+        // customised options
+        // • auto-render specific keys, e.g.:
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
+          { left: "\\[", right: "\\]", display: true },
+        ],
+        // • rendering keys, e.g.:
+        throwOnError: false,
       });
-    </script>
-  </head>
+    });
+  </script>
+</head>
 
-  <style>
-    /* TODO: Check if old hyperlink styling looks better */
-    /* a {
+<style>
+  /* TODO: Check if old hyperlink styling looks better */
+  /* a {
       color: var(--sky-300);
       border-bottom: 0;
       padding-bottom: 0;
     } */
 
-    a:hover {
-      color: var(--neutral-400);
-    }
+  a:hover {
+    color: var(--neutral-400);
+  }
 
-    #title {
-      color: var(--text);
-    }
+  #title {
+    color: var(--text);
+  }
 
-    #title:hover {
-      color: var(--neutral-400);
-    }
+  #title:hover {
+    color: var(--neutral-400);
+  }
 
-    #title:before {
-      content: "";
-    }
+  #title:before {
+    content: "";
+  }
 
-    /* User can manually center images in their markdown files */
-    /* TODO: Maybe handle this for the user */
-    .center {
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-  </style>
+  /* User can manually center images in their markdown files */
+  /* TODO: Maybe handle this for the user */
+  .center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
 
-  <body>
-    <div id="grid" style="padding: 0; display: grid; grid-template-columns: 1fr minmax(0px, 950px) 1fr; grid-template-rows: 1fr auto">
-      <div></div>
-      <div style="border-radius: 6px; padding: 8px">
-        <div id="post">
-          <a
-            id="title"
-            href="index.html"
-            style="font-size: 44px; font-weight: bold; line-height: 100%; margin-top: 16px; margin-bottom: 0; border-bottom: 0; padding-bottom: 0"
-          >
-            <!-- title -->
-            <div style="font-size: 18px; color: var(--neutral-400); letter-spacing: -0.5px">
-              Posted <time><!-- date --></time>
-            </div>
-          </a>
-          <!-- content -->
-        </div>
+<body>
+  <div id="grid"
+    style="padding: 0; display: grid; grid-template-columns: 1fr minmax(0px, 950px) 1fr; grid-template-rows: 1fr auto">
+    <div></div>
+    <div style="border-radius: 6px; padding: 8px">
+      <div id="post">
+        <a id="title" href="index.html"
+          style="font-size: 44px; font-weight: bold; line-height: 100%; margin-top: 16px; margin-bottom: 0; border-bottom: 0; padding-bottom: 0">
+          <!-- title -->
+          <div style="font-size: 18px; color: var(--neutral-400); letter-spacing: -0.5px">
+            Posted <time><!-- date --></time>
+          </div>
+        </a>
+        <!-- content -->
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
