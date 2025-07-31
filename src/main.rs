@@ -28,8 +28,6 @@ fn last_write_time(path: impl AsRef<Path>) -> u64 {
     metadata(path).unwrap().last_write_time()
 }
 
-// use winwalk::*;
-
 //https://github.com/andresmichel/one-dark-theme
 //https://github.com/erremauro/TwoDark
 const ONEDARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/themes/OneDark.tmTheme");
@@ -327,16 +325,18 @@ impl Posts {
         highlighter: &mut Highlighter,
     ) -> Self {
         Self {
+            #[cfg(target_os = "macos")]
             posts: file_watcher
                 .files
                 .iter()
                 .flat_map(|file| Post::new(Path::new(&file.path()), post_template, highlighter))
                 .collect(),
-            // posts: file_watcher
-            //     .files
-            //     .iter()
-            //     .flat_map(|file| Post::new(Path::new(&file.path), post_template, highlighter))
-            //     .collect(),
+            #[cfg(target_os = "windows")]
+            posts: file_watcher
+                .files
+                .iter()
+                .flat_map(|file| Post::new(Path::new(&file.path), post_template, highlighter))
+                .collect(),
         }
     }
 }
@@ -386,11 +386,14 @@ impl Index {
     }
 }
 
-//walkdir does not implement partial eq.
+// walkdir does not implement partial eq.
 // #[derive(PartialEq)]
+
 #[derive(Debug, Clone)]
 struct FileWatcher {
-    // files: Vec<DirEntry>,
+    #[cfg(target_os = "windows")]
+    files: Vec<winwalk::DirEntry>,
+    #[cfg(target_os = "macos")]
     files: Vec<walkdir::DirEntry>,
 }
 
@@ -406,6 +409,7 @@ impl PartialEq for FileWatcher {
 impl FileWatcher {
     pub fn new() -> Self {
         Self {
+            #[cfg(target_os = "macos")]
             files: walkdir::WalkDir::new(USER_MARKDOWN_PATH)
                 .max_depth(1)
                 .into_iter()
@@ -413,12 +417,13 @@ impl FileWatcher {
                 .filter(|file| !file.path().is_dir())
                 .filter(|file| file.path().extension() == Some(OsStr::new("md")))
                 .collect(),
-            // files: walkdir(USER_MARKDOWN_PATH, 1)
-            //     .into_iter()
-            //     .flatten()
-            //     .filter(|file| !file.is_folder)
-            //     .filter(|file| file.extension() == Some(OsStr::new("md")))
-            //     .collect(),
+            #[cfg(target_os = "windows")]
+            files: winwalk::walkdir(USER_MARKDOWN_PATH, 1)
+                .into_iter()
+                .flatten()
+                .filter(|file| !file.is_folder)
+                .filter(|file| file.extension() == Some(OsStr::new("md")))
+                .collect(),
         }
     }
 
