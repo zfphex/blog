@@ -3,7 +3,6 @@ use mini::*;
 use std::{
     ffi::OsStr,
     fs::{metadata, read_to_string},
-    os::windows::fs::MetadataExt,
     path::{Path, PathBuf},
     time::Duration,
 };
@@ -14,18 +13,33 @@ use syntect::{
     parsing::SyntaxSet,
     util::LinesWithEndings,
 };
-use winwalk::*;
+
+#[cfg(target_os = "macos")]
+fn last_write_time(path: impl AsRef<Path>) -> u64 {
+    use std::os::macos::fs::MetadataExt;
+
+    //TODO: This should be converted to a platform agnostic version.
+    metadata(path).unwrap().st_birthtime() as u64
+}
+
+#[cfg(target_os = "windows")]
+fn last_write_time(path: impl AsRef<Path>) -> u64 {
+    use std::os::windows::fs::MetadataExt;
+    metadata(path).unwrap().last_write_time()
+}
+
+// use winwalk::*;
 
 //https://github.com/andresmichel/one-dark-theme
 //https://github.com/erremauro/TwoDark
-const ONEDARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\themes\\OneDark.tmTheme");
-const TWODARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\themes\\TwoDark.tmTheme");
+const ONEDARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/themes/OneDark.tmTheme");
+const TWODARK: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/themes/TwoDark.tmTheme");
 
-const USER_MARKDOWN_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\markdown");
-const POST_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\post.html");
-const INDEX_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index.html");
+const USER_MARKDOWN_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/markdown");
+const POST_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/post.html");
+const INDEX_TEMPLATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/templates/index.html");
 const INDEX_ITEM_TEMPLATE_PATH: &str =
-    concat!(env!("CARGO_MANIFEST_DIR"), "\\templates\\index_item.html");
+    concat!(env!("CARGO_MANIFEST_DIR"), "/templates/index_item.html");
 
 struct Highlighter {
     ss: SyntaxSet,
@@ -68,12 +82,12 @@ impl Template {
     fn new(path: &'static str) -> Self {
         Self {
             data: read_to_string(path).unwrap(),
-            last_write: metadata(path).unwrap().last_write_time(),
+            last_write: last_write_time(path),
             path,
         }
     }
     fn update(&mut self) -> bool {
-        let last_write = metadata(self.path).unwrap().last_write_time();
+        let last_write = last_write_time(self.path);
         if self.last_write != last_write {
             info!("Building template {}", self.path);
             self.last_write = last_write;
@@ -99,7 +113,7 @@ struct Post {
 }
 
 impl Post {
-    const BUILD_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site");
+    const BUILD_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/site");
 
     fn new(path: &Path, post_template: &Template, highlighter: &mut Highlighter) -> Option<Self> {
         info!("Building post {}", path.to_string_lossy());
@@ -263,7 +277,7 @@ impl Post {
 
         Some(Self {
             path: PathBuf::from(path),
-            last_write: metadata(path).unwrap().last_write_time(),
+            last_write: last_write_time(path),
             build_path,
             post_date,
             index_date,
@@ -288,7 +302,7 @@ impl Post {
         }
     }
     fn update(&mut self, post_template: &Template, highlighter: &mut Highlighter) -> bool {
-        let last_write = metadata(&self.path).unwrap().last_write_time();
+        let last_write = last_write_time(&self.path);
         if last_write != self.last_write {
             info!("Building post {}", self.path.to_string_lossy());
             if let Some(new) = Self::new(&self.path, post_template, highlighter) {
@@ -316,8 +330,13 @@ impl Posts {
             posts: file_watcher
                 .files
                 .iter()
-                .flat_map(|file| Post::new(Path::new(&file.path), post_template, highlighter))
+                .flat_map(|file| Post::new(Path::new(&file.path()), post_template, highlighter))
                 .collect(),
+            // posts: file_watcher
+            //     .files
+            //     .iter()
+            //     .flat_map(|file| Post::new(Path::new(&file.path), post_template, highlighter))
+            //     .collect(),
         }
     }
 }
@@ -325,7 +344,7 @@ impl Posts {
 struct Index {}
 
 impl Index {
-    const PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "\\site\\index.html");
+    const PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/site/index.html");
 
     fn new(index_item_template: &Template, index_template: &Template, posts: &Posts) -> Self {
         let index_template = &index_template.data;
@@ -367,20 +386,39 @@ impl Index {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+//walkdir does not implement partial eq.
+// #[derive(PartialEq)]
+#[derive(Debug, Clone)]
 struct FileWatcher {
-    files: Vec<DirEntry>,
+    // files: Vec<DirEntry>,
+    files: Vec<walkdir::DirEntry>,
+}
+
+impl PartialEq for FileWatcher {
+    fn eq(&self, other: &Self) -> bool {
+        //TODO: Delete this.
+        let paths: Vec<&Path> = self.files.iter().map(|file| file.path()).collect();
+        let other_paths: Vec<&Path> = other.files.iter().map(|file| file.path()).collect();
+        paths == other_paths
+    }
 }
 
 impl FileWatcher {
     pub fn new() -> Self {
         Self {
-            files: walkdir(USER_MARKDOWN_PATH, 1)
+            files: walkdir::WalkDir::new(USER_MARKDOWN_PATH)
+                .max_depth(1)
                 .into_iter()
                 .flatten()
-                .filter(|file| !file.is_folder)
-                .filter(|file| file.extension() == Some(OsStr::new("md")))
+                .filter(|file| !file.path().is_dir())
+                .filter(|file| file.path().extension() == Some(OsStr::new("md")))
                 .collect(),
+            // files: walkdir(USER_MARKDOWN_PATH, 1)
+            //     .into_iter()
+            //     .flatten()
+            //     .filter(|file| !file.is_folder)
+            //     .filter(|file| file.extension() == Some(OsStr::new("md")))
+            //     .collect(),
         }
     }
 
@@ -425,8 +463,10 @@ fn main() {
         command.wait().unwrap();
     });
 
-    //For "reasons" site/ is my github pages repo.
-    assert!(Path::new("site").exists());
+    //TODO: Pull some things out of site it shouldn't be needed to run.
+    if !Path::new("site").exists() {
+        panic!("git clone git@github.com:zfphex/zfphex.dev.git site")
+    }
 
     let mut highlighter = Highlighter::new();
     let mut post_template = Template::new(&POST_TEMPLATE_PATH);
