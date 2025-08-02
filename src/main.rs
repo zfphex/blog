@@ -386,9 +386,6 @@ impl Index {
     }
 }
 
-// walkdir does not implement partial eq.
-// #[derive(PartialEq)]
-
 #[derive(Debug, Clone)]
 struct FileWatcher {
     #[cfg(target_os = "windows")]
@@ -397,9 +394,17 @@ struct FileWatcher {
     files: Vec<walkdir::DirEntry>,
 }
 
+#[cfg(target_os = "windows")]
 impl PartialEq for FileWatcher {
     fn eq(&self, other: &Self) -> bool {
-        //TODO: Delete this.
+        self.files == other.files && self.files == other.files
+    }
+}
+
+// walkdir does not implement partial eq.
+#[cfg(target_os = "macos")]
+impl PartialEq for FileWatcher {
+    fn eq(&self, other: &Self) -> bool {
         let paths: Vec<&Path> = self.files.iter().map(|file| file.path()).collect();
         let other_paths: Vec<&Path> = other.files.iter().map(|file| file.path()).collect();
         paths == other_paths
