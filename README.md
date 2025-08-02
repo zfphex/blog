@@ -12,8 +12,6 @@
 
 ### Design
 
-> Currently only Windows is supported.
-
 ```
 /src - site generator
 /markdown - stores markdown files that will be compiled
